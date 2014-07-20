@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import sys, os, re, time
+import sys, os, re, time, urllib
 
 BUFSIZ = 8192
 delay = 0.100 # seconds
@@ -17,20 +17,37 @@ def debug_enabled():
 	return False
 
 def e(data):
-	return data.encode('string-escape')
+	if data:
+		return data.encode('string-escape')
+	else:
+		return "''"
 
 def logger(severity, message):
-	if \
-	'err'  == severity or \
-	'warn' == severity or \
-	'info' == severity:
-		sys.stderr.write(e(sys.argv[0] + ': ' + message) + '\n')
+#	sev = ( 'err', 'warn', 'info' )
+#	if severity in sev:
+	sys.stderr.write(e('%s: %s: %s' %(sys.argv[0], severity, message)) + '\n')
+
+def fetch_page(url):
+	logger('info', 'fetching page ' + url)
+	response = urllib.urlopen(url)
+	html = response.read(BUFSIZ)
+	response.close()
+	return html
+
+def extract_title(url):
+	logger('info', 'extracting title from ' + url)
+	html = fetch_page(url)
+	result = re.match(r'.*?<title.*?>(.*?)</title>.*?', html, re.S|re.M)
+	if result:
+		return result.groups()[0]
 
 def extract_url(data):
 	result = re.findall("(https?://[^\s]+)", data)
 	if result:
 		for r in result:
-			message = '/say yeah, URL found: %s' % e(r)
+			title = extract_title(r)
+
+			message = '/say Title: %s: %s' % (title, e(r))
 			logger('info', 'printing ' + message)
 
 			if debug_enabled():
