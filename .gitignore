@@ -1,0 +1,4 @@
+.*swp
+cmdfifo
+logs/
+event_files/
