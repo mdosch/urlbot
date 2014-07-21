@@ -51,13 +51,13 @@ def extract_title(url):
 		if result:
 			return result.groups()[0]
 
-def chat_write(message):
+def chat_write(message, prefix='/say '):
 	if debug_enabled():
 		print message
 	else:
 		try:
 			fd = open(fifo_path, 'wb')
-			fd.write('/say ' + message)
+			fd.write(prefix + message)
 			fd.close()
 		except IOError:
 			logger('err', "couldn't print to fifo " + fifo_path)
@@ -86,7 +86,7 @@ def extract_url(data):
 			if title:
 				message = 'Title: %s: %s' % (title, e(r))
 			else:
-				message = 'some error occured when fetching %s' % e(r)
+				message = 'some error occurred when fetching %s' % e(r)
 
 			logger('info', 'printing ' + message)
 			chat_write(message)
@@ -94,12 +94,16 @@ def extract_url(data):
 def parse_commands(data):
 	words = data.split(' ')
 
-	if 3 > len(words): # need at least two words
+	if 2 > len(words): # need at least two words
 		return
 
 	# reply if beginning of the text matches bot_user
 	if words[1][0:len(bot_user)] == bot_user:
-		chat_write(words[0][1:-1] + ''': I'm a bot, my job is to extract <title> tags from posted URLs. In case I'm annoying or for further questions, please talk to my master Cae.''')
+		if 'hangup' in data:
+			chat_write('', prefix='/quit')
+			logger('warn', 'received hangup: ' + data)
+		else:
+			chat_write(words[0][1:-1] + ''': I'm a bot, my job is to extract <title> tags from posted URLs. In case I'm annoying or for further questions, please talk to my master Cae. I'm rate limited and shouldn't post more than %d messages per %d seconds. To make me exit immediately, highlight me with 'hangup' in the message (emergency only, please).''' %(hist_max_count, hist_max_time))
 
 def parse_delete(filepath):
 	try:
@@ -111,8 +115,9 @@ def parse_delete(filepath):
 	content = fd.read(BUFSIZ) # ignore more than BUFSIZ
 
 	if content[1:1+len(bot_user)] != bot_user:
-		extract_url(content)
-		parse_commands(content)
+		if not 'Willkommen bei debianforum.de' in content:
+			extract_url(content)
+			parse_commands(content)
 
 	fd.close()
 
