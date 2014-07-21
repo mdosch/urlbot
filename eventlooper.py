@@ -83,7 +83,7 @@ def ratelimit_exceeded():
 	return False
 
 def extract_url(data):
-	result = re.findall("(https?://[^\s]+)", data)
+	result = re.findall("(https?://[^\s>]+)", data)
 	if result:
 		for r in result:
 			if ratelimit_exceeded():
