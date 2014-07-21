@@ -36,7 +36,7 @@ def fetch_page(url):
 	logger('info', 'fetching page ' + url)
 	try:
 		response = urllib.urlopen(url)
-		html = response.read(BUFSIZ)
+		html = response.read(BUFSIZ) # ignore more than BUFSIZ
 		response.close()
 		return html
 	except IOError as e:
@@ -52,12 +52,15 @@ def extract_title(url):
 			return result.groups()[0]
 
 def chat_write(message):
-	try:
-		fd = open(fifo_path, 'wb')
-		fd.write('/say ' + message)
-		fd.close()
-	except IOError:
-		logger('err', "couldn't print to fifo " + fifo_path)
+	if debug_enabled():
+		print message
+	else:
+		try:
+			fd = open(fifo_path, 'wb')
+			fd.write('/say ' + message)
+			fd.close()
+		except IOError:
+			logger('err', "couldn't print to fifo " + fifo_path)
 
 def ratelimit_exceeded():
 	now = time.time()
@@ -86,11 +89,7 @@ def extract_url(data):
 				message = 'some error occured when fetching %s' % e(r)
 
 			logger('info', 'printing ' + message)
-
-			if debug_enabled():
-				print message
-			else:
-				chat_write(message)
+			chat_write(message)
 
 def parse_commands(data):
 	words = data.split(' ')
@@ -105,9 +104,9 @@ def parse_commands(data):
 def parse_delete(filepath):
 	try:
 		fd = open(filepath, 'rb')
-	except:
+	except IOError:
 		logger('err', 'file has vanished: ' + filepath)
-		return -1
+		return False
 
 	content = fd.read(BUFSIZ) # ignore more than BUFSIZ
 
