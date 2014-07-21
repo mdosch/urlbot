@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import sys, os, re, time, urllib
+import sys, os, re, time, urllib, pickle
 
 BUFSIZ = 8192
 delay = 0.100 # seconds
@@ -11,6 +11,11 @@ if 2 == len(sys.argv): basedir = sys.argv[1]
 
 event_files_dir = os.path.join(basedir, 'event_files')
 fifo_path = os.path.join(basedir, 'cmdfifo')
+
+# rate limiting to 5 messages per 10 minutes
+hist_max_count = 5
+hist_max_time  = 10 * 60
+hist_ts = []
 
 def debug_enabled():
 #	return True
@@ -54,10 +59,25 @@ def chat_write(message):
 	except IOError:
 		logger('err', "couldn't print to fifo " + fifo_path)
 
+def ratelimit_exceeded():
+	now = time.time()
+	hist_ts.append(now)
+
+	if hist_max_count < len(hist_ts):
+		first = hist_ts.pop(0)
+		if (now - first) < hist_max_time:
+			logger('warn', 'rate limiting exceeded: ' + pickle.dumps(hist_ts))
+			return True
+
+	return False
+
 def extract_url(data):
 	result = re.findall("(https?://[^\s]+)", data)
 	if result:
 		for r in result:
+			if ratelimit_exceeded():
+				return False
+
 			title = extract_title(r)
 
 			if title:
