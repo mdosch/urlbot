@@ -29,17 +29,22 @@ def logger(severity, message):
 
 def fetch_page(url):
 	logger('info', 'fetching page ' + url)
-	response = urllib.urlopen(url)
-	html = response.read(BUFSIZ)
-	response.close()
-	return html
+	try:
+		response = urllib.urlopen(url)
+		html = response.read(BUFSIZ)
+		response.close()
+		return html
+	except IOError as e:
+		logger('warn', 'failed: ' + e.errno)
 
 def extract_title(url):
 	logger('info', 'extracting title from ' + url)
+
 	html = fetch_page(url)
-	result = re.match(r'.*?<title.*?>(.*?)</title>.*?', html, re.S|re.M)
-	if result:
-		return result.groups()[0]
+	if html:
+		result = re.match(r'.*?<title.*?>(.*?)</title>.*?', html, re.S|re.M)
+		if result:
+			return result.groups()[0]
 
 def chat_write(message):
 	try:
@@ -55,7 +60,11 @@ def extract_url(data):
 		for r in result:
 			title = extract_title(r)
 
-			message = 'Title: %s: %s' % (title, e(r))
+			if title:
+				message = 'Title: %s: %s' % (title, e(r))
+			else:
+				message = 'some error occured when fetching %s' % e(r)
+
 			logger('info', 'printing ' + message)
 
 			if debug_enabled():
