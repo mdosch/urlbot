@@ -16,6 +16,7 @@ fifo_path = os.path.join(basedir, 'cmdfifo')
 hist_max_count = 5
 hist_max_time  = 10 * 60
 hist_ts = []
+hist_flag = True
 
 def debug_enabled():
 #	return True
@@ -63,15 +64,22 @@ def chat_write(message, prefix='/say '):
 			logger('err', "couldn't print to fifo " + fifo_path)
 
 def ratelimit_exceeded():
+	global hist_flag
+
 	now = time.time()
 	hist_ts.append(now)
 
 	if hist_max_count < len(hist_ts):
 		first = hist_ts.pop(0)
 		if (now - first) < hist_max_time:
+			if hist_flag:
+				hist_flag = False
+				chat_write('(rate limited to %d messages in %d seconds)' %(hist_max_count, hist_max_time))
+
 			logger('warn', 'rate limiting exceeded: ' + pickle.dumps(hist_ts))
 			return True
 
+	hist_flag = True
 	return False
 
 def extract_url(data):
