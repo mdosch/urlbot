@@ -75,6 +75,9 @@ def extract_url(data):
 def parse_commands(data):
 	words = data.split(' ')
 
+	if 3 > len(words): # need at least two words
+		return
+
 	# reply if beginning of the text matches bot_user
 	if words[1][0:len(bot_user)] == bot_user:
 		chat_write(words[0][1:-1] + ''': I'm a bot, my job is to extract <title> tags from posted URLs. In case I'm annoying or for further questions, please talk to my master Cae.''')
