@@ -92,9 +92,11 @@ def extract_url(data):
 			title = extract_title(r)
 
 			if title:
-				message = 'Title: %s: %s' % (title, e(r))
+				message = 'Title: %s: %s' % (title.strip(), e(r))
 			else:
 				message = 'some error occurred when fetching %s' % e(r)
+
+			message = message.replace('\n', '\\n')
 
 			logger('info', 'printing ' + message)
 			chat_write(message)
