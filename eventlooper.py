@@ -116,8 +116,12 @@ def parse_commands(data):
 			logger('warn', 'received hangup: ' + data)
 		elif 'ping' in data:
 			if ratelimit_exceeded(): return False
-			chat_write(reply_user + ''': pong''')
-			logger('info', 'sent pong')
+			if (0 == (int(time.time()) & 3)): # 1:4
+				chat_write(reply_user + ''': peng (You're dead now.)''')
+				logger('info', 'sent pong (variant)')
+			else:
+				chat_write(reply_user + ''': pong''')
+				logger('info', 'sent pong')
 		else:
 			if ratelimit_exceeded(): return False
 			chat_write(reply_user + (''': I'm a bot, my job is to extract <title> tags from posted URLs. In case I'm annoying or for further questions, please talk to my master Cae. I'm rate limited and shouldn't post more than %d messages per %d seconds. To make me exit immediately, highlight me with 'hangup' in the message (emergency only, please).''' %(hist_max_count, hist_max_time)))
@@ -140,6 +144,21 @@ def parse_delete(filepath):
 	fd.close()
 
 	os.remove(filepath) # probably better crash here
+
+def print_version_git():
+	import subprocess, sys
+
+	cmd = ['git', 'log', '-n', '1', '--oneline', '--abbrev-commit']
+
+	p = subprocess.Popen(cmd, bufsize=1, stdout=subprocess.PIPE)
+	first_line = p.stdout.readline()
+
+	if 0 == p.wait():
+		print sys.argv[0] + " version (Git) '%s'" % first_line.strip()
+	else:
+		print sys.argv[0] + " (unknown version)"
+
+print_version_git()
 
 while 1:
 	try:
