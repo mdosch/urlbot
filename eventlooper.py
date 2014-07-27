@@ -39,18 +39,22 @@ def fetch_page(url):
 		response = urllib.urlopen(url)
 		html = response.read(BUFSIZ) # ignore more than BUFSIZ
 		response.close()
-		return html
+		return (html, response.headers)
 	except IOError as e:
 		logger('warn', 'failed: ' + e.errno)
 
 def extract_title(url):
 	logger('info', 'extracting title from ' + url)
 
-	html = fetch_page(url)
+	(html, headers) = fetch_page(url)
 	if html:
+		if 'content-type' in headers:
+			if 'text/' != headers['content-type'][:len('text/')]:
+				return (1, headers['content-type'])
+
 		result = re.match(r'.*?<title.*?>(.*?)</title>.*?', html, re.S|re.M)
 		if result:
-			return result.groups()[0]
+			return (0, result.groups()[0])
 
 def chat_write(message, prefix='/say '):
 	if debug_enabled():
@@ -89,12 +93,21 @@ def extract_url(data):
 			if ratelimit_exceeded():
 				return False
 
-			title = extract_title(r)
+			(status, title) = extract_title(r)
 
-			if title:
-				message = 'Title: %s: %s' % (title.strip(), e(r))
+			if 0 == status:
+				if title:
+					message = 'Title: %s: %s' % (title.strip(), e(r))
+				else:
+					message = 'some error occurred when fetching %s' % e(r)
 			else:
-				message = 'some error occurred when fetching %s' % e(r)
+				# of course it's fake, but it looks interesting at least
+				char = """,._-+=\|/*`~"'"""
+				message = 'No text but %s, 1-bit ASCII art preview: [%c] %s' %(
+					e(title),
+					char[int(time.time() % len(char))],
+					e(r)
+				)
 
 			message = message.replace('\n', '\\n')
 
