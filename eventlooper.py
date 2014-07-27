@@ -109,11 +109,19 @@ def parse_commands(data):
 
 	# reply if beginning of the text matches bot_user
 	if words[1][0:len(bot_user)] == bot_user:
+		reply_user = words[0][1:-1]
+
 		if 'hangup' in data:
 			chat_write('', prefix='/quit')
 			logger('warn', 'received hangup: ' + data)
+		elif 'ping' in data:
+			if ratelimit_exceeded(): return False
+			chat_write(reply_user + ''': pong''')
+			logger('info', 'sent pong')
 		else:
-			chat_write(words[0][1:-1] + ''': I'm a bot, my job is to extract <title> tags from posted URLs. In case I'm annoying or for further questions, please talk to my master Cae. I'm rate limited and shouldn't post more than %d messages per %d seconds. To make me exit immediately, highlight me with 'hangup' in the message (emergency only, please).''' %(hist_max_count, hist_max_time))
+			if ratelimit_exceeded(): return False
+			chat_write(reply_user + (''': I'm a bot, my job is to extract <title> tags from posted URLs. In case I'm annoying or for further questions, please talk to my master Cae. I'm rate limited and shouldn't post more than %d messages per %d seconds. To make me exit immediately, highlight me with 'hangup' in the message (emergency only, please).''' %(hist_max_count, hist_max_time)))
+			logger('info', 'sent info')
 
 def parse_delete(filepath):
 	try:
