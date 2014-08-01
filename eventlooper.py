@@ -114,6 +114,30 @@ def extract_url(data):
 			logger('info', 'printing ' + message)
 			chat_write(message)
 
+def mental_ill(data):
+	min_ill = 3;
+	c = 0;
+
+	# return True for min_ill '!' in a row
+	for d in data:
+		if '!' == d or '?' == d:
+			c += 1
+		else:
+			c = 0;
+		if (min_ill <= c):
+			return True
+	
+	return False
+
+def parse_other(data):
+	reply_user = data.split(' ')[0].strip('<>')
+
+	if True == mental_ill(data):
+		if ratelimit_exceeded(): return False
+		chat_write('''Multiple exclamation/question marks are a sure sign of mental disease, with %s as a living example.''' % reply_user)
+
+	return True
+
 def parse_commands(data):
 	words = data.split(' ')
 
@@ -122,7 +146,7 @@ def parse_commands(data):
 
 	# reply if beginning of the text matches bot_user
 	if words[1][0:len(bot_user)] == bot_user:
-		reply_user = words[0][1:-1]
+		reply_user = words[0].strip('<>')
 
 		if 'hangup' in data:
 			chat_write('', prefix='/quit')
@@ -153,6 +177,7 @@ def parse_delete(filepath):
 		if not 'Willkommen bei debianforum.de' in content:
 			extract_url(content)
 			parse_commands(content)
+			parse_other(content)
 
 	fd.close()
 
