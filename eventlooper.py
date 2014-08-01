@@ -115,15 +115,15 @@ def extract_url(data):
 			chat_write(message)
 
 def mental_ill(data):
-	min_ill = 3;
-	c = 0;
+	min_ill = 3
+	c = 0
 
 	# return True for min_ill '!' in a row
 	for d in data:
 		if '!' == d or '?' == d:
 			c += 1
 		else:
-			c = 0;
+			c = 0
 		if (min_ill <= c):
 			return True
 	
