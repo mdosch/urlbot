@@ -55,6 +55,10 @@ def extract_title(url):
 		result = re.match(r'.*?<title.*?>(.*?)</title>.*?', html, re.S|re.M)
 		if result:
 			return (0, result.groups()[0])
+		else:
+			return (2, 'no title')
+	
+	return (-1, 'error')
 
 def chat_write(message, prefix='/say '):
 	if debug_enabled():
@@ -96,11 +100,8 @@ def extract_url(data):
 			(status, title) = extract_title(r)
 
 			if 0 == status:
-				if title:
-					message = 'Title: %s: %s' % (title.strip(), e(r))
-				else:
-					message = 'some error occurred when fetching %s' % e(r)
-			else:
+				message = 'Title: %s: %s' % (title.strip(), e(r))
+			elif 1 == status:
 				# of course it's fake, but it looks interesting at least
 				char = """,._-+=\|/*`~"'"""
 				message = 'No text but %s, 1-bit ASCII art preview: [%c] %s' %(
@@ -108,6 +109,10 @@ def extract_url(data):
 					char[int(time.time() % len(char))],
 					e(r)
 				)
+			elif 2 == status:
+				message = 'No title: %s' % (e(r))
+			else:
+				message = 'some error occurred when fetching %s' % e(r)
 
 			message = message.replace('\n', '\\n')
 
