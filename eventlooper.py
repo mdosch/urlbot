@@ -17,6 +17,8 @@ hist_max_count = 5
 hist_max_time  = 10 * 60
 hist_ts = []
 hist_flag = True
+uptime = -time.time()
+request_counter = 0
 
 def debug_enabled():
 #	return True
@@ -61,6 +63,9 @@ def extract_title(url):
 	return (-1, 'error')
 
 def chat_write(message, prefix='/say '):
+	global request_counter
+	request_counter += 1
+
 	if debug_enabled():
 		print message
 	else:
@@ -156,6 +161,18 @@ def parse_commands(data):
 		if 'hangup' in data:
 			chat_write('', prefix='/quit')
 			logger('warn', 'received hangup: ' + data)
+		elif 'uptime' in data:
+			if ratelimit_exceeded(): return False
+
+			u = int(uptime + time.time())
+			plural_uptime = 's'
+			plural_request = 's'
+
+			if 1 == u: plural_uptime = ''
+			if 1 == request_counter: plural_request = ''
+
+			chat_write(reply_user + (''': happily serving for %d second%s, %d request%s so far.''' %(u, plural_uptime, request_counter, plural_request)))
+			logger('info', 'sent statistics')
 		elif 'ping' in data:
 			if ratelimit_exceeded(): return False
 			if (0 == (int(time.time()) & 3)): # 1:4
