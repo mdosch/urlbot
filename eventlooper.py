@@ -96,6 +96,7 @@ def ratelimit_exceeded():
 	return False
 
 def extract_url(data):
+	ret = None
 	result = re.findall("(https?://[^\s>]+)", data)
 	if result:
 		for r in result:
@@ -123,6 +124,8 @@ def extract_url(data):
 
 			logger('info', 'printing ' + message)
 			chat_write(message)
+			ret = True
+	return ret
 
 def mental_ill(data):
 	min_ill = 3
@@ -197,9 +200,9 @@ def parse_delete(filepath):
 
 	if content[1:1+len(bot_user)] != bot_user:
 		if not 'Willkommen bei debianforum.de' in content:
-			extract_url(content)
-			parse_commands(content)
-			parse_other(content)
+			if True != extract_url(content):
+				parse_commands(content)
+				parse_other(content)
 
 	fd.close()
 
