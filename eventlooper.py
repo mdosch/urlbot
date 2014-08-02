@@ -87,7 +87,7 @@ def ratelimit_exceeded():
 		if (now - first) < hist_max_time:
 			if hist_flag:
 				hist_flag = False
-				chat_write('(rate limited to %d messages in %d seconds)' %(hist_max_count, hist_max_time))
+				chat_write('(rate limited to %d messages in %d seconds, try again at %s)' %(hist_max_count, hist_max_time, time.strftime('%T %Z', time.localtime(hist_ts[0] + hist_max_time))))
 
 			logger('warn', 'rate limiting exceeded: ' + pickle.dumps(hist_ts))
 			return True
