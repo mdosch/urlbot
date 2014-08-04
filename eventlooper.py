@@ -35,9 +35,13 @@ def logger(severity, message):
 #	if severity in sev:
 	sys.stderr.write(e('%s: %s: %s' %(sys.argv[0], severity, message)) + '\n')
 
+class urllib_user_agent_wrapper(urllib.FancyURLopener):
+	version = '''Mozilla/5.0 (X11; Linux x86_64; rv:31.0) Gecko/20100101 Firefox/31.0 Iceweasel/31.0'''
+
 def fetch_page(url):
 	logger('info', 'fetching page ' + url)
 	try:
+		urllib._urlopener = urllib_user_agent_wrapper()
 		response = urllib.urlopen(url)
 		html = response.read(BUFSIZ) # ignore more than BUFSIZ
 		response.close()
