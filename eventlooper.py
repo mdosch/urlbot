@@ -221,7 +221,7 @@ def print_version_git():
 	first_line = p.stdout.readline()
 
 	if 0 == p.wait():
-		print sys.argv[0] + " version (Git) '%s'" % first_line.strip()
+		print sys.argv[0] + " version (Git) '%s'" % e(first_line.strip())
 	else:
 		print sys.argv[0] + " (unknown version)"
 
