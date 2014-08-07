@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import sys, os, re, time, urllib, pickle
+import sys, os, re, time, urllib, pickle, random
 
 BUFSIZ = 8192
 delay = 0.100 # seconds
@@ -116,7 +116,7 @@ def extract_url(data):
 				char = """,._-+=\|/*`~"'"""
 				message = 'No text but %s, 1-bit ASCII art preview: [%c] %s' %(
 					e(title),
-					char[int(time.time() % len(char))],
+					random.choice(char),
 					e(r)
 				)
 			elif 2 == status:
@@ -182,7 +182,7 @@ def parse_commands(data):
 			logger('info', 'sent statistics')
 		elif 'ping' in data:
 			if ratelimit_exceeded(): return False
-			if (0 == (int(time.time()) & 3)): # 1:4
+			if (0 == random.randint(0, 3)): # 1:4
 				chat_write(reply_user + ''': peng (You're dead now.)''')
 				logger('info', 'sent pong (variant)')
 			else:
