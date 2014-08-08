@@ -112,13 +112,8 @@ def extract_url(data):
 			if 0 == status:
 				message = 'Title: %s: %s' % (title.strip(), e(r))
 			elif 1 == status:
-				# of course it's fake, but it looks interesting at least
-				char = """,._-+=\|/*`~"'"""
-				message = 'No text but %s, 1-bit ASCII art preview: [%c] %s' %(
-					e(title),
-					random.choice(char),
-					e(r)
-				)
+				logger('info', 'no message sent for non-text %s (%s)' %(r, title))
+				continue
 			elif 2 == status:
 				message = 'No title: %s' % (e(r))
 			else:
