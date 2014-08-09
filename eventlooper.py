@@ -14,7 +14,7 @@ fifo_path = os.path.join(basedir, 'cmdfifo')
 
 # rate limiting to 5 messages per 10 minutes
 hist_max_count = 5
-hist_max_time  = 10 * 60
+hist_max_time = 10 * 60
 hist_ts = []
 hist_flag = True
 uptime = -time.time()
@@ -49,7 +49,7 @@ def fetch_page(url):
 		return (html, response.headers)
 	except IOError as e:
 		logger('warn', 'failed: ' + e.errno)
-	
+
 	return (None, None)
 
 def extract_title(url):
@@ -65,12 +65,12 @@ def extract_title(url):
 			if 'text/' != headers['content-type'][:len('text/')]:
 				return (1, headers['content-type'])
 
-		result = re.match(r'.*?<title.*?>(.*?)</title>.*?', html, re.S|re.M|re.IGNORECASE)
+		result = re.match(r'.*?<title.*?>(.*?)</title>.*?', html, re.S | re.M | re.IGNORECASE)
 		if result:
 			return (0, result.groups()[0])
 		else:
 			return (2, 'no title')
-	
+
 	return (-1, 'error')
 
 def chat_write(message, prefix='/say '):
@@ -147,7 +147,7 @@ def mental_ill(data):
 			c = 0
 		if (min_ill <= c):
 			return True
-	
+
 	return False
 
 def parse_other(data):
@@ -224,7 +224,7 @@ def parse_delete(filepath):
 	os.remove(filepath) # probably better crash here
 
 def print_version_git():
-	import subprocess, sys
+	import subprocess
 
 	cmd = ['git', 'log', '-n', '1', '--oneline', '--abbrev-commit']
 
@@ -236,9 +236,9 @@ def print_version_git():
 	else:
 		print sys.argv[0] + " (unknown version)"
 
-#print_version_git()
+if '__main__' == __name__:
+	print_version_git()
 
-if __name__ == '__main__':
 	while 1:
 		try:
 			for f in os.listdir(event_files_dir):
