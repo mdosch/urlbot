@@ -33,7 +33,8 @@ def e(data):
 def logger(severity, message):
 #	sev = ( 'err', 'warn', 'info' )
 #	if severity in sev:
-	sys.stderr.write(e('%s %s %s: %s' %(sys.argv[0], time.strftime('%F.%T'), severity, message)) + '\n')
+	args = (sys.argv[0], time.strftime('%Y-%m-%d.%H:%M:%S'), severity, message)
+	sys.stderr.write(e('%s %s %s: %s' % args) + '\n')
 
 class urllib_user_agent_wrapper(urllib.FancyURLopener):
 	version = '''Mozilla/5.0 (X11; Linux x86_64; rv:31.0) Gecko/20100101 Firefox/31.0 Iceweasel/31.0'''
@@ -235,14 +236,15 @@ def print_version_git():
 	else:
 		print sys.argv[0] + " (unknown version)"
 
-print_version_git()
+#print_version_git()
 
-while 1:
-	try:
-		for f in os.listdir(event_files_dir):
-			if 'mcabber-' == f[:8]:
-				parse_delete(os.path.join(event_files_dir, f))
+if __name__ == '__main__':
+	while 1:
+		try:
+			for f in os.listdir(event_files_dir):
+				if 'mcabber-' == f[:8]:
+					parse_delete(os.path.join(event_files_dir, f))
 
-		time.sleep(delay)
-	except KeyboardInterrupt:
-		exit(130)
+			time.sleep(delay)
+		except KeyboardInterrupt:
+			exit(130)
