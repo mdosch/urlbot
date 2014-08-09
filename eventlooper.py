@@ -48,6 +48,8 @@ def fetch_page(url):
 		return (html, response.headers)
 	except IOError as e:
 		logger('warn', 'failed: ' + e.errno)
+	
+	return (None, None)
 
 def extract_title(url):
 	if 'repo/urlbot.git' in url:
