@@ -235,14 +235,15 @@ def print_version_git():
 	else:
 		print sys.argv[0] + " (unknown version)"
 
-print_version_git()
+if '__main__' == __name__:
+	print_version_git()
 
-while 1:
-	try:
-		for f in os.listdir(event_files_dir):
-			if 'mcabber-' == f[:8]:
-				parse_delete(os.path.join(event_files_dir, f))
+	while 1:
+		try:
+			for f in os.listdir(event_files_dir):
+				if 'mcabber-' == f[:8]:
+					parse_delete(os.path.join(event_files_dir, f))
 
-		time.sleep(delay)
-	except KeyboardInterrupt:
-		exit(130)
+			time.sleep(delay)
+		except KeyboardInterrupt:
+			exit(130)
