@@ -33,7 +33,7 @@ def e(data):
 def logger(severity, message):
 #	sev = ( 'err', 'warn', 'info' )
 #	if severity in sev:
-	sys.stderr.write(e('%s: %s: %s' %(sys.argv[0], severity, message)) + '\n')
+	sys.stderr.write(e('%s %s %s: %s' %(sys.argv[0], time.strftime('%F.%T'), severity, message)) + '\n')
 
 class urllib_user_agent_wrapper(urllib.FancyURLopener):
 	version = '''Mozilla/5.0 (X11; Linux x86_64; rv:31.0) Gecko/20100101 Firefox/31.0 Iceweasel/31.0'''
