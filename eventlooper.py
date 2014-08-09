@@ -169,6 +169,9 @@ def parse_commands(data):
 		if 'hangup' in data:
 			chat_write('', prefix='/quit')
 			logger('warn', 'received hangup: ' + data)
+		elif 'command' in data:
+			if ratelimit_exceeded(): return False
+			chat_write(reply_user + (""": known commands: 'command', 'info', 'hangup', 'ping', 'uptime'"""))
 		elif 'uptime' in data:
 			if ratelimit_exceeded(): return False
 
