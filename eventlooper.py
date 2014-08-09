@@ -50,6 +50,10 @@ def fetch_page(url):
 		logger('warn', 'failed: ' + e.errno)
 
 def extract_title(url):
+	if 'repo/urlbot.git' in url:
+		logger('info', 'repo URL found: ' + url)
+		return (3, 'wee, that looks like my home repo!')
+
 	logger('info', 'extracting title from ' + url)
 
 	(html, headers) = fetch_page(url)
@@ -116,6 +120,8 @@ def extract_url(data):
 				continue
 			elif 2 == status:
 				message = 'No title: %s' % (e(r))
+			elif 3 == status:
+				message = title
 			else:
 				message = 'some error occurred when fetching %s' % e(r)
 
