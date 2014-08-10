@@ -88,7 +88,7 @@ def chat_write(message, prefix='/say '):
 	else:
 		try:
 			fd = open(fifo_path, 'wb')
-			msg = unicode(prefix) + unicode(message)
+			msg = unicode(prefix) + unicode(message) + '\n'
 			fd.write(msg.encode('utf8'))
 			fd.close()
 		except IOError:
@@ -182,6 +182,11 @@ def parse_commands(data):
 		elif 'command' in data:
 			if ratelimit_exceeded(): return False
 			chat_write(reply_user + (""": known commands: 'command', 'info', 'hangup', 'ping', 'uptime'"""))
+		elif 'unikot' in data:
+			if ratelimit_exceeded(): return False
+			chat_write(reply_user + (u''': ┌────────┐'''))
+			chat_write(reply_user + (u''': │Unicode!│'''))
+			chat_write(reply_user + (u''': └────────┘'''))
 		elif 'uptime' in data:
 			if ratelimit_exceeded(): return False
 
