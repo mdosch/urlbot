@@ -161,7 +161,8 @@ def parse_other(data):
 	reply_user = data.split(' ')[0].strip('<>')
 
 	if True == mental_ill(data):
-		if ratelimit_exceeded(): return False
+		if ratelimit_exceeded():
+			return False
 		chat_write('''Multiple exclamation/question marks are a sure sign of mental disease, with %s as a living example.''' % reply_user)
 
 	return True
@@ -170,7 +171,7 @@ def parse_commands(data):
 	words = data.split(' ')
 
 	if 2 > len(words): # need at least two words
-		return
+		return None
 
 	# reply if beginning of the text matches bot_user
 	if words[1][0:len(bot_user)] == bot_user:
@@ -179,17 +180,18 @@ def parse_commands(data):
 		if 'hangup' in data:
 			chat_write('', prefix='/quit')
 			logger('warn', 'received hangup: ' + data)
-		elif 'command' in data:
-			if ratelimit_exceeded(): return False
+			return None
+
+		if ratelimit_exceeded():
+			return False
+
+		if 'command' in data:
 			chat_write(reply_user + (""": known commands: 'command', 'info', 'hangup', 'ping', 'uptime'"""))
 		elif 'unikot' in data:
-			if ratelimit_exceeded(): return False
 			chat_write(reply_user + (u''': ┌────────┐'''))
 			chat_write(reply_user + (u''': │Unicode!│'''))
 			chat_write(reply_user + (u''': └────────┘'''))
 		elif 'uptime' in data:
-			if ratelimit_exceeded(): return False
-
 			u = int(uptime + time.time())
 			plural_uptime = 's'
 			plural_request = 's'
@@ -200,7 +202,6 @@ def parse_commands(data):
 			chat_write(reply_user + (''': happily serving for %d second%s, %d request%s so far.''' %(u, plural_uptime, request_counter, plural_request)))
 			logger('info', 'sent statistics')
 		elif 'ping' in data:
-			if ratelimit_exceeded(): return False
 			if (0 == random.randint(0, 3)): # 1:4
 				chat_write(reply_user + ''': peng (You're dead now.)''')
 				logger('info', 'sent pong (variant)')
@@ -208,11 +209,9 @@ def parse_commands(data):
 				chat_write(reply_user + ''': pong''')
 				logger('info', 'sent pong')
 		elif 'info' in data:
-			if ratelimit_exceeded(): return False
 			chat_write(reply_user + (''': I'm a bot, my job is to extract <title> tags from posted URLs. In case I'm annoying or for further questions, please talk to my master Cae. I'm rate limited and shouldn't post more than %d messages per %d seconds. To make me exit immediately, highlight me with 'hangup' in the message (emergency only, please).''' %(hist_max_count, hist_max_time)))
 			logger('info', 'sent long info')
 		else:
-			if ratelimit_exceeded(): return False
 			chat_write(reply_user + (''': I'm a bot (highlight me with 'info' for more information).'''))
 			logger('info', 'sent short info')
 
