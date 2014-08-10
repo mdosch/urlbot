@@ -1,6 +1,7 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 
-import sys, os, re, time, urllib, pickle, random
+import sys, os, re, time, urllib, pickle, random, HTMLParser
 
 BUFSIZ = 8192
 delay = 0.100 # seconds
@@ -26,7 +27,12 @@ def debug_enabled():
 
 def e(data):
 	if data:
-		return data.encode('string-escape')
+		if unicode == type(data):
+			return data.encode('utf8')
+		elif str == type(data):
+			return data.encode('string-escape')
+		else:
+			return data
 	else:
 		return "''"
 
@@ -67,7 +73,7 @@ def extract_title(url):
 
 		result = re.match(r'.*?<title.*?>(.*?)</title>.*?', html, re.S | re.M | re.IGNORECASE)
 		if result:
-			return (0, result.groups()[0])
+			return (0, parser.unescape(result.groups()[0]))
 		else:
 			return (2, 'no title')
 
@@ -82,7 +88,8 @@ def chat_write(message, prefix='/say '):
 	else:
 		try:
 			fd = open(fifo_path, 'wb')
-			fd.write(prefix + message)
+			msg = unicode(prefix) + unicode(message)
+			fd.write(msg.encode('utf8'))
 			fd.close()
 		except IOError:
 			logger('err', "couldn't print to fifo " + fifo_path)
@@ -238,6 +245,7 @@ def print_version_git():
 
 if '__main__' == __name__:
 	print_version_git()
+	parser = HTMLParser.HTMLParser()
 
 	while 1:
 		try:
