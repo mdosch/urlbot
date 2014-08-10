@@ -1,0 +1,16 @@
+#!/usr/bin/python
+
+if '__main__' == __name__:
+	print '''don't try running this'''
+	exit(-1)
+
+config = {}
+config['jid'] = ''
+config['password'] = ''
+config['room'] = ''
+config['nick'] = ''
+
+def conf(val):
+	if val in config.keys():
+		return config[val]
+	return None
