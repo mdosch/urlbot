@@ -88,8 +88,16 @@ def chat_write(message, prefix='/say '):
 	else:
 		try:
 			fd = open(fifo_path, 'wb')
-			msg = unicode(prefix) + unicode(message) + '\n'
-			fd.write(msg.encode('utf8'))
+
+			# FIXME: somehow, unicode chars can end up inside a <str> message,
+			# which seems to make both unicode() and ''.encode('utf8') fail.
+			try:
+				msg = unicode(prefix) + unicode(message) + '\n'
+				msg.encode('utf8')
+			except UnicodeDecodeError:
+				msg = prefix + message + '\n'
+
+			fd.write(msg)
 			fd.close()
 		except IOError:
 			logger('err', "couldn't print to fifo " + fifo_path)
