@@ -98,7 +98,7 @@ def chat_write(message, prefix='/say '):
 			# which seems to make both unicode() and ''.encode('utf8') fail.
 			try:
 				msg = unicode(prefix) + unicode(message) + '\n'
-				msg.encode('utf8')
+				msg = msg.encode('utf8')
 			except UnicodeDecodeError:
 				msg = prefix + message + '\n'
 
