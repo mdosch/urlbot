@@ -199,7 +199,9 @@ def parse_commands(data):
 			return False
 
 		if 'command' in data:
-			chat_write(reply_user + (""": known commands: 'command', 'info', 'hangup', 'ping', 'uptime'"""))
+			chat_write(reply_user + (""": known commands: 'command', 'info', 'hangup', 'ping', 'uptime', 'version'"""))
+		elif 'version' in data:
+			chat_write(reply_user + (''': I'm running ''' + VERSION))
 		elif 'unikot' in data:
 			chat_write(reply_user + (u''': ┌────────┐'''))
 			chat_write(reply_user + (u''': │Unicode!│'''))
@@ -247,7 +249,7 @@ def parse_delete(filepath):
 
 	os.remove(filepath) # probably better crash here
 
-def print_version_git():
+def get_version_git():
 	import subprocess
 
 	cmd = ['git', 'log', '-n', '1', '--oneline', '--abbrev-commit']
@@ -256,12 +258,14 @@ def print_version_git():
 	first_line = p.stdout.readline()
 
 	if 0 == p.wait():
-		print sys.argv[0] + " version (Git) '%s'" % e(first_line.strip())
+		return "version (Git) '%s'" % e(first_line.strip())
 	else:
-		print sys.argv[0] + " (unknown version)"
+		return "(unknown version)"
 
 if '__main__' == __name__:
-	print_version_git()
+	VERSION = get_version_git()
+	print sys.argv[0] + ' ' + VERSION
+
 	parser = HTMLParser.HTMLParser()
 
 	while 1:
