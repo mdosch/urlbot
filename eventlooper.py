@@ -224,7 +224,7 @@ def parse_commands(data):
 				chat_write(reply_user + ''': pong''')
 				logger('info', 'sent pong')
 		elif 'info' in data:
-			chat_write(reply_user + (''': I'm a bot, my job is to extract <title> tags from posted URLs. In case I'm annoying or for further questions, please talk to my master Cae. I'm rate limited and shouldn't post more than %d messages per %d seconds. To make me exit immediately, highlight me with 'hangup' in the message (emergency only, please).''' %(hist_max_count, hist_max_time)))
+			chat_write(reply_user + (''': I'm a bot, my job is to extract <title> tags from posted URLs. In case I'm annoying or for further questions, please talk to my master Cae. I'm rate limited and shouldn't post more than %d messages per %d seconds. To make me exit immediately, highlight me with 'hangup' in the message (emergency only, please). For other commands, highlight me with 'command'.''' %(hist_max_count, hist_max_time)))
 			logger('info', 'sent long info')
 		else:
 			chat_write(reply_user + (''': I'm a bot (highlight me with 'info' for more information).'''))
