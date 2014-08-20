@@ -73,7 +73,12 @@ def extract_title(url):
 
 		result = re.match(r'.*?<title.*?>(.*?)</title>.*?', html, re.S | re.M | re.IGNORECASE)
 		if result:
-			return (0, parser.unescape(result.groups()[0]))
+			try:
+				expanded_html = parser.unescape(result.groups()[0])
+			except UnicodeDecodeError as e: # idk why this can happen, but it does
+				logger('warn', 'parser.unescape() expoded here: ' + str(e))
+				expanded_html = result.groups()[0]
+			return (0, expanded_html)
 		else:
 			return (2, 'no title')
 
