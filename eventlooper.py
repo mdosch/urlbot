@@ -73,11 +73,16 @@ def extract_title(url):
 
 		result = re.match(r'.*?<title.*?>(.*?)</title>.*?', html, re.S | re.M | re.IGNORECASE)
 		if result:
+			match = result.groups()[0]
+
+#			if 'charset=UTF-8' in headers['content-type']:
+#				match = unicode(match)
+
 			try:
-				expanded_html = parser.unescape(result.groups()[0])
+				expanded_html = parser.unescape(match)
 			except UnicodeDecodeError as e: # idk why this can happen, but it does
 				logger('warn', 'parser.unescape() expoded here: ' + str(e))
-				expanded_html = result.groups()[0]
+				expanded_html = match
 			return (0, expanded_html)
 		else:
 			return (2, 'no title')
@@ -180,6 +185,13 @@ def parse_other(data):
 
 	return True
 
+def parse_pn(data):
+	## reply_user = data.split(' ')[0].strip('<>')
+	# since we can't determine if a user named 'foo> ' just wrote ' > bar'
+	# or a user 'foo' just wrote '> > bar', we can't safely answer here
+	logger('warn', 'received PN: ' + data)
+	return False
+
 def parse_commands(data):
 	words = data.split(' ')
 
@@ -238,16 +250,23 @@ def parse_delete(filepath):
 		return False
 
 	content = fd.read(BUFSIZ) # ignore more than BUFSIZ
-
-	if content[1:1+len(bot_user)] != bot_user:
-		if not 'Willkommen bei debianforum.de' in content:
-			if True != extract_url(content):
-				parse_commands(content)
-				parse_other(content)
-
 	fd.close()
-
 	os.remove(filepath) # probably better crash here
+
+	if content[1:1+len(bot_user)] == bot_user:
+		return
+
+	if 'has set the subject to:' in content:
+		return
+	
+	if content.startswith('PRIV#'):
+		parse_pn(content)
+		return
+
+	if True != extract_url(content):
+		parse_commands(content)
+		parse_other(content)
+		return
 
 def get_version_git():
 	import subprocess
@@ -276,4 +295,5 @@ if '__main__' == __name__:
 
 			time.sleep(delay)
 		except KeyboardInterrupt:
+			print ""
 			exit(130)
