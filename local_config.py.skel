@@ -1,0 +1,13 @@
+#!/usr/bin/python
+
+if '__main__' == __name__:
+	print '''this is a config file, which is not meant to be executed'''
+	exit(-1)
+
+config = {}
+config['src-url'] = 'FIXME'
+
+def conf(val):
+	if val in config.keys():
+		return config[val]
+	return None

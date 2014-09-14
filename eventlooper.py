@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys, os, re, time, urllib, pickle, random, HTMLParser
+from local_config import conf
 
 BUFSIZ = 8192
 delay = 0.100 # seconds
@@ -211,13 +212,15 @@ def parse_commands(data):
 			return False
 
 		if 'command' in data:
-			chat_write(reply_user + (""": known commands: 'command', 'info', 'hangup', 'ping', 'uptime', 'version'"""))
+			chat_write(reply_user + (""": known commands: 'command', 'info', 'hangup', 'ping', 'uptime', 'source', 'version'"""))
 		elif 'version' in data:
 			chat_write(reply_user + (''': I'm running ''' + VERSION))
 		elif 'unikot' in data:
 			chat_write(reply_user + (u''': ┌────────┐'''))
 			chat_write(reply_user + (u''': │Unicode!│'''))
 			chat_write(reply_user + (u''': └────────┘'''))
+		elif 'source' in data:
+			chat_write('My source code can be found at %s' % conf('src-url'))
 		elif 'uptime' in data:
 			u = int(uptime + time.time())
 			plural_uptime = 's'
