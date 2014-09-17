@@ -232,9 +232,13 @@ def parse_commands(data):
 			chat_write(reply_user + (''': happily serving for %d second%s, %d request%s so far.''' %(u, plural_uptime, request_counter, plural_request)))
 			logger('info', 'sent statistics')
 		elif 'ping' in data:
-			if (0 == random.randint(0, 3)): # 1:4
+			rnd = random.randint(0, 3) # 1:4
+			if 0 == rnd:
 				chat_write(reply_user + ''': peng (You're dead now.)''')
 				logger('info', 'sent pong (variant)')
+			elif 1 == rnd:
+				chat_write(reply_user + ''': I don't like you, leave me alone.''')
+				logger('info', 'sent pong (dontlike)')
 			else:
 				chat_write(reply_user + ''': pong''')
 				logger('info', 'sent pong')
