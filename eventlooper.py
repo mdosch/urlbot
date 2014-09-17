@@ -212,7 +212,7 @@ def parse_commands(data):
 			return False
 
 		if 'command' in data:
-			chat_write(reply_user + (""": known commands: 'command', 'info', 'hangup', 'ping', 'uptime', 'source', 'version'"""))
+			chat_write(reply_user + (""": known commands: 'command', 'info', 'hangup', 'nospoiler', 'ping', 'uptime', 'source', 'version'"""))
 		elif 'version' in data:
 			chat_write(reply_user + (''': I'm running ''' + VERSION))
 		elif 'unikot' in data:
@@ -268,6 +268,10 @@ def parse_delete(filepath):
 	
 	if content.startswith('PRIV#'):
 		parse_pn(content)
+		return
+	
+	if 'nospoiler' in content:
+		logger('info', "no spoiler for: " + content)
 		return
 
 	if True != extract_url(content):
