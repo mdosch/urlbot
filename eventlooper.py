@@ -212,7 +212,7 @@ def parse_commands(data):
 			return False
 
 		if 'command' in data:
-			chat_write(reply_user + (""": known commands: 'command', 'info', 'hangup', 'nospoiler', 'ping', 'uptime', 'source', 'version'"""))
+			chat_write(reply_user + (""": known commands: 'command', 'dice', 'info', 'hangup', 'nospoiler', 'ping', 'uptime', 'source', 'version'"""))
 		elif 'version' in data:
 			chat_write(reply_user + (''': I'm running ''' + VERSION))
 		elif 'unikot' in data:
@@ -221,6 +221,10 @@ def parse_commands(data):
 			chat_write(reply_user + (u''': └────────┘'''))
 		elif 'source' in data:
 			chat_write('My source code can be found at %s' % conf('src-url'))
+		elif 'dice' in data:
+			rnd = random.randint(1, 6)
+			dice_char = [u'⚀', u'⚁', u'⚂', u'⚃', u'⚄', u'⚅']
+			chat_write('rolling a dice for %s: %s (%d)' %(reply_user, dice_char[rnd-1], rnd))
 		elif 'uptime' in data:
 			u = int(uptime + time.time())
 			plural_uptime = 's'
