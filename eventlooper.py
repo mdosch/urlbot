@@ -96,7 +96,7 @@ def extract_title(url):
 				try:
 					match = match.decode(charset)
 				except LookupError:
-					logger('warn', 'invalid charset in ' + header['content-type'])
+					logger('warn', 'invalid charset in ' + headers['content-type'])
 
 			try:
 				expanded_html = parser.unescape(match)
