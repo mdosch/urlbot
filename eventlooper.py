@@ -22,6 +22,8 @@ hist_flag = True
 uptime = -time.time()
 request_counter = 0
 
+parser = None
+
 def debug_enabled():
 #	return True
 	return False
@@ -60,6 +62,8 @@ def fetch_page(url):
 	return (None, None)
 
 def extract_title(url):
+	global parser
+
 	if 'repo/urlbot.git' in url:
 		logger('info', 'repo URL found: ' + url)
 		return (3, 'wee, that looks like my home repo!')
@@ -68,9 +72,15 @@ def extract_title(url):
 
 	(html, headers) = fetch_page(url)
 	if html:
+		charset = ''
 		if 'content-type' in headers:
+			logger('debug', 'content-type: ' + headers['content-type'])
+
 			if 'text/' != headers['content-type'][:len('text/')]:
 				return (1, headers['content-type'])
+
+			charset = re.sub('.*charset=(?P<charset>\S+).*',
+				'\g<charset>', headers['content-type'], re.IGNORECASE)
 
 		result = re.match(r'.*?<title.*?>(.*?)</title>.*?', html, re.S | re.M | re.IGNORECASE)
 		if result:
@@ -78,6 +88,15 @@ def extract_title(url):
 
 #			if 'charset=UTF-8' in headers['content-type']:
 #				match = unicode(match)
+
+			if None == parser:
+				parser = HTMLParser.HTMLParser()
+
+			if '' != charset:
+				try:
+					match = match.decode(charset)
+				except LookupError:
+					logger('warn', 'invalid charset in ' + header['content-type'])
 
 			try:
 				expanded_html = parser.unescape(match)
@@ -299,8 +318,6 @@ def get_version_git():
 if '__main__' == __name__:
 	VERSION = get_version_git()
 	print sys.argv[0] + ' ' + VERSION
-
-	parser = HTMLParser.HTMLParser()
 
 	while 1:
 		try:
