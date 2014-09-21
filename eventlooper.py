@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import sys, os, re, time, urllib, pickle, random, HTMLParser
+import sys, os, re, time, urllib, pickle, random, HTMLParser, stat
 from local_config import conf
 
 BUFSIZ = 8192
@@ -318,6 +318,14 @@ def get_version_git():
 if '__main__' == __name__:
 	VERSION = get_version_git()
 	print sys.argv[0] + ' ' + VERSION
+
+	if not os.path.exists(fifo_path):
+		logger('error', 'fifo_path "%s" does not exist, exiting' % fifo_path)
+		exit(1)
+
+	if not stat.S_ISFIFO(os.stat(fifo_path).st_mode):
+		logger('error', 'fifo_path "%s" is not a FIFO, exiting' % fifo_path)
+		exit(1)
 
 	while 1:
 		try:
