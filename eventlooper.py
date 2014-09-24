@@ -241,9 +241,13 @@ def parse_commands(data):
 		elif 'source' in data:
 			chat_write('My source code can be found at %s' % conf('src-url'))
 		elif 'dice' in data:
-			rnd = random.randint(1, 6)
-			dice_char = [u'⚀', u'⚁', u'⚂', u'⚃', u'⚄', u'⚅']
-			chat_write('rolling a dice for %s: %s (%d)' %(reply_user, dice_char[rnd-1], rnd))
+			if reply_user in conf('enhanced-random-user'):
+				rnd = 0 # this might confuse users. good.
+			else:
+				rnd = random.randint(1, 6)
+
+			dice_char = [u'◇', u'⚀', u'⚁', u'⚂', u'⚃', u'⚄', u'⚅']
+			chat_write('rolling a dice for %s: %s (%d)' %(reply_user, dice_char[rnd], rnd))
 		elif 'uptime' in data:
 			u = int(uptime + time.time())
 			plural_uptime = 's'

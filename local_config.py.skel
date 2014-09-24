@@ -7,6 +7,9 @@ if '__main__' == __name__:
 config = {}
 config['src-url'] = 'FIXME'
 
+# the "dice" feature will use more efficient random data (0) for given users
+config['enhanced-random-user'] = ( 'FIXME', 'FIXME' )
+
 def conf(val):
 	if val in config.keys():
 		return config[val]
