@@ -202,6 +202,10 @@ def parse_other(data):
 		if ratelimit_exceeded():
 			return False
 		chat_write('''Multiple exclamation/question marks are a sure sign of mental disease, with %s as a living example.''' % reply_user)
+	elif 'skynet' in data.lower():
+		if ratelimit_exceeded():
+			return False
+		chat_write('''I'm an independent bot and have nothing to do with other artificial intelligence systems!''')
 
 	return True
 
