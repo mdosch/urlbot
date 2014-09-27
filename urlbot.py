@@ -16,7 +16,6 @@ fifo_path = os.path.join(basedir, 'cmdfifo')
 # rate limiting to 5 messages per 10 minutes
 hist_ts = []
 hist_flag = True
-uptime = -time.time()
 request_counter = 0
 
 parser = None
@@ -240,6 +239,7 @@ plugins.logger = logger
 plugins.ratelimit_exceeded = ratelimit_exceeded
 plugins.ratelimit_touch = ratelimit_touch
 plugins.random = random
+plugins.time = time
 
 plugins.register_all()
 

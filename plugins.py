@@ -170,7 +170,7 @@ def command_uptime(args):
 		}
 
 	if 'uptime' in args['data']:
-		u = int(uptime + time.time())
+		u = int(conf('uptime') + time.time())
 		plural_uptime = 's'
 		plural_request = 's'
 
