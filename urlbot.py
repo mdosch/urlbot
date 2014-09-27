@@ -14,8 +14,6 @@ event_files_dir = os.path.join(basedir, 'event_files')
 fifo_path = os.path.join(basedir, 'cmdfifo')
 
 # rate limiting to 5 messages per 10 minutes
-hist_max_count = 5
-hist_max_time = 10 * 60
 hist_ts = []
 hist_flag = True
 uptime = -time.time()
@@ -135,19 +133,19 @@ def ratelimit_touch(ignored=None): # FIXME: separate counters
 	now = time.time()
 	hist_ts.append(now)
 
-	if hist_max_count < len(hist_ts):
+	if conf('hist_max_count') < len(hist_ts):
 		hist_ts.pop(0)
 
 
 def ratelimit_exceeded(ignored=None): # FIXME: separate counters
 	global hist_flag
 
-	if hist_max_count < len(hist_ts):
+	if conf('hist_max_count') < len(hist_ts):
 		first = hist_ts.pop(0)
-		if (now - first) < hist_max_time:
+		if (now - first) < conf('hist_max_time'):
 			if hist_flag:
 				hist_flag = False
-				chat_write('(rate limited to %d messages in %d seconds, try again at %s)' %(hist_max_count, hist_max_time, time.strftime('%T %Z', time.localtime(hist_ts[0] + hist_max_time))))
+				chat_write('(rate limited to %d messages in %d seconds, try again at %s)' %(conf('hist_max_count'), conf('hist_max_time'), time.strftime('%T %Z', time.localtime(hist_ts[0] + conf('hist_max_time')))))
 
 			logger('warn', 'rate limiting exceeded: ' + pickle.dumps(hist_ts))
 			return True

@@ -10,6 +10,9 @@ config['src-url'] = 'FIXME'
 config['bot_user'] = 'urlbot'
 config['bot_owner'] = 'FIXME'
 
+config['hist_max_count'] = 5
+config['hist_max_time'] = 10 * 60
+
 # the "dice" feature will use more efficient random data (0) for given users
 config['enhanced-random-user'] = ( 'FIXME', 'FIXME' )
 
