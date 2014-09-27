@@ -166,9 +166,11 @@ def command_unicode(args):
 	if 'unikot' in args['data']:
 		return {
 			'msg': 
-				args['reply_user'] + u''': ┌────────┐''' + '\n' +
-				args['reply_user'] + u''': │Unicode!│''' + '\n' +
-				args['reply_user'] + u''': └────────┘'''
+				(
+					args['reply_user'] + u''': ┌────────┐''',
+					args['reply_user'] + u''': │Unicode!│''',
+					args['reply_user'] + u''': └────────┘'''
+				)
 		}
 
 def command_source(args):
@@ -315,8 +317,14 @@ def data_parse_commands(data):
 
 		if None != ret:
 			if 'msg' in ret.keys():
-				ratelimit_touch(RATE_CHAT)
-				chat_write(ret['msg'])
+				if str == type(ret['msg']):
+					ratelimit_touch(RATE_CHAT)
+					chat_write(ret['msg'])
+				else:
+					for line in ret['msg']:
+						ratelimit_touch(RATE_CHAT)
+						chat_write(line)
+
 			return None
 
 	ret = command_else({'reply_user': reply_user})
