@@ -1,44 +1,15 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import sys, os, re, time, urllib, pickle, random, HTMLParser, stat
+import sys, os, re, time, urllib, pickle, HTMLParser, stat
 from local_config import conf, set_conf
-
-BUFSIZ = 8192
-delay = 0.100 # seconds
-
-basedir = '.'
-if 2 == len(sys.argv): basedir = sys.argv[1]
-
-event_files_dir = os.path.join(basedir, 'event_files')
-fifo_path = os.path.join(basedir, 'cmdfifo')
+from common import *
 
 # rate limiting to 5 messages per 10 minutes
 hist_ts = []
 hist_flag = True
 
 parser = None
-
-def debug_enabled():
-#	return True
-	return False
-
-def e(data):
-	if data:
-		if unicode == type(data):
-			return data.encode('utf8')
-		elif str == type(data):
-			return data.encode('string-escape')
-		else:
-			return data
-	else:
-		return "''"
-
-def logger(severity, message):
-#	sev = ( 'err', 'warn', 'info' )
-#	if severity in sev:
-	args = (sys.argv[0], time.strftime('%Y-%m-%d.%H:%M:%S'), severity, message)
-	sys.stderr.write(e('%s %s %s: %s' % args) + '\n')
 
 class urllib_user_agent_wrapper(urllib.FancyURLopener):
 	version = '''Mozilla/5.0 (X11; Linux x86_64; rv:31.0) Gecko/20100101 Firefox/31.0 Iceweasel/31.0'''
@@ -232,13 +203,8 @@ def get_version_git():
 import plugins
 
 plugins.chat_write = chat_write
-plugins.conf = conf
-plugins.logger = logger
 plugins.ratelimit_exceeded = ratelimit_exceeded
 plugins.ratelimit_touch = ratelimit_touch
-
-plugins.random = random
-plugins.time = time
 
 plugins.register_all()
 

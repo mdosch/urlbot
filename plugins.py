@@ -5,11 +5,9 @@ if '__main__' == __name__:
 	print '''this is a plugin file, which is not meant to be executed'''
 	exit(-1)
 
-RATE_GLOBAL      = 0x01
-RATE_NO_SILENCE  = 0x02
-RATE_INTERACTIVE = 0x04
-RATE_CHAT        = 0x08
-RATE_URL         = 0x10
+import time, random
+from local_config import conf
+from common import *
 
 plugins = {}
 plugins['parse'] = []
@@ -290,11 +288,9 @@ funcs['command'] = (
 
 _dir = dir()
 
-debug = False
-if debug:
+if debug_enabled():
 	def _chat_write(a): _logger('chat_write', a)
 	def _conf(a): return 'bot'
-	def _logger(a, b): print 'logger: %s::%s' %(a, b)
 	def _ratelimit_exceeded(ignored=None): return False
 	def _ratelimit_touch(ignored=None): return True
 
@@ -302,14 +298,10 @@ if debug:
 	except NameError: chat_write = _chat_write
 	try: conf
 	except NameError: conf = _conf
-	try: logger
-	except NameError: logger = _logger
 	try: ratelimit_exceeded
 	except NameError: ratelimit_exceeded = _ratelimit_exceeded
 	try: ratelimit_touch
 	except NameError: ratelimit_touch = _ratelimit_touch
-	try: random
-	except NameError: import random
 
 def register(func_type, auto=False):
 	plugins[func_type] = []
