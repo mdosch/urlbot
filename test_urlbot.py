@@ -2,7 +2,7 @@
 To be executed with nose
 """
 import unittest
-from eventlooper import fetch_page
+from urlbot import fetch_page
 
 
 class TestEventlooper(unittest.TestCase):
