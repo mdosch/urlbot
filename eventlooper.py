@@ -212,8 +212,8 @@ def parse_delete(filepath):
 		return
 
 	if True != extract_url(content):
-		plugins.parse_commands(content)
-		plugins.parse_other(content)
+		plugins.data_parse_commands(content)
+		plugins.data_parse_other(content)
 		return
 
 def get_version_git():
@@ -234,6 +234,8 @@ plugins.chat_write = chat_write
 plugins.conf = conf
 plugins.logger = logger
 plugins.ratelimit_exceeded = ratelimit_exceeded
+
+plugins.register_all()
 
 if '__main__' == __name__:
 	VERSION = get_version_git()
