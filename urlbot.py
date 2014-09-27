@@ -127,8 +127,7 @@ def chat_write(message, prefix='/say '):
 			logger('err', "couldn't print to fifo " + fifo_path)
 
 def ratelimit_touch(ignored=None): # FIXME: separate counters
-	now = time.time()
-	hist_ts.append(now)
+	hist_ts.append(time.time())
 
 	if conf('hist_max_count') < len(hist_ts):
 		hist_ts.pop(0)
@@ -139,7 +138,7 @@ def ratelimit_exceeded(ignored=None): # FIXME: separate counters
 
 	if conf('hist_max_count') < len(hist_ts):
 		first = hist_ts.pop(0)
-		if (now - first) < conf('hist_max_time'):
+		if (time.time() - first) < conf('hist_max_time'):
 			if hist_flag:
 				hist_flag = False
 				chat_write('(rate limited to %d messages in %d seconds, try again at %s)' %(conf('hist_max_count'), conf('hist_max_time'), time.strftime('%T %Z', time.localtime(hist_ts[0] + conf('hist_max_time')))))
