@@ -233,13 +233,17 @@ def get_version_git():
 		return "(unknown version)"
 
 import plugins
+
 plugins.chat_write = chat_write
 plugins.conf = conf
 plugins.logger = logger
 plugins.ratelimit_exceeded = ratelimit_exceeded
 plugins.ratelimit_touch = ratelimit_touch
+
 plugins.random = random
 plugins.time = time
+
+plugins.request_counter = request_counter
 
 plugins.register_all()
 
