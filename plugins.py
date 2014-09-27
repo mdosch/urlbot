@@ -317,7 +317,7 @@ def data_parse_commands(data):
 
 		if None != ret:
 			if 'msg' in ret.keys():
-				if str == type(ret['msg']):
+				if str == type(ret['msg']) or unicode == type(ret['msg']):
 					ratelimit_touch(RATE_CHAT)
 					chat_write(ret['msg'])
 				else:
