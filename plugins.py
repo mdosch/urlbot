@@ -120,6 +120,9 @@ def command_help(args):
 		if 'help' == word:
 			flag = True
 
+	if False == flag: # no match on 'help'
+		return None
+
 	if None == cmd:
 		return {
 			'msg': args['reply_user'] + ': no command given'
