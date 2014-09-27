@@ -42,3 +42,18 @@ def logger(severity, message):
 #	if severity in sev:
 	args = (sys.argv[0], time.strftime('%Y-%m-%d.%H:%M:%S'), severity, message)
 	sys.stderr.write(e('%s %s %s: %s' % args) + '\n')
+
+def get_version_git():
+	import subprocess
+
+	cmd = ['git', 'log', '-n', '1', '--oneline', '--abbrev-commit']
+
+	p = subprocess.Popen(cmd, bufsize=1, stdout=subprocess.PIPE)
+	first_line = p.stdout.readline()
+
+	if 0 == p.wait():
+		return "version (Git) '%s'" % e(first_line.strip())
+	else:
+		return "(unknown version)"
+
+VERSION = get_version_git()

@@ -187,19 +187,6 @@ def parse_delete(filepath):
 		plugins.data_parse_other(content)
 		return
 
-def get_version_git():
-	import subprocess
-
-	cmd = ['git', 'log', '-n', '1', '--oneline', '--abbrev-commit']
-
-	p = subprocess.Popen(cmd, bufsize=1, stdout=subprocess.PIPE)
-	first_line = p.stdout.readline()
-
-	if 0 == p.wait():
-		return "version (Git) '%s'" % e(first_line.strip())
-	else:
-		return "(unknown version)"
-
 import plugins
 
 plugins.chat_write = chat_write
@@ -209,8 +196,7 @@ plugins.ratelimit_touch = ratelimit_touch
 plugins.register_all()
 
 if '__main__' == __name__:
-	set_conf('version', get_version_git())
-	print sys.argv[0] + ' ' + conf('version')
+	print sys.argv[0] + ' ' + VERSION
 
 	if not os.path.exists(fifo_path):
 		logger('error', 'fifo_path "%s" does not exist, exiting' % fifo_path)

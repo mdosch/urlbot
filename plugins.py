@@ -108,7 +108,7 @@ def command_version(args):
 
 	if 'version' in args['data']:
 		return {
-			'msg': args['reply_user'] + (''': I'm running ''' + conf('version'))
+			'msg': args['reply_user'] + (''': I'm running ''' + VERSION)
 		}
 
 def command_unicode(args):

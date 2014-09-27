@@ -18,9 +18,6 @@ config['hist_max_time'] = 10 * 60
 config['uptime'] = -time.time()
 config['request_counter'] = 0
 
-config['version'] = None
-
-
 # the "dice" feature will use more efficient random data (0) for given users
 config['enhanced-random-user'] = ( 'FIXME', 'FIXME' )
 
