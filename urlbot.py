@@ -244,8 +244,8 @@ plugins.time = time
 plugins.register_all()
 
 if '__main__' == __name__:
-	VERSION = get_version_git()
-	print sys.argv[0] + ' ' + VERSION
+	set_conf('version', get_version_git())
+	print sys.argv[0] + ' ' + conf('version')
 
 	if not os.path.exists(fifo_path):
 		logger('error', 'fifo_path "%s" does not exist, exiting' % fifo_path)
