@@ -241,6 +241,7 @@ plugins.conf = conf
 plugins.logger = logger
 plugins.ratelimit_exceeded = ratelimit_exceeded
 plugins.ratelimit_touch = ratelimit_touch
+plugins.random = random
 
 plugins.register_all()
 
