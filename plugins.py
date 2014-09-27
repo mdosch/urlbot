@@ -5,9 +5,11 @@ if '__main__' == __name__:
 	print '''this is a plugin file, which is not meant to be executed'''
 	exit(-1)
 
-RATE_GLOBAL      = 1
-RATE_NO_SILENCE  = 2
-RATE_INTERACTIVE = 4
+RATE_GLOBAL      = 0x01
+RATE_NO_SILENCE  = 0x02
+RATE_INTERACTIVE = 0x04
+RATE_CHAT        = 0x08
+RATE_URL         = 0x10
 
 plugins = {}
 plugins['parse'] = []
@@ -82,6 +84,7 @@ def data_parse_other(data):
 
 		if None != ret:
 			if 'msg' in ret.keys():
+				ratelimit_touch(RATE_CHAT)
 				chat_write(ret['msg'])
 
 def command_help(args):
@@ -230,7 +233,7 @@ def data_parse_commands(data):
 		return None
 
 	# don't reply if beginning of the text matches bot_user
-	if words[1][0:len(conf('bot_user'))] != conf('bot_user'):
+	if not words[1].startswith(conf('bot_user')):
 		return None
 
 	if 'hangup' in data:
@@ -264,6 +267,7 @@ def data_parse_commands(data):
 		if None != ret:
 			flag = True
 			if 'msg' in ret.keys():
+				ratelimit_touch(RATE_CHAT)
 				chat_write(ret['msg'])
 
 	if False != flag:
@@ -292,6 +296,7 @@ if debug:
 	def _conf(a): return 'bot'
 	def _logger(a, b): print 'logger: %s::%s' %(a, b)
 	def _ratelimit_exceeded(ignored=None): return False
+	def _ratelimit_touch(ignored=None): return True
 
 	try: chat_write
 	except NameError: chat_write = _chat_write
@@ -301,6 +306,8 @@ if debug:
 	except NameError: logger = _logger
 	try: ratelimit_exceeded
 	except NameError: ratelimit_exceeded = _ratelimit_exceeded
+	try: ratelimit_touch
+	except NameError: ratelimit_touch = _ratelimit_touch
 	try: random
 	except NameError: import random
 

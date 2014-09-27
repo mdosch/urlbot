@@ -131,11 +131,16 @@ def chat_write(message, prefix='/say '):
 		except IOError:
 			logger('err', "couldn't print to fifo " + fifo_path)
 
-def ratelimit_exceeded(ignored=None): # FIXME: separate counters
-	global hist_flag
-
+def ratelimit_touch(ignored=None): # FIXME: separate counters
 	now = time.time()
 	hist_ts.append(now)
+
+	if hist_max_count < len(hist_ts):
+		hist_ts.pop(0)
+
+
+def ratelimit_exceeded(ignored=None): # FIXME: separate counters
+	global hist_flag
 
 	if hist_max_count < len(hist_ts):
 		first = hist_ts.pop(0)
@@ -155,6 +160,7 @@ def extract_url(data):
 	result = re.findall("(https?://[^\s>]+)", data)
 	if result:
 		for r in result:
+			ratelimit_touch()
 			if ratelimit_exceeded():
 				return False
 
@@ -197,7 +203,7 @@ def parse_delete(filepath):
 	fd.close()
 	os.remove(filepath) # probably better crash here
 
-	if content[1:1+len(bot_user)] == bot_user:
+	if content[1:1+len(conf('bot_user'))] == conf('bot_user'):
 		return
 
 	if 'has set the subject to:' in content:
@@ -234,6 +240,7 @@ plugins.chat_write = chat_write
 plugins.conf = conf
 plugins.logger = logger
 plugins.ratelimit_exceeded = ratelimit_exceeded
+plugins.ratelimit_touch = ratelimit_touch
 
 plugins.register_all()
 
