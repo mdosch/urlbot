@@ -1,6 +1,10 @@
 #!/usr/bin/python
 
-import time
+import time, sys
+
+def _logger(a, b): sys.stderr.write('logger: %s::%s\n' %(a, b))
+try: logger
+except NameError: logger = _logger
 
 if '__main__' == __name__:
 	print '''this is a config file, which is not meant to be executed'''
@@ -18,12 +22,15 @@ config['hist_max_time'] = 10 * 60
 config['uptime'] = -time.time()
 config['request_counter'] = 0
 
+config['persistent_storage'] = 'urlbot.persistent'
+
 # the "dice" feature will use more efficient random data (0) for given users
 config['enhanced-random-user'] = ( 'FIXME', 'FIXME' )
 
 def conf(val):
 	if val in config.keys():
 		return config[val]
+	logger('warn', 'conf(): unknown key ' + str(val))
 	return None
 
 def set_conf(key, val):

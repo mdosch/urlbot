@@ -85,23 +85,63 @@ def data_parse_other(data):
 				ratelimit_touch(RATE_CHAT)
 				chat_write(ret['msg'])
 
-def command_help(args):
+def command_command(args):
 	if 'register' == args:
 		return {
-			'name': 'prints help',
-			'args': ('data', 'reply_user'),
+			'name': 'command',
+			'desc': 'lists commands',
+			'args': ('data', 'reply_user', 'cmd_list'),
 			'ratelimit_class': RATE_GLOBAL
 		}
 
 	if 'command' in args['data']:
 		return {
-			'msg': args['reply_user'] + (""": known commands: 'command', 'dice', 'info', 'hangup', 'nospoiler', 'ping', 'uptime', 'source', 'version'""")
+			'msg': args['reply_user'] + ': known commands: ' + str(args['cmd_list']).strip('[]')
 		}
+
+def command_help(args):
+	if 'register' == args:
+		return {
+			'name': 'help',
+			'desc': 'print help for a command',
+			'args': ('data', 'reply_user', 'cmd_list'),
+			'ratelimit_class': RATE_GLOBAL
+		}
+
+
+	cmd = None
+	flag = False
+
+	for word in args['data'].split():
+		if True == flag:
+			cmd = word
+			break
+
+		if 'help' == word:
+			flag = True
+
+	if None == cmd:
+		return {
+			'msg': args['reply_user'] + ': no command given'
+		}
+
+	if not cmd in [p['name'] for p in plugins['command']]:
+		return {
+			'msg': args['reply_user'] + ': no such command: %s' % cmd
+		}
+
+	for p in plugins['command']:
+		if cmd == p['name']:
+			return {
+				'msg': args['reply_user'] + ': help for %s: %s' %(cmd, p['desc'])
+			}
+
 
 def command_version(args):
 	if 'register' == args:
 		return {
-			'name': 'prints version',
+			'name': 'version',
+			'desc': 'prints version',
 			'args': ('data', 'reply_user'),
 			'ratelimit_class': RATE_GLOBAL
 		}
@@ -114,7 +154,8 @@ def command_version(args):
 def command_unicode(args):
 	if 'register' == args:
 		return {
-			'name': 'prints an unicode string',
+			'name': 'unikot',
+			'desc': 'prints an unicode string',
 			'args': ('data', 'reply_user'),
 			'ratelimit_class': RATE_GLOBAL
 		}
@@ -130,7 +171,8 @@ def command_unicode(args):
 def command_source(args):
 	if 'register' == args:
 		return {
-			'name': 'prints git URL',
+			'name': 'source',
+			'desc': 'prints git URL',
 			'args': ('data', 'reply_user'),
 			'ratelimit_class': RATE_GLOBAL
 		}
@@ -143,7 +185,8 @@ def command_source(args):
 def command_dice(args):
 	if 'register' == args:
 		return {
-			'name': 'rolls a dice',
+			'name': 'dice',
+			'desc': 'rolls a dice',
 			'args': ('data', 'reply_user'),
 			'ratelimit_class': RATE_INTERACTIVE
 		}
@@ -162,7 +205,8 @@ def command_dice(args):
 def command_uptime(args):
 	if 'register' == args:
 		return {
-			'name': 'prints uptime',
+			'name': 'uptime',
+			'desc': 'prints uptime',
 			'args': ('data', 'reply_user'),
 			'ratelimit_class': RATE_GLOBAL
 		}
@@ -183,7 +227,8 @@ def command_uptime(args):
 def command_ping(args):
 	if 'register' == args:
 		return {
-			'name': 'pong',
+			'name': 'ping',
+			'desc': 'sends pong',
 			'args': ('data', 'reply_user'),
 			'ratelimit_class': RATE_INTERACTIVE
 		}
@@ -207,7 +252,8 @@ def command_ping(args):
 def command_info(args):
 	if 'register' == args:
 		return {
-			'name': 'prints info message',
+			'name': 'info',
+			'desc': 'prints info message',
 			'args': ('data', 'reply_user'),
 			'ratelimit_class': RATE_GLOBAL
 		}
@@ -241,8 +287,6 @@ def data_parse_commands(data):
 
 	reply_user = get_reply_user(data)
 
-	flag = False
-
 	for p in plugins['command']:
 		if ratelimit_exceeded(p['ratelimit_class']):
 			continue
@@ -255,6 +299,10 @@ def data_parse_commands(data):
 
 				if 'data' == a:
 					args['data'] = data
+				elif 'cmd_list' == a:
+					cmds = [c['name'] for c in plugins['command']]
+					cmds.sort()
+					args['cmd_list'] = cmds
 				elif 'reply_user' == a:
 					args['reply_user'] = reply_user
 				else:
@@ -263,13 +311,10 @@ def data_parse_commands(data):
 		ret = p['func'](args)
 
 		if None != ret:
-			flag = True
 			if 'msg' in ret.keys():
 				ratelimit_touch(RATE_CHAT)
 				chat_write(ret['msg'])
-
-	if False != flag:
-		return None
+			return None
 
 	ret = command_else({'reply_user': reply_user})
 	if None != ret:
@@ -282,14 +327,14 @@ def data_parse_commands(data):
 funcs = {}
 funcs['parse'] = (parse_mental_ill, parse_skynet)
 funcs['command'] = (
-	command_help, command_version, command_unicode, command_source,
-	command_dice, command_uptime, command_ping, command_info
+	command_command, command_help, command_version, command_unicode,
+	command_source, command_dice, command_uptime, command_ping, command_info
 )
 
 _dir = dir()
 
 if debug_enabled():
-	def _chat_write(a): _logger('chat_write', a)
+	def _chat_write(a): logger('chat_write', a)
 	def _conf(a): return 'bot'
 	def _ratelimit_exceeded(ignored=None): return False
 	def _ratelimit_touch(ignored=None): return True
@@ -302,6 +347,8 @@ if debug_enabled():
 	except NameError: ratelimit_exceeded = _ratelimit_exceeded
 	try: ratelimit_touch
 	except NameError: ratelimit_touch = _ratelimit_touch
+
+	logger('info', 'debugging enabled')
 
 def register(func_type, auto=False):
 	plugins[func_type] = []

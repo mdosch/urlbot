@@ -5,7 +5,8 @@ if '__main__' == __name__:
 	print '''this is a library file, which is not meant to be executed'''
 	exit(-1)
 
-import sys, os, time
+import sys, os, time, pickle
+from local_config import conf
 
 RATE_GLOBAL      = 0x01
 RATE_NO_SILENCE  = 0x02
@@ -42,6 +43,15 @@ def logger(severity, message):
 #	if severity in sev:
 	args = (sys.argv[0], time.strftime('%Y-%m-%d.%H:%M:%S'), severity, message)
 	sys.stderr.write(e('%s %s %s: %s' % args) + '\n')
+
+def conf_save(obj):
+	with open(conf('persistent_storage'), 'wb') as fd:
+		return pickle.dump(obj, fd)
+
+def conf_load():
+	with open(conf('persistent_storage'), 'rb') as fd:
+		fd.seek(0)
+		return pickle.load(fd)
 
 def get_version_git():
 	import subprocess
