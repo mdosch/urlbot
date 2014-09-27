@@ -7,6 +7,9 @@ if '__main__' == __name__:
 config = {}
 config['src-url'] = 'FIXME'
 
+config['bot_user'] = 'urlbot'
+config['bot_owner'] = 'FIXME'
+
 # the "dice" feature will use more efficient random data (0) for given users
 config['enhanced-random-user'] = ( 'FIXME', 'FIXME' )
 

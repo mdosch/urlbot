@@ -6,7 +6,6 @@ from local_config import conf
 
 BUFSIZ = 8192
 delay = 0.100 # seconds
-bot_user = 'urlbot'
 
 basedir = '.'
 if 2 == len(sys.argv): basedir = sys.argv[1]
@@ -132,7 +131,7 @@ def chat_write(message, prefix='/say '):
 		except IOError:
 			logger('err', "couldn't print to fifo " + fifo_path)
 
-def ratelimit_exceeded():
+def ratelimit_exceeded(ignored=None): # FIXME: separate counters
 	global hist_flag
 
 	now = time.time()
@@ -180,105 +179,12 @@ def extract_url(data):
 			ret = True
 	return ret
 
-def mental_ill(data):
-	min_ill = 3
-	c = 0
-
-	# return True for min_ill '!' in a row
-	for d in data:
-		if '!' == d or '?' == d:
-			c += 1
-		else:
-			c = 0
-		if (min_ill <= c):
-			return True
-
-	return False
-
-def parse_other(data):
-	reply_user = data.split(' ')[0].strip('<>')
-
-	if True == mental_ill(data):
-		if ratelimit_exceeded():
-			return False
-		chat_write('''Multiple exclamation/question marks are a sure sign of mental disease, with %s as a living example.''' % reply_user)
-	elif 'skynet' in data.lower():
-		if ratelimit_exceeded():
-			return False
-		chat_write('''I'm an independent bot and have nothing to do with other artificial intelligence systems!''')
-
-	return True
-
 def parse_pn(data):
 	## reply_user = data.split(' ')[0].strip('<>')
 	# since we can't determine if a user named 'foo> ' just wrote ' > bar'
 	# or a user 'foo' just wrote '> > bar', we can't safely answer here
 	logger('warn', 'received PN: ' + data)
 	return False
-
-def parse_commands(data):
-	words = data.split(' ')
-
-	if 2 > len(words): # need at least two words
-		return None
-
-	# reply if beginning of the text matches bot_user
-	if words[1][0:len(bot_user)] == bot_user:
-		reply_user = words[0].strip('<>')
-
-		if 'hangup' in data:
-			chat_write('', prefix='/quit')
-			logger('warn', 'received hangup: ' + data)
-			return None
-
-		if ratelimit_exceeded():
-			return False
-
-		if 'command' in data:
-			chat_write(reply_user + (""": known commands: 'command', 'dice', 'info', 'hangup', 'nospoiler', 'ping', 'uptime', 'source', 'version'"""))
-		elif 'version' in data:
-			chat_write(reply_user + (''': I'm running ''' + VERSION))
-		elif 'unikot' in data:
-			chat_write(reply_user + (u''': ┌────────┐'''))
-			chat_write(reply_user + (u''': │Unicode!│'''))
-			chat_write(reply_user + (u''': └────────┘'''))
-		elif 'source' in data:
-			chat_write('My source code can be found at %s' % conf('src-url'))
-		elif 'dice' in data:
-			if reply_user in conf('enhanced-random-user'):
-				rnd = 0 # this might confuse users. good.
-			else:
-				rnd = random.randint(1, 6)
-
-			dice_char = [u'◇', u'⚀', u'⚁', u'⚂', u'⚃', u'⚄', u'⚅']
-			chat_write('rolling a dice for %s: %s (%d)' %(reply_user, dice_char[rnd], rnd))
-		elif 'uptime' in data:
-			u = int(uptime + time.time())
-			plural_uptime = 's'
-			plural_request = 's'
-
-			if 1 == u: plural_uptime = ''
-			if 1 == request_counter: plural_request = ''
-
-			chat_write(reply_user + (''': happily serving for %d second%s, %d request%s so far.''' %(u, plural_uptime, request_counter, plural_request)))
-			logger('info', 'sent statistics')
-		elif 'ping' in data:
-			rnd = random.randint(0, 3) # 1:4
-			if 0 == rnd:
-				chat_write(reply_user + ''': peng (You're dead now.)''')
-				logger('info', 'sent pong (variant)')
-			elif 1 == rnd:
-				chat_write(reply_user + ''': I don't like you, leave me alone.''')
-				logger('info', 'sent pong (dontlike)')
-			else:
-				chat_write(reply_user + ''': pong''')
-				logger('info', 'sent pong')
-		elif 'info' in data:
-			chat_write(reply_user + (''': I'm a bot, my job is to extract <title> tags from posted URLs. In case I'm annoying or for further questions, please talk to my master Cae. I'm rate limited and shouldn't post more than %d messages per %d seconds. To make me exit immediately, highlight me with 'hangup' in the message (emergency only, please). For other commands, highlight me with 'command'.''' %(hist_max_count, hist_max_time)))
-			logger('info', 'sent long info')
-		else:
-			chat_write(reply_user + (''': I'm a bot (highlight me with 'info' for more information).'''))
-			logger('info', 'sent short info')
 
 def parse_delete(filepath):
 	try:
@@ -306,8 +212,8 @@ def parse_delete(filepath):
 		return
 
 	if True != extract_url(content):
-		parse_commands(content)
-		parse_other(content)
+		plugins.parse_commands(content)
+		plugins.parse_other(content)
 		return
 
 def get_version_git():
@@ -322,6 +228,12 @@ def get_version_git():
 		return "version (Git) '%s'" % e(first_line.strip())
 	else:
 		return "(unknown version)"
+
+import plugins
+plugins.chat_write = chat_write
+plugins.conf = conf
+plugins.logger = logger
+plugins.ratelimit_exceeded = ratelimit_exceeded
 
 if '__main__' == __name__:
 	VERSION = get_version_git()
