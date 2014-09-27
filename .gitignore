@@ -3,3 +3,4 @@
 cmdfifo
 logs/
 event_files/
+urlbot.persistent
