@@ -175,11 +175,11 @@ def command_uptime(args):
 		plural_request = 's'
 
 		if 1 == u: plural_uptime = ''
-		if 1 == request_counter: plural_request = ''
+		if 1 == conf('request_counter'): plural_request = ''
 
 		logger('info', 'sent statistics')
 		return {
-			'msg': args['reply_user'] + (''': happily serving for %d second%s, %d request%s so far.''' %(u, plural_uptime, request_counter, plural_request))
+			'msg': args['reply_user'] + (''': happily serving for %d second%s, %d request%s so far.''' %(u, plural_uptime, conf('request_counter'), plural_request))
 		}
 
 def command_ping(args):

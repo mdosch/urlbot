@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys, os, re, time, urllib, pickle, random, HTMLParser, stat
-from local_config import conf
+from local_config import conf, set_conf
 
 BUFSIZ = 8192
 delay = 0.100 # seconds
@@ -16,7 +16,6 @@ fifo_path = os.path.join(basedir, 'cmdfifo')
 # rate limiting to 5 messages per 10 minutes
 hist_ts = []
 hist_flag = True
-request_counter = 0
 
 parser = None
 
@@ -106,8 +105,7 @@ def extract_title(url):
 	return (-1, 'error')
 
 def chat_write(message, prefix='/say '):
-	global request_counter
-	request_counter += 1
+	set_conf('request_counter', conf('request_counter') + 1)
 
 	if debug_enabled():
 		print message
@@ -242,8 +240,6 @@ plugins.ratelimit_touch = ratelimit_touch
 
 plugins.random = random
 plugins.time = time
-
-plugins.request_counter = request_counter
 
 plugins.register_all()
 

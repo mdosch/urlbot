@@ -16,6 +16,8 @@ config['hist_max_count'] = 5
 config['hist_max_time'] = 10 * 60
 
 config['uptime'] = -time.time()
+config['request_counter'] = 0
+
 
 # the "dice" feature will use more efficient random data (0) for given users
 config['enhanced-random-user'] = ( 'FIXME', 'FIXME' )
@@ -23,4 +25,8 @@ config['enhanced-random-user'] = ( 'FIXME', 'FIXME' )
 def conf(val):
 	if val in config.keys():
 		return config[val]
+	return None
+
+def set_conf(key, val):
+	config[key] = val
 	return None
