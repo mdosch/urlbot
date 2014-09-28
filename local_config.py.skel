@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import time, sys
 
@@ -7,7 +7,7 @@ try: logger
 except NameError: logger = _logger
 
 if '__main__' == __name__:
-	print '''this is a config file, which is not meant to be executed'''
+	print('''this is a config file, which is not meant to be executed''')
 	exit(-1)
 
 config = {}
@@ -28,7 +28,7 @@ config['persistent_storage'] = 'urlbot.persistent'
 config['enhanced-random-user'] = ( 'FIXME', 'FIXME' )
 
 def conf(val):
-	if val in config.keys():
+	if val in list(config.keys()):
 		return config[val]
 	logger('warn', 'conf(): unknown key ' + str(val))
 	return None

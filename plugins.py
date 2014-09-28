@@ -1,8 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 if '__main__' == __name__:
-	print '''this is a plugin file, which is not meant to be executed'''
+	print('''this is a plugin file, which is not meant to be executed''')
 	exit(-1)
 
 import time, random
@@ -67,7 +67,7 @@ def data_parse_other(data):
 
 		args = {}
 
-		if 'args' in p.keys():
+		if 'args' in list(p.keys()):
 			for a in p['args']:
 				if None == a: continue
 
@@ -81,7 +81,7 @@ def data_parse_other(data):
 		ret = p['func'](args)
 
 		if None != ret:
-			if 'msg' in ret.keys():
+			if 'msg' in list(ret.keys()):
 				ratelimit_touch(RATE_CHAT)
 				chat_write(ret['msg'])
 
@@ -167,9 +167,9 @@ def command_unicode(args):
 		return {
 			'msg': 
 				(
-					args['reply_user'] + u''': ┌────────┐''',
-					args['reply_user'] + u''': │Unicode!│''',
-					args['reply_user'] + u''': └────────┘'''
+					args['reply_user'] + ''': ┌────────┐''',
+					args['reply_user'] + ''': │Unicode!│''',
+					args['reply_user'] + ''': └────────┘'''
 				)
 		}
 
@@ -202,7 +202,7 @@ def command_dice(args):
 		else:
 			rnd = random.randint(1, 6)
 
-		dice_char = [u'◇', u'⚀', u'⚁', u'⚂', u'⚃', u'⚄', u'⚅']
+		dice_char = ['◇', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅']
 		return {
 			'msg': 'rolling a dice for %s: %s (%d)' %(args['reply_user'], dice_char[rnd], rnd)
 		}
@@ -298,7 +298,7 @@ def data_parse_commands(data):
 
 		args = {}
 
-		if 'args' in p.keys():
+		if 'args' in list(p.keys()):
 			for a in p['args']:
 				if None == a: continue
 
@@ -316,13 +316,19 @@ def data_parse_commands(data):
 		ret = p['func'](args)
 
 		if None != ret:
-			if 'msg' in ret.keys():
-				if str == type(ret['msg']) or unicode == type(ret['msg']):
+			if 'msg' in list(ret.keys()):
+				if str == type(ret['msg']): # FIXME 2to3
 					ratelimit_touch(RATE_CHAT)
+					if ratelimit_exceeded(RATE_CHAT):
+						return False
+
 					chat_write(ret['msg'])
 				else:
 					for line in ret['msg']:
 						ratelimit_touch(RATE_CHAT)
+						if ratelimit_exceeded(RATE_CHAT):
+							return False
+
 						chat_write(line)
 
 			return None
@@ -332,7 +338,7 @@ def data_parse_commands(data):
 		if ratelimit_exceeded(RATE_GLOBAL):
 			return False
 
-		if 'msg' in ret.keys():
+		if 'msg' in list(ret.keys()):
 			chat_write(ret['msg'])
 
 funcs = {}
@@ -368,7 +374,7 @@ def register(func_type, auto=False):
 		# FIXME: this is broken. dir() returns str, but not
 		# the addr of the functions which we'd need here.
 		for f in _dir:
-			print 'testing(%s)' % f
+			print('testing(%s)' % f)
 			if not f.startswith(func_type + '_'):
 				continue
 

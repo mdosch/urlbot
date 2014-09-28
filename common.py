@@ -1,8 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 if '__main__' == __name__:
-	print '''this is a library file, which is not meant to be executed'''
+	print('''this is a library file, which is not meant to be executed''')
 	exit(-1)
 
 import sys, os, time, pickle
@@ -27,22 +27,11 @@ def debug_enabled():
 #	return True
 	return False
 
-def e(data):
-	if data:
-		if unicode == type(data):
-			return data.encode('utf8')
-		elif str == type(data):
-			return data.encode('string-escape')
-		else:
-			return data
-	else:
-		return "''"
-
 def logger(severity, message):
 #	sev = ( 'err', 'warn', 'info' )
 #	if severity in sev:
 	args = (sys.argv[0], time.strftime('%Y-%m-%d.%H:%M:%S'), severity, message)
-	sys.stderr.write(e('%s %s %s: %s' % args) + '\n')
+	sys.stderr.write('%s %s %s: %s\n' % args)
 
 def conf_save(obj):
 	with open(conf('persistent_storage'), 'wb') as fd:
@@ -62,7 +51,7 @@ def get_version_git():
 	first_line = p.stdout.readline()
 
 	if 0 == p.wait():
-		return "version (Git) '%s'" % e(first_line.strip())
+		return "version (Git) '%s'" % str(first_line.strip())
 	else:
 		return "(unknown version)"
 

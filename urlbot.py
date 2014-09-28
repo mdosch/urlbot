@@ -1,7 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import sys, os, re, time, urllib, pickle, HTMLParser, stat
+import sys, os, stat, re, time, pickle
+import urllib.request, urllib.parse, urllib.error, html.parser
 from local_config import conf, set_conf
 from common import *
 
@@ -11,17 +12,17 @@ hist_flag = True
 
 parser = None
 
-class urllib_user_agent_wrapper(urllib.FancyURLopener):
+class urllib_user_agent_wrapper(urllib.request.FancyURLopener):
 	version = '''Mozilla/5.0 (X11; Linux x86_64; rv:31.0) Gecko/20100101 Firefox/31.0 Iceweasel/31.0'''
 
 def fetch_page(url):
 	logger('info', 'fetching page ' + url)
 	try:
-		urllib._urlopener = urllib_user_agent_wrapper()
-		response = urllib.urlopen(url)
-		html = response.read(BUFSIZ) # ignore more than BUFSIZ
+		urllib.request._urlopener = urllib_user_agent_wrapper()
+		response = urllib.request.urlopen(url)
+		html_text = response.read(BUFSIZ) # ignore more than BUFSIZ
 		response.close()
-		return (html, response.headers)
+		return (html_text, response.headers)
 	except IOError as e:
 		logger('warn', 'failed: ' + e.errno)
 
@@ -36,8 +37,8 @@ def extract_title(url):
 
 	logger('info', 'extracting title from ' + url)
 
-	(html, headers) = fetch_page(url)
-	if html:
+	(html_text, headers) = fetch_page(url)
+	if html_text:
 		charset = ''
 		if 'content-type' in headers:
 			logger('debug', 'content-type: ' + headers['content-type'])
@@ -48,21 +49,21 @@ def extract_title(url):
 			charset = re.sub('.*charset=(?P<charset>\S+).*',
 				'\g<charset>', headers['content-type'], re.IGNORECASE)
 
-		result = re.match(r'.*?<title.*?>(.*?)</title>.*?', html, re.S | re.M | re.IGNORECASE)
+		if '' != charset:
+			try:
+				html_text = html_text.decode(charset)
+			except LookupError:
+				logger('warn', 'invalid charset in ' + headers['content-type'])
+
+		if str != type(html_text):
+			html_text = str(html_text)
+
+		result = re.match(r'.*?<title.*?>(.*?)</title>.*?', html_text, re.S | re.M | re.IGNORECASE)
 		if result:
 			match = result.groups()[0]
 
-#			if 'charset=UTF-8' in headers['content-type']:
-#				match = unicode(match)
-
 			if None == parser:
-				parser = HTMLParser.HTMLParser()
-
-			if '' != charset:
-				try:
-					match = match.decode(charset)
-				except LookupError:
-					logger('warn', 'invalid charset in ' + headers['content-type'])
+				parser = html.parser.HTMLParser()
 
 			try:
 				expanded_html = parser.unescape(match)
@@ -79,15 +80,15 @@ def chat_write(message, prefix='/say '):
 	set_conf('request_counter', conf('request_counter') + 1)
 
 	if debug_enabled():
-		print message
+		print(message)
 	else:
 		try:
 			fd = open(fifo_path, 'wb')
-
+# FIXME 2to3
 			# FIXME: somehow, unicode chars can end up inside a <str> message,
 			# which seems to make both unicode() and ''.encode('utf8') fail.
 			try:
-				msg = unicode(prefix) + unicode(message) + '\n'
+				msg = str(prefix) + str(message) + '\n'
 				msg = msg.encode('utf8')
 			except UnicodeDecodeError:
 				msg = prefix + message + '\n'
@@ -132,16 +133,16 @@ def extract_url(data):
 			(status, title) = extract_title(r)
 
 			if 0 == status:
-				message = 'Title: %s: %s' % (title.strip(), e(r))
+				message = 'Title: %s: %s' % (title.strip(), r)
 			elif 1 == status:
 				logger('info', 'no message sent for non-text %s (%s)' %(r, title))
 				continue
 			elif 2 == status:
-				message = 'No title: %s' % (e(r))
+				message = 'No title: %s' % r
 			elif 3 == status:
 				message = title
 			else:
-				message = 'some error occurred when fetching %s' % e(r)
+				message = 'some error occurred when fetching %s' % r
 
 			message = message.replace('\n', '\\n')
 
@@ -159,7 +160,7 @@ def parse_pn(data):
 
 def parse_delete(filepath):
 	try:
-		fd = open(filepath, 'rb')
+		fd = open(filepath, 'r')
 	except IOError:
 		logger('err', 'file has vanished: ' + filepath)
 		return False
@@ -196,7 +197,7 @@ plugins.ratelimit_touch = ratelimit_touch
 plugins.register_all()
 
 if '__main__' == __name__:
-	print sys.argv[0] + ' ' + VERSION
+	print(sys.argv[0] + ' ' + VERSION)
 
 	if not os.path.exists(fifo_path):
 		logger('error', 'fifo_path "%s" does not exist, exiting' % fifo_path)
@@ -214,5 +215,5 @@ if '__main__' == __name__:
 
 			time.sleep(delay)
 		except KeyboardInterrupt:
-			print ""
+			print("")
 			exit(130)
