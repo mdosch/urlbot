@@ -41,6 +41,7 @@ def parse_mental_ill(args):
 			break
 
 	if True == flag:
+		logger('plugin', 'sent mental illness reply')
 		return {
 			'msg': '''Multiple exclamation/question marks are a sure sign of mental disease, with %s as a living example.''' % args['reply_user']
 		}
@@ -54,6 +55,7 @@ def parse_skynet(args):
 		}
 
 	if 'skynet' in args['data'].lower():
+		logger('plugin', 'sent skynet reply')
 		return {
 			'msg': '''I'm an independent bot and have nothing to do with other artificial intelligence systems!'''
 		}
@@ -95,6 +97,7 @@ def command_command(args):
 		}
 
 	if 'command' in args['data']:
+		logger('plugin', 'sent command list')
 		return {
 			'msg': args['reply_user'] + ': known commands: ' + str(args['cmd_list']).strip('[]')
 		}
@@ -124,17 +127,20 @@ def command_help(args):
 		return None
 
 	if None == cmd:
+		logger('plugin', 'empty help request')
 		return {
 			'msg': args['reply_user'] + ': no command given'
 		}
 
 	if not cmd in [p['name'] for p in plugins['command']]:
+		logger('plugin', 'no help found for %s' % cmd)
 		return {
 			'msg': args['reply_user'] + ': no such command: %s' % cmd
 		}
 
 	for p in plugins['command']:
 		if cmd == p['name']:
+			logger('plugin', 'sent help for %s' % cmd)
 			return {
 				'msg': args['reply_user'] + ': help for %s: %s' %(cmd, p['desc'])
 			}
@@ -150,6 +156,7 @@ def command_version(args):
 		}
 
 	if 'version' in args['data']:
+		logger('plugin', 'sent version string')
 		return {
 			'msg': args['reply_user'] + (''': I'm running ''' + VERSION)
 		}
@@ -164,6 +171,7 @@ def command_unicode(args):
 		}
 
 	if 'unikot' in args['data']:
+		logger('plugin', 'sent some unicode')
 		return {
 			'msg': 
 				(
@@ -183,6 +191,7 @@ def command_source(args):
 		}
 
 	if 'source' in args['data']:
+		logger('plugin', 'sent source URL')
 		return {
 			'msg': 'My source code can be found at %s' % conf('src-url')
 		}
@@ -199,8 +208,10 @@ def command_dice(args):
 	if 'dice' in args['data']:
 		if args['reply_user'] in conf('enhanced-random-user'):
 			rnd = 0 # this might confuse users. good.
+			logger('plugin', 'sent random (enhanced)')
 		else:
 			rnd = random.randint(1, 6)
+			logger('plugin', 'sent random')
 
 		dice_char = ['◇', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅']
 		return {
@@ -224,7 +235,7 @@ def command_uptime(args):
 		if 1 == u: plural_uptime = ''
 		if 1 == conf('request_counter'): plural_request = ''
 
-		logger('info', 'sent statistics')
+		logger('plugin', 'sent statistics')
 		return {
 			'msg': args['reply_user'] + (''': happily serving for %d second%s, %d request%s so far.''' %(u, plural_uptime, conf('request_counter'), plural_request))
 		}
@@ -242,13 +253,13 @@ def command_ping(args):
 		rnd = random.randint(0, 3) # 1:4
 		if 0 == rnd:
 			msg = args['reply_user'] + ''': peng (You're dead now.)'''
-			logger('info', 'sent pong (variant)')
+			logger('plugin', 'sent pong (variant)')
 		elif 1 == rnd:
 			msg = args['reply_user'] + ''': I don't like you, leave me alone.'''
-			logger('info', 'sent pong (dontlike)')
+			logger('plugin', 'sent pong (dontlike)')
 		else:
 			msg = args['reply_user'] + ''': pong'''
-			logger('info', 'sent pong')
+			logger('plugin', 'sent pong')
 
 		return {
 			'msg': msg
@@ -264,13 +275,13 @@ def command_info(args):
 		}
 
 	if 'info' in args['data']:
-		logger('info', 'sent long info')
+		logger('plugin', 'sent long info')
 		return {
 			'msg': args['reply_user'] + (''': I'm a bot, my job is to extract <title> tags from posted URLs. In case I'm annoying or for further questions, please talk to my master %s. I'm rate limited and shouldn't post more than %d messages per %d seconds. To make me exit immediately, highlight me with 'hangup' in the message (emergency only, please). For other commands, highlight me with 'command'.''' %(conf('bot_owner'), conf('hist_max_count'), conf('hist_max_time')))
 		}
 
 def command_else(args):
-	logger('info', 'sent short info')
+	logger('plugin', 'sent short info')
 	return {
 		'msg': args['reply_user'] + ''': I'm a bot (highlight me with 'info' for more information).'''
 	}

@@ -215,5 +215,5 @@ if '__main__' == __name__:
 
 			time.sleep(delay)
 		except KeyboardInterrupt:
-			print("")
+			print('')
 			exit(130)
