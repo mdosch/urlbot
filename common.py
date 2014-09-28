@@ -51,7 +51,7 @@ def get_version_git():
 	first_line = p.stdout.readline()
 
 	if 0 == p.wait():
-		return "version (Git) '%s'" % str(first_line.strip())
+		return "version (Git) '%s'" % str(first_line.strip(), encoding='utf8')
 	else:
 		return "(unknown version)"
 
