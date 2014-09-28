@@ -42,6 +42,27 @@ def conf_load():
 		fd.seek(0)
 		return pickle.load(fd)
 
+def levenshtein(a, b, return_table=False):
+	'''returns the levenshtein distance between a and b'''
+	# initialisize a table with 0, but the 0-rows/cols with their index
+	d = [[ (i if 0 == j else j if 0 == i else 0) for j in range(len(b)+1) ] for i in range(len(a)+1) ]
+
+	for i in range(1, len(a)+1):
+		for j in range(1, len(b)+1):
+			if a[i-1] == b[j-1]:
+				d[i][j] = d[i-1][j-1]
+			else:
+				d[i][j] = min(
+					d[i-1][j] + 1,   # deletion
+					d[i][j-1] + 1,   # insertion
+					d[i-1][j-1] + 1, # substitution
+				)
+
+	if return_table:
+		return (d, d[i][j])
+	else:
+		return d[i][j]
+
 def get_version_git():
 	import subprocess
 

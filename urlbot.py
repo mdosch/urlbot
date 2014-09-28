@@ -133,7 +133,9 @@ def extract_url(data):
 			(status, title) = extract_title(r)
 
 			if 0 == status:
-				message = 'Title: %s: %s' % (title.strip(), r)
+				message = 'lev=%d/%d:%d Title: %s: %s' %(
+					levenshtein(r, title.strip()), len(title.strip()), len(r), title.strip(), r
+				)
 			elif 1 == status:
 				logger('info', 'no message sent for non-text %s (%s)' %(r, title))
 				continue
