@@ -289,7 +289,7 @@ def command_teatimer(args):
 	if 'register' == args:
 		return {
 			'name': 'teatimer',
-			'desc': 'sets a tea timer',
+			'desc': 'sets a tea timer to currently %d seconds' % conf('tea_steep_time'),
 			'args': ('data', 'reply_user'),
 			'ratelimit_class': RATE_GLOBAL
 		}
