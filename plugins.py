@@ -9,6 +9,8 @@ import time, random
 from local_config import conf
 from common import *
 
+joblist = []
+
 plugins = {}
 plugins['parse'] = []
 plugins['command'] = []
@@ -17,6 +19,9 @@ def get_reply_user(data):
 	# FIXME: we can't determine if a user named 'foo> ' just wrote ' > bar'
 	# or a user 'foo' just wrote '> > bar'
 	return data.split(' ')[0].strip('<>')
+
+def register_event(t, callback, args):
+	joblist.append((t, callback, args))
 
 def parse_mental_ill(args):
 	if 'register' == args:
@@ -280,6 +285,27 @@ def command_info(args):
 			'msg': args['reply_user'] + (''': I'm a bot, my job is to extract <title> tags from posted URLs. In case I'm annoying or for further questions, please talk to my master %s. I'm rate limited and shouldn't post more than %d messages per %d seconds. To make me exit immediately, highlight me with 'hangup' in the message (emergency only, please). For other commands, highlight me with 'command'.''' %(conf('bot_owner'), conf('hist_max_count'), conf('hist_max_time')))
 		}
 
+def command_teatimer(args):
+	if 'register' == args:
+		return {
+			'name': 'teatimer',
+			'desc': 'sets a tea timer',
+			'args': ('data', 'reply_user'),
+			'ratelimit_class': RATE_GLOBAL
+		}
+
+	if 'teatimer' in args['data']:
+		ready = time.time() + conf('tea_steep_time')
+
+		logger('plugin', 'tea timer set to %s' % time.strftime('%F.%T', time.localtime(ready)))
+		register_event(ready, chat_write, args['reply_user'] + ': Your tea is ready!')
+		
+		return {
+			'msg': args['reply_user'] + ': Tea timer set to %s' % time.strftime(
+				'%F.%T', time.localtime(ready)
+			)
+		}
+
 def command_else(args):
 	logger('plugin', 'sent short info')
 	return {
@@ -356,7 +382,8 @@ funcs = {}
 funcs['parse'] = (parse_mental_ill, parse_skynet)
 funcs['command'] = (
 	command_command, command_help, command_version, command_unicode,
-	command_source, command_dice, command_uptime, command_ping, command_info
+	command_source, command_dice, command_uptime, command_ping, command_info,
+	command_teatimer
 )
 
 _dir = dir()
@@ -405,3 +432,17 @@ def register(func_type, auto=False):
 def register_all():
 	register('parse')
 	register('command')
+
+def event_trigger():
+	if 0 == len(joblist):
+		return
+
+	now = time.time()
+
+	i = 0
+	for (t, callback, args) in joblist:
+		if t < now:
+			callback(args)
+			del(joblist[i])
+
+		i += 1

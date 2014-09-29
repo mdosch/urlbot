@@ -182,7 +182,7 @@ def parse_delete(filepath):
 		return
 	
 	if 'nospoiler' in content:
-		logger('info', "no spoiler for: " + content)
+#		logger('info', "no spoiler for: " + content)
 		return
 
 	if True != extract_url(content):
@@ -214,6 +214,8 @@ if '__main__' == __name__:
 			for f in os.listdir(event_files_dir):
 				if 'mcabber-' == f[:8]:
 					parse_delete(os.path.join(event_files_dir, f))
+
+			plugins.event_trigger()
 
 			time.sleep(delay)
 		except KeyboardInterrupt:

@@ -27,6 +27,8 @@ config['persistent_storage'] = 'urlbot.persistent'
 # the "dice" feature will use more efficient random data (0) for given users
 config['enhanced-random-user'] = ( 'FIXME', 'FIXME' )
 
+config['tea_steep_time'] = (3*60 + 40)
+
 def conf(val):
 	if val in list(config.keys()):
 		return config[val]
