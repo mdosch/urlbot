@@ -47,6 +47,7 @@ def levenshtein(a, b, return_table=False):
 	# initialisize a table with 0, but the 0-rows/cols with their index
 	d = [[ (i if 0 == j else j if 0 == i else 0) for j in range(len(b)+1) ] for i in range(len(a)+1) ]
 
+	i = j = 0
 	for i in range(1, len(a)+1):
 		for j in range(1, len(b)+1):
 			if a[i-1] == b[j-1]:
