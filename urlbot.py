@@ -24,7 +24,7 @@ def fetch_page(url):
 		response.close()
 		return (html_text, response.headers)
 	except IOError as e:
-		logger('warn', 'failed: ' + e.errno)
+		logger('warn', 'failed: ' + str(e.errno))
 
 	return (None, None)
 
