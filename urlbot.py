@@ -133,9 +133,16 @@ def extract_url(data):
 			(status, title) = extract_title(r)
 
 			if 0 == status:
-				message = 'lev=%d/%d:%d Title: %s: %s' %(
-					levenshtein(r, title.strip()), len(title.strip()), len(r), title.strip(), r
-				)
+				title = title.strip()
+				lev_url = re.sub(r'https?://[^/]*/', '', r)
+				lev_res = levenshtein(lev_url, title)
+
+				obj = conf_load()
+				obj['lev'].append((lev_res, title, lev_url))
+				conf_save(obj)
+
+				lev_str = 'lev=%d/%d:%d ' %(lev_res, len(title), len(lev_url))
+				message = lev_str + 'Title: %s: %s' %(title, r)
 			elif 1 == status:
 				logger('info', 'no message sent for non-text %s (%s)' %(r, title))
 				continue
