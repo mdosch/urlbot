@@ -20,8 +20,8 @@ delay = 0.100 # seconds
 basedir = '.'
 if 2 == len(sys.argv): basedir = sys.argv[1]
 
-event_files_dir = os.path.join(basedir, 'event_files')
-fifo_path = os.path.join(basedir, 'cmdfifo')
+event_files_dir = os.path.join(basedir, conf('path_event_files'))
+fifo_path = os.path.join(basedir, conf('path_cmdfifo'))
 
 def debug_enabled():
 #	return True

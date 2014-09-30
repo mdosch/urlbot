@@ -22,6 +22,8 @@ config['hist_max_time'] = 10 * 60
 config['uptime'] = -time.time()
 config['request_counter'] = 0
 
+config['path_event_files'] = 'event_files'
+config['path_cmdfifo'] = 'cmdfifo'
 config['persistent_storage'] = 'urlbot.persistent'
 
 # the "dice" feature will use more efficient random data (0) for given users
