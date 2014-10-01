@@ -22,11 +22,12 @@ def fetch_page(url):
 		response = urllib.request.urlopen(url)
 		html_text = response.read(BUFSIZ) # ignore more than BUFSIZ
 		response.close()
-		return (html_text, response.headers)
+		return (0, html_text, response.headers)
 	except IOError as e:
-		logger('warn', 'failed: ' + str(e.errno))
+		logger('warn', 'failed: ' + str(e))
+		return (1, str(e), 'dummy')
 
-	return (None, None)
+	return (-1, None, None)
 
 def extract_title(url):
 	global parser
@@ -37,7 +38,11 @@ def extract_title(url):
 
 	logger('info', 'extracting title from ' + url)
 
-	(html_text, headers) = fetch_page(url)
+	(code, html_text, headers) = fetch_page(url)
+	
+	if 1 == code:
+		return (3, 'failed: %s for %s' %(html_text, url))
+
 	if html_text:
 		charset = ''
 		if 'content-type' in headers:
