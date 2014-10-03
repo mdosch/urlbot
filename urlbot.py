@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import sys, os, stat, re, time, pickle
+import sys, os, stat, re, time, pickle, random
 import urllib.request, urllib.parse, urllib.error, html.parser
 from local_config import conf, set_conf
 from common import *
@@ -149,8 +149,15 @@ def extract_url(data):
 				lev_str = 'lev=%d/%d:%d ' %(lev_res, len(title), len(lev_url))
 				message = lev_str + 'Title: %s: %s' %(title, r)
 			elif 1 == status:
-				logger('info', 'no message sent for non-text %s (%s)' %(r, title))
-				continue
+				if conf('image_preview'):
+					# of course it's fake, but it looks interesting at least
+					char = """,._-+=\|/*`~"'"""
+					message = 'No text but %s, 1-bit ASCII art preview: [%c] %s' %(
+						title, random.choice(char), r
+					)
+				else:
+					logger('info', 'no message sent for non-text %s (%s)' %(r, title))
+					continue
 			elif 2 == status:
 				message = 'No title: %s' % r
 			elif 3 == status:
