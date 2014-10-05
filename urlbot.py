@@ -12,14 +12,12 @@ hist_flag = True
 
 parser = None
 
-class urllib_user_agent_wrapper(urllib.request.FancyURLopener):
-	version = '''Mozilla/5.0 (X11; Linux x86_64; rv:31.0) Gecko/20100101 Firefox/31.0 Iceweasel/31.0'''
-
 def fetch_page(url):
 	logger('info', 'fetching page ' + url)
 	try:
-		urllib.request._urlopener = urllib_user_agent_wrapper()
-		response = urllib.request.urlopen(url)
+		request = urllib.request.Request(url)
+		request.add_header('User-Agent', '''Mozilla/5.0 (X11; Linux x86_64; rv:31.0) Gecko/20100101 Firefox/31.0 Iceweasel/31.0''')
+		response = urllib.request.urlopen(request)
 		html_text = response.read(BUFSIZ) # ignore more than BUFSIZ
 		response.close()
 		return (0, html_text, response.headers)
