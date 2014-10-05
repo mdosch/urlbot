@@ -129,21 +129,17 @@ def extract_url(data):
 	ret = None
 	result = re.findall("(https?://[^\s>]+)", data)
 	if result:
-		for r in result:
+		for url in result:
 			ratelimit_touch()
 			if ratelimit_exceeded():
 				return False
 
-			(status, title) = extract_title(r)
+			(status, title) = extract_title(url)
 
 			if 0 == status:
 				title = title.strip()
-				lev_url = re.sub(r'https?://[^/]*/', '', r)
+				lev_url = re.sub(r'https?://[^/]*/', '', url)
 				lev_res = levenshtein(lev_url, title)
-
-				obj = conf_load()
-				obj['lev'].append((lev_res, title, lev_url))
-				conf_save(obj)
 
 				lev_str = 'lev=%d/%d:%d ' %(lev_res, len(title), len(lev_url))
 
@@ -154,23 +150,28 @@ def extract_url(data):
 
 				sim_str = 'sim=%d/%d:%d ' %(sim_sum, sim_len_title, sim_len_url)
 
-				message = lev_str + sim_str + 'Title: %s: %s' %(title, r)
+				obj = conf_load()
+				obj['lev'].append((lev_res, title, url))
+				obj['sim'].append((sim_sum, sim_len_title, sim_len_url, title, url))
+				conf_save(obj)
+
+				message = lev_str + sim_str + 'Title: %s: %s' %(title, url)
 			elif 1 == status:
 				if conf('image_preview'):
 					# of course it's fake, but it looks interesting at least
 					char = """,._-+=\|/*`~"'"""
 					message = 'No text but %s, 1-bit ASCII art preview: [%c] %s' %(
-						title, random.choice(char), r
+						title, random.choice(char), url
 					)
 				else:
-					logger('info', 'no message sent for non-text %s (%s)' %(r, title))
+					logger('info', 'no message sent for non-text %s (%s)' %(url, title))
 					continue
 			elif 2 == status:
-				message = 'No title: %s' % r
+				message = 'No title: %s' % url
 			elif 3 == status:
 				message = title
 			else:
-				message = 'some error occurred when fetching %s' % r
+				message = 'some error occurred when fetching %s' % url
 
 			message = message.replace('\n', '\\n')
 
