@@ -5,6 +5,7 @@ import sys, os, stat, re, time, pickle, random
 import urllib.request, urllib.parse, urllib.error, html.parser
 from local_config import conf, set_conf
 from common import *
+from strsim import str_sim
 
 # rate limiting to 5 messages per 10 minutes
 hist_ts = []
@@ -145,7 +146,15 @@ def extract_url(data):
 				conf_save(obj)
 
 				lev_str = 'lev=%d/%d:%d ' %(lev_res, len(title), len(lev_url))
-				message = lev_str + 'Title: %s: %s' %(title, r)
+
+				sim = str_sim(title, lev_url)
+				sim_len_title = len(sim)
+				sim_len_url = len(sim[0])
+				sim_sum = sum([sum(a) for a in sim])
+
+				sim_str = 'sim=%d/%d:%d ' %(sim_sum, sim_len_title, sim_len_url)
+
+				message = lev_str + sim_str + 'Title: %s: %s' %(title, r)
 			elif 1 == status:
 				if conf('image_preview'):
 					# of course it's fake, but it looks interesting at least
