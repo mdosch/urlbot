@@ -130,6 +130,10 @@ def extract_url(data):
 	result = re.findall("(https?://[^\s>]+)", data)
 	if result:
 		for url in result:
+			ratelimit_touch()
+			if ratelimit_exceeded():
+				return False
+
 # urllib.request is broken:
 # >>> '.'.encode('idna')
 # ....
@@ -139,15 +143,11 @@ def extract_url(data):
 # UnicodeError: label empty or too long
 # >>> 'a.a.'.encode('idna')
 # b'a.a.'
-			if re.match(r'https?://\.', url):
-				logger('warn', 'bug tiggered, invalid url: %s' % url)
-				continue
 
-			ratelimit_touch()
-			if ratelimit_exceeded():
-				return False
-
-			(status, title) = extract_title(url)
+			try:
+				(status, title) = extract_title(url)
+			except UnicodeError:
+				(status, title) = (4, None)
 
 			if 0 == status:
 				title = title.strip()
@@ -183,6 +183,9 @@ def extract_url(data):
 				message = 'No title: %s' % url
 			elif 3 == status:
 				message = title
+			elif 4 == status:
+				message = 'Bug triggered, invalid URL/domain part: %s' % url
+				logger('warn', message)
 			else:
 				message = 'some error occurred when fetching %s' % url
 
