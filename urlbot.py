@@ -155,7 +155,7 @@ def extract_url(data):
 				obj['sim'].append((sim_sum, sim_len_title, sim_len_url, title, url))
 				conf_save(obj)
 
-				message = lev_str + sim_str + 'Title: %s: %s' %(title, url)
+				message = 'Title: %s: %s' %(title, url)
 			elif 1 == status:
 				if conf('image_preview'):
 					# of course it's fake, but it looks interesting at least
