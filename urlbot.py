@@ -22,7 +22,7 @@ def fetch_page(url):
 		html_text = response.read(BUFSIZ) # ignore more than BUFSIZ
 		response.close()
 		return (0, html_text, response.headers)
-	except IOError as e:
+	except Exception as e:
 		logger('warn', 'failed: ' + str(e))
 		return (1, str(e), 'dummy')
 
