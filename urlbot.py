@@ -223,9 +223,13 @@ def parse_delete(filepath):
 	if content.startswith('PRIV#'):
 		parse_pn(content)
 		return
-	
+
 	if 'nospoiler' in content:
 #		logger('info', "no spoiler for: " + content)
+		return
+
+	if sys.argv[0] in content:
+		logger('info', 'silenced, this is my own log')
 		return
 
 	if True != extract_url(content):
