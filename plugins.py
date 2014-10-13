@@ -5,7 +5,7 @@ if '__main__' == __name__:
 	print('''this is a plugin file, which is not meant to be executed''')
 	exit(-1)
 
-import time, random
+import time, random, unicodedata
 from local_config import conf
 from common import *
 
@@ -306,6 +306,56 @@ def command_teatimer(args):
 			)
 		}
 
+def command_decode(args):
+	if 'register' == args:
+		return {
+			'name': 'decode',
+			'desc': 'prints the long description of an unicode character',
+			'args': ('data', 'reply_user'),
+			'ratelimit_class': RATE_GLOBAL
+		}
+
+	if not 'decode' in args['data']:
+		return
+
+	d = args['data'].split()
+
+	if 4 == len(d):
+		char = d[3][0]
+		logger('plugin', 'decode called for %s' % char)
+
+		try:
+			uni_name = unicodedata.name(char)
+		except e as Exception:
+			logger('plugin', 'decode(%s) failed: %s' %(char, str(e)))
+			return {
+				'msg': args['reply_user'] + ": can't decode %s: %s" %(char, str(e))
+			}
+
+		return {
+			'msg': args['reply_user'] + ': %s is called "%s"' %(char, uni_name)
+		}
+	else:
+		return {
+			'msg': args['reply_user'] + ': usage: decode {single character}'
+		}
+
+#def command_dummy(args):
+#	if 'register' == args:
+#		return {
+#			'name': 'dummy',
+#			'desc': 'dummy description',
+#			'args': ('data', 'reply_user'),
+#			'ratelimit_class': RATE_GLOBAL
+#		}
+#
+#	if 'dummy' in args['data']:
+#		logger('plugin', 'dummy plugin called')
+#		
+#		return {
+#			'msg': args['reply_user'] + ': dummy plugin called'
+#		}
+
 def command_else(args):
 	logger('plugin', 'sent short info')
 	return {
@@ -383,7 +433,7 @@ funcs['parse'] = (parse_mental_ill, parse_skynet)
 funcs['command'] = (
 	command_command, command_help, command_version, command_unicode,
 	command_source, command_dice, command_uptime, command_ping, command_info,
-	command_teatimer
+	command_teatimer, command_decode
 )
 
 _dir = dir()
