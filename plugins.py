@@ -322,6 +322,7 @@ def command_decode(args):
 
 	if 4 == len(d):
 		char = d[3][0]
+		char_esc = str(char.encode('unicode_escape'))[3:-1]
 		logger('plugin', 'decode called for %s' % char)
 
 		try:
@@ -329,11 +330,11 @@ def command_decode(args):
 		except e as Exception:
 			logger('plugin', 'decode(%s) failed: %s' %(char, str(e)))
 			return {
-				'msg': args['reply_user'] + ": can't decode %s: %s" %(char, str(e))
+				'msg': args['reply_user'] + ": can't decode %s (%s): %s" %(char, char_esc, str(e))
 			}
 
 		return {
-			'msg': args['reply_user'] + ': %s is called "%s"' %(char, uni_name)
+			'msg': args['reply_user'] + ': %s (%s) is called "%s"' %(char, char_esc, uni_name)
 		}
 	else:
 		return {
