@@ -94,7 +94,8 @@ def chat_write(message, prefix='/say '):
 			try:
 				msg = str(prefix) + str(message) + '\n'
 				msg = msg.encode('utf8')
-			except UnicodeDecodeError:
+			except UnicodeDecodeError as e:
+				logger('warn', 'encoding msg failed: ' + str(e))
 				msg = prefix + message + '\n'
 
 			fd.write(msg)
@@ -154,14 +155,10 @@ def extract_url(data):
 				lev_url = re.sub(r'https?://[^/]*/', '', url)
 				lev_res = levenshtein(lev_url, title)
 
-				lev_str = 'lev=%d/%d:%d ' %(lev_res, len(title), len(lev_url))
-
 				sim = str_sim(title, lev_url)
 				sim_len_title = len(sim)
 				sim_len_url = len(sim[0])
 				sim_sum = sum([sum(a) for a in sim])
-
-				sim_str = 'sim=%d/%d:%d ' %(sim_sum, sim_len_title, sim_len_url)
 
 				obj = conf_load()
 				obj['lev'].append((lev_res, title, url))

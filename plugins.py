@@ -83,7 +83,7 @@ def data_parse_other(data):
 				elif 'reply_user' == a:
 					args['reply_user'] = reply_user
 				else:
-					logger('warn', 'unknown required arg for %s: %s' %(f, a))
+					logger('warn', 'unknown required arg for %s: %s' %(p['name'], a))
 
 		ret = p['func'](args)
 
@@ -327,7 +327,7 @@ def command_decode(args):
 
 		try:
 			uni_name = unicodedata.name(char)
-		except e as Exception:
+		except Exception as e:
 			logger('plugin', 'decode(%s) failed: %s' %(char, str(e)))
 			return {
 				'msg': args['reply_user'] + ": can't decode %s (%s): %s" %(char, char_esc, str(e))
@@ -399,7 +399,7 @@ def data_parse_commands(data):
 				elif 'reply_user' == a:
 					args['reply_user'] = reply_user
 				else:
-					logger('warn', 'unknown required arg for %s: %s' %(f, a))
+					logger('warn', 'unknown required arg for %s: %s' %(p['name'], a))
 
 		ret = p['func'](args)
 
