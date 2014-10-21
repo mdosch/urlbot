@@ -100,8 +100,8 @@ def chat_write(message, prefix='/say '):
 
 			fd.write(msg)
 			fd.close()
-		except IOError:
-			logger('err', "couldn't print to fifo " + fifo_path)
+		except IOError as e:
+			logger('err', "couldn't print to fifo %s: %s" % (fifo_path, str(e)))
 
 def ratelimit_touch(ignored=None): # FIXME: separate counters
 	hist_ts.append(time.time())
@@ -147,8 +147,8 @@ def extract_url(data):
 
 			try:
 				(status, title) = extract_title(url)
-			except UnicodeError:
-				(status, title) = (4, None)
+			except UnicodeError as e:
+				(status, title) = (4, str(e))
 
 			if 0 == status:
 				title = title.strip()
@@ -181,7 +181,7 @@ def extract_url(data):
 			elif 3 == status:
 				message = title
 			elif 4 == status:
-				message = 'Bug triggered, invalid URL/domain part: %s' % url
+				message = 'Bug triggered (%s), invalid URL/domain part: %s' % (title, url)
 				logger('warn', message)
 			else:
 				message = 'some error occurred when fetching %s' % url
@@ -203,8 +203,8 @@ def parse_pn(data):
 def parse_delete(filepath):
 	try:
 		fd = open(filepath, 'r')
-	except IOError:
-		logger('err', 'file has vanished: ' + filepath)
+	except IOError as e:
+		logger('err', 'file has vanished: %s: %s' % (filepath, e))
 		return False
 
 	content = fd.read(BUFSIZ) # ignore more than BUFSIZ
