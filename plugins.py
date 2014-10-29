@@ -18,14 +18,14 @@ plugins['command'] = []
 def get_reply_data(data, field=0):
 	# FIXME: we can't determine if a user named 'foo> ' just wrote ' > bar'
 	# or a user 'foo' just wrote '> > bar'
-	f = data.split(' ')
+	f = data.split()
 
 	if 0 == field:
 		return f[0].strip('<>')
 	else:
 		if field > len(f):
 			return None
-		return f[field].strip('\n')
+		return f[field]
 
 def register_event(t, callback, args):
 	joblist.append((t, callback, args))
