@@ -297,11 +297,11 @@ def command_teatimer(args):
 		return {
 			'name': 'teatimer',
 			'desc': 'sets a tea timer to $1 or currently %d seconds' % conf('tea_steep_time'),
-			'args': ('data', 'reply_user', 'argv1'),
+			'args': ('reply_user', 'argv0', 'argv1'),
 			'ratelimit_class': RATE_GLOBAL
 		}
 
-	if 'teatimer' in args['data']:
+	if 'teatimer' == args['argv0']:
 		steep = conf('tea_steep_time')
 
 		if None != args['argv1']:
@@ -398,7 +398,8 @@ def data_parse_commands(data):
 		return None
 
 	reply_user = get_reply_data(data)
-	argv1 = get_reply_data(data, field=2)
+	argv0 = get_reply_data(data, field=2)
+	argv1 = get_reply_data(data, field=3)
 
 	for p in plugins['command']:
 		if ratelimit_exceeded(p['ratelimit_class']):
@@ -418,6 +419,8 @@ def data_parse_commands(data):
 					args['cmd_list'] = cmds
 				elif 'reply_user' == a:
 					args['reply_user'] = reply_user
+				elif 'argv0' == a:
+					args['argv0'] = argv0
 				elif 'argv1' == a:
 					args['argv1'] = argv1
 				else:
