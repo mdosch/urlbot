@@ -316,7 +316,13 @@ def command_teatimer(args):
 
 		ready = time.time() + steep
 
-		logger('plugin', 'tea timer set to %s' % time.strftime('%F.%T', time.localtime(ready)))
+		try:
+			logger('plugin', 'tea timer set to %s' % time.strftime('%F.%T', time.localtime(ready)))
+		except ValueError as e:
+			return {
+				'msg': args['reply_user'] + ': time format error: ' + str(e)
+			}
+
 		register_event(ready, chat_write, args['reply_user'] + ': Your tea is ready!')
 		
 		return {
