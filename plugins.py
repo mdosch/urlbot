@@ -25,7 +25,7 @@ def get_reply_data(data, field=0):
 	else:
 		if field > len(f):
 			return None
-		return f[field]
+		return f[field].strip('\n')
 
 def register_event(t, callback, args):
 	joblist.append((t, callback, args))

@@ -83,6 +83,11 @@ def extract_title(url):
 def chat_write(message, prefix='/say '):
 	set_conf('request_counter', conf('request_counter') + 1)
 
+	for m in message:
+		if 0x20 > ord(m):
+			logger('warn', 'strange char 0x%02x in chat_write(message), skipping' % ord(m))
+			return False
+
 	if debug_enabled():
 		print(message)
 	else:
