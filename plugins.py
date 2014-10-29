@@ -23,7 +23,7 @@ def get_reply_data(data, field=0):
 	if 0 == field:
 		return f[0].strip('<>')
 	else:
-		if field > len(f):
+		if field >= len(f):
 			return None
 		return f[field]
 
