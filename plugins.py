@@ -15,10 +15,17 @@ plugins = {}
 plugins['parse'] = []
 plugins['command'] = []
 
-def get_reply_user(data):
+def get_reply_data(data, field=0):
 	# FIXME: we can't determine if a user named 'foo> ' just wrote ' > bar'
 	# or a user 'foo' just wrote '> > bar'
-	return data.split(' ')[0].strip('<>')
+	f = data.split(' ')
+
+	if 0 == field:
+		return f[0].strip('<>')
+	else:
+		if field > len(f):
+			return None
+		return f[field]
 
 def register_event(t, callback, args):
 	joblist.append((t, callback, args))
@@ -66,7 +73,7 @@ def parse_skynet(args):
 		}
 
 def data_parse_other(data):
-	reply_user = get_reply_user(data)
+	reply_user = get_reply_data(data)
 
 	for p in plugins['parse']:
 		if ratelimit_exceeded(p['ratelimit_class']):
@@ -289,13 +296,25 @@ def command_teatimer(args):
 	if 'register' == args:
 		return {
 			'name': 'teatimer',
-			'desc': 'sets a tea timer to currently %d seconds' % conf('tea_steep_time'),
-			'args': ('data', 'reply_user'),
+			'desc': 'sets a tea timer to $1 or currently %d seconds' % conf('tea_steep_time'),
+			'args': ('data', 'reply_user', 'argv1'),
 			'ratelimit_class': RATE_GLOBAL
 		}
 
 	if 'teatimer' in args['data']:
-		ready = time.time() + conf('tea_steep_time')
+		steep = conf('tea_steep_time')
+
+		if None != args['argv1']:
+			try:
+				steep = int(args['argv1'])
+			except Exception as e:
+				return {
+					'msg': args['reply_user'] + ': error when parsing int(%s): %s' % (
+						args['argv1'], str(e)
+					)
+				}
+
+		ready = time.time() + steep
 
 		logger('plugin', 'tea timer set to %s' % time.strftime('%F.%T', time.localtime(ready)))
 		register_event(ready, chat_write, args['reply_user'] + ': Your tea is ready!')
@@ -378,7 +397,8 @@ def data_parse_commands(data):
 		logger('warn', 'received hangup: ' + data)
 		return None
 
-	reply_user = get_reply_user(data)
+	reply_user = get_reply_data(data)
+	argv1 = get_reply_data(data, field=2)
 
 	for p in plugins['command']:
 		if ratelimit_exceeded(p['ratelimit_class']):
@@ -398,6 +418,8 @@ def data_parse_commands(data):
 					args['cmd_list'] = cmds
 				elif 'reply_user' == a:
 					args['reply_user'] = reply_user
+				elif 'argv1' == a:
+					args['argv1'] = argv1
 				else:
 					logger('warn', 'unknown required arg for %s: %s' %(p['name'], a))
 
