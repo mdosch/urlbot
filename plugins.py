@@ -5,9 +5,10 @@ if '__main__' == __name__:
 	print('''this is a plugin file, which is not meant to be executed''')
 	exit(-1)
 
-import time, random, unicodedata
+import time, random, unicodedata, re
 from local_config import conf
 from common import *
+from urlbot import extract_title
 
 joblist = []
 
@@ -57,6 +58,33 @@ def parse_mental_ill(args):
 		return {
 			'msg': '''Multiple exclamation/question marks are a sure sign of mental disease, with %s as a living example.''' % args['reply_user']
 		}
+
+def parse_debbug(args):
+	if 'register' == args:
+		return {
+			'name': 'parse Debian bug numbers',
+			'args': ('data',),
+			'ratelimit_class': RATE_NO_SILENCE | RATE_GLOBAL
+		}
+
+	bugs = re.findall(r'#(\d{4,})', args['data'])
+	if not bugs:
+		return None
+
+	url = 'https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=%s' % bugs[0]
+	status, title = extract_title(url)
+
+	if 0 == status:
+		title = 'Debian Bug: ' + title
+	elif 3 == status:
+		pass
+	else:
+		return None
+
+	logger('plugin', 'detected Debian bug')
+	return {
+		'msg': title
+	}
 
 def parse_skynet(args):
 	if 'register' == args:
@@ -461,7 +489,7 @@ def data_parse_commands(data):
 			chat_write(ret['msg'])
 
 funcs = {}
-funcs['parse'] = (parse_mental_ill, parse_skynet)
+funcs['parse'] = (parse_mental_ill, parse_skynet, parse_debbug)
 funcs['command'] = (
 	command_command, command_help, command_version, command_unicode,
 	command_source, command_dice, command_uptime, command_ping, command_info,

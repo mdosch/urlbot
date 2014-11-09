@@ -239,15 +239,15 @@ def parse_delete(filepath):
 		plugins.data_parse_other(content)
 		return
 
-import plugins
-
-plugins.chat_write = chat_write
-plugins.ratelimit_exceeded = ratelimit_exceeded
-plugins.ratelimit_touch = ratelimit_touch
-
-plugins.register_all()
-
 if '__main__' == __name__:
+	import plugins
+
+	plugins.chat_write = chat_write
+	plugins.ratelimit_exceeded = ratelimit_exceeded
+	plugins.ratelimit_touch = ratelimit_touch
+
+	plugins.register_all()
+
 	print(sys.argv[0] + ' ' + VERSION)
 
 	if not os.path.exists(fifo_path):
