@@ -22,6 +22,8 @@ def get_reply_data(data, field=0):
 	f = data.split()
 
 	if 0 == field:
+		if 1 > len(f):
+			return None
 		return f[0].strip('<>')
 	else:
 		if field >= len(f):
