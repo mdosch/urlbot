@@ -217,12 +217,12 @@ def command_klammer(args):
 		return {
 			'msg': 
 				(
-					args['reply_user'] + r''' _, Was moechten''',
-					args['reply_user'] + r'''( _\_   Sie tun?''',
-					args['reply_user'] + r''' \0 O\          ''',
-					args['reply_user'] + r'''  \\ \\  [ ] ja ''',
-					args['reply_user'] + r'''   \`' ) [ ] noe''',
-					args['reply_user'] + r'''    `''         '''
+					args['reply_user'] + r''':  _, Was moechten''',
+					args['reply_user'] + r''': ( _\_   Sie tun?''',
+					args['reply_user'] + r''':  \0 O\          ''',
+					args['reply_user'] + r''':   \\ \\  [ ] ja ''',
+					args['reply_user'] + r''':    \`' ) [ ] noe''',
+					args['reply_user'] + r''':     `''         '''
 				)
 		}
 
