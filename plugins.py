@@ -206,8 +206,8 @@ def command_version(args):
 def command_klammer(args):
 	if 'register' == args:
 		return {
-			'name': 'karl klammer',
-			'desc': 'prints an anoying paper clip',
+			'name': 'klammer',
+			'desc': 'prints an anoying paper clip aka. Karl Klammer',
 			'args': ('data', 'reply_user'),
 			'ratelimit_class': RATE_GLOBAL
 		}
