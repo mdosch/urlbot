@@ -203,6 +203,29 @@ def command_version(args):
 			'msg': args['reply_user'] + (''': I'm running ''' + VERSION)
 		}
 
+def command_klammer(args):
+	if 'register' == args:
+		return {
+			'name': 'karl klammer',
+			'desc': 'prints an anoying paper clip',
+			'args': ('data', 'reply_user'),
+			'ratelimit_class': RATE_GLOBAL
+		}
+
+	if 'klammer' in args['data']:
+		logger('plugin', 'sent karl klammer')
+		return {
+			'msg': 
+				(
+					args['reply_user'] + r''' _, Was moechten''',
+					args['reply_user'] + r'''( _\_   Sie tun?''',
+					args['reply_user'] + r''' \0 O\          ''',
+					args['reply_user'] + r'''  \\ \\  [ ] ja ''',
+					args['reply_user'] + r'''   \`' ) [ ] noe''',
+					args['reply_user'] + r'''    `''         '''
+				)
+		}
+
 def command_unicode(args):
 	if 'register' == args:
 		return {
@@ -494,8 +517,8 @@ funcs = {}
 funcs['parse'] = (parse_mental_ill, parse_skynet, parse_debbug)
 funcs['command'] = (
 	command_command, command_help, command_version, command_unicode,
-	command_source, command_dice, command_uptime, command_ping, command_info,
-	command_teatimer, command_decode
+	command_klammer, command_source, command_dice, command_uptime, command_ping,
+	command_info, command_teatimer, command_decode
 )
 
 _dir = dir()
