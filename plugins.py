@@ -432,10 +432,10 @@ def command_show_blacklist(args):
 		logger('plugin', 'sent URL blacklist')
 		
 		return {
-			'msg': '\n'.join([
+			'msg': [
 				args['reply_user'] + ': URL blacklist: ' + b
 					for b in conf('url_blacklist')
-			])
+			]
 		}
 
 #def command_dummy(args):
@@ -530,7 +530,11 @@ def data_parse_commands(data):
 			return False
 
 		if 'msg' in list(ret.keys()):
-			chat_write(ret['msg'])
+			if list is type(ret['msg']):
+				for m in ret['msg']:
+					chat_write(m)
+			else:
+				chat_write(ret['msg'])
 
 funcs = {}
 funcs['parse'] = (parse_mental_ill, parse_skynet, parse_debbug)
