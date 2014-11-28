@@ -67,13 +67,17 @@ def levenshtein(a, b, return_table=False):
 def get_version_git():
 	import subprocess
 
-	cmd = ['git', 'log', '-n', '1', '--oneline', '--abbrev-commit']
+	cmd = ['git', 'log', '--oneline', '--abbrev-commit']
 
 	p = subprocess.Popen(cmd, bufsize=1, stdout=subprocess.PIPE)
 	first_line = p.stdout.readline()
+	line_count = len(p.stdout.readlines()) + 1
 
 	if 0 == p.wait():
-		return "version (Git) '%s'" % str(first_line.strip(), encoding='utf8')
+		# skip this 1st, 2nd, 3rd stuff and use always [0-9]th
+		return "version (Git, %dth rev) '%s'" % (
+			line_count, str(first_line.strip(), encoding='utf8')
+		)
 	else:
 		return "(unknown version)"
 
