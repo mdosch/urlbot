@@ -419,6 +419,25 @@ def command_decode(args):
 			'msg': args['reply_user'] + ': usage: decode {single character}'
 		}
 
+def command_show_blacklist(args):
+	if 'register' == args:
+		return {
+			'name': 'show-blacklist',
+			'desc': 'show the current URL blacklist',
+			'args': ('data', 'reply_user'),
+			'ratelimit_class': RATE_GLOBAL
+		}
+
+	if 'show-blacklist' in args['data']:
+		logger('plugin', 'sent URL blacklist')
+		
+		return {
+			'msg': '\n'.join([
+				args['reply_user'] + ': URL blacklist: ' + b
+					for b in conf('url_blacklist')
+			])
+		}
+
 #def command_dummy(args):
 #	if 'register' == args:
 #		return {
@@ -518,7 +537,7 @@ funcs['parse'] = (parse_mental_ill, parse_skynet, parse_debbug)
 funcs['command'] = (
 	command_command, command_help, command_version, command_unicode,
 	command_klammer, command_source, command_dice, command_uptime, command_ping,
-	command_info, command_teatimer, command_decode
+	command_info, command_teatimer, command_decode, command_show_blacklist
 )
 
 _dir = dir()

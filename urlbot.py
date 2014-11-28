@@ -140,6 +140,18 @@ def extract_url(data):
 			if ratelimit_exceeded():
 				return False
 
+			flag = False
+			for b in conf('url_blacklist'):
+				if not None is re.match(b, url):
+					flag = True
+					message = 'url blacklist match for ' + url
+					logger('info', message)
+					chat_write(message)
+
+			if flag:
+				# an URL has matched the blacklist, continue to the next URL
+				continue
+
 # urllib.request is broken:
 # >>> '.'.encode('idna')
 # ....

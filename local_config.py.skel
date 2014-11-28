@@ -26,6 +26,11 @@ config['path_event_files'] = 'event_files'
 config['path_cmdfifo'] = 'cmdfifo'
 config['persistent_storage'] = 'urlbot.persistent'
 
+config['url_blacklist'] = [
+	r'^.*heise\.de/newsticker/.*$',
+	r'^.*wikipedia\.org/wiki/.*$'
+]
+
 # the "dice" feature will use more efficient random data (0) for given users
 config['enhanced-random-user'] = ( 'FIXME', 'FIXME' )
 
