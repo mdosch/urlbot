@@ -27,7 +27,7 @@ config['path_cmdfifo'] = 'cmdfifo'
 config['persistent_storage'] = 'urlbot.persistent'
 
 config['url_blacklist'] = [
-	r'^.*heise\.de/newsticker/.*$',
+	r'^.*heise\.de/[^/]+/meldung/.*$',
 	r'^.*wikipedia\.org/wiki/.*$'
 ]
 
