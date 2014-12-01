@@ -10,33 +10,34 @@ if '__main__' == __name__:
 	print('''this is a config file, which is not meant to be executed''')
 	exit(-1)
 
-config = {}
-config['src-url'] = 'FIXME'
-
-config['bot_user'] = 'urlbot'
-config['bot_owner'] = 'FIXME'
-
-config['hist_max_count'] = 5
-config['hist_max_time'] = 10 * 60
-
-config['uptime'] = -time.time()
-config['request_counter'] = 0
-
-config['path_event_files'] = 'event_files'
-config['path_cmdfifo'] = 'cmdfifo'
-config['persistent_storage'] = 'urlbot.persistent'
-
-config['url_blacklist'] = [
-	r'^.*heise\.de/[^/]+/meldung/.*$',
-	r'^.*wikipedia\.org/wiki/.*$'
-]
+config = {
+	'src-url': 'FIXME',
+	
+	'bot_user': 'urlbot',
+	'bot_owner': 'FIXME',
+	
+	'hist_max_count': 5,
+	'hist_max_time': 10 * 60,
+	
+	'uptime': -time.time(),
+	'request_counter': 0,
+	
+	'path_event_files': 'event_files',
+	'path_cmdfifo': 'cmdfifo',
+	'persistent_storage': 'urlbot.persistent',
+	
+	'url_blacklist': [
+		r'^.*heise\.de/[^/]+/meldung/.*$',
+		r'^.*wikipedia\.org/wiki/.*$'
+	],
 
 # the "dice" feature will use more efficient random data (0) for given users
-config['enhanced-random-user'] = ( 'FIXME', 'FIXME' )
+	'enhanced-random-user': ( 'FIXME', 'FIXME' ),
 
-config['tea_steep_time'] = (3*60 + 40)
+	'tea_steep_time': (3*60 + 40),
 
-config['image_preview'] = True
+	'image_preview': True
+}
 
 def conf(val):
 	if val in list(config.keys()):
