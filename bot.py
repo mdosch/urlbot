@@ -26,7 +26,6 @@ def message_handler(connect_object, message_node):
 				typ='groupchat'
 			)
 		)
-#		send_msg('hello %s!' % msg_from)
 
 	try:
 		print '%20s: %s' %(msg_from, msg_body)
@@ -43,15 +42,6 @@ client.auth(jid.getNode(), conf('password'))
 client.RegisterHandler('message', message_handler) 
 
 client.send(xmpp.Presence(to=(conf('room') + '/' + conf('nick'))))
-
-def send_msg(msg='''wee, I'm a native bot.'''):
-	client.send(
-		xmpp.protocol.Message(
-			to=conf('room'),
-			body=msg,
-			typ='groupchat'
-		)
-	)
 
 while (t + time.time()) < 30:
 	client.Process(1)

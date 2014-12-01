@@ -4,11 +4,13 @@ if '__main__' == __name__:
 	print '''don't try running this'''
 	exit(-1)
 
-config = {}
-config['jid'] = ''
-config['password'] = ''
-config['room'] = ''
-config['nick'] = ''
+config = {
+	'jid': '',
+	'password': '',
+	'room': '',
+	'nick': '',
+	'nick': 'urlbot'
+}
 
 def conf(val):
 	if val in config.keys():
