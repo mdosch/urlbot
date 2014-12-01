@@ -88,6 +88,23 @@ def parse_debbug(args):
 		'msg': title
 	}
 
+def parse_cve(args):
+	if 'register' == args:
+		return {
+			'name': 'parse a CVE handle',
+			'args': ('data',),
+			'ratelimit_class': RATE_NO_SILENCE | RATE_GLOBAL
+		}
+
+	cves = re.findall(r'(CVE-\d\d\d\d-\d+)', args['data'].upper())
+	if not cves:
+		return None
+
+	logger('plugin', 'detected CVE handle')
+	return {
+		'msg': 'https://security-tracker.debian.org/tracker/%s' % cves[0]
+	}
+
 def parse_skynet(args):
 	if 'register' == args:
 		return {
@@ -537,7 +554,7 @@ def data_parse_commands(data):
 				chat_write(ret['msg'])
 
 funcs = {}
-funcs['parse'] = (parse_mental_ill, parse_skynet, parse_debbug)
+funcs['parse'] = (parse_mental_ill, parse_skynet, parse_debbug, parse_cve)
 funcs['command'] = (
 	command_command, command_help, command_version, command_unicode,
 	command_klammer, command_source, command_dice, command_uptime, command_ping,
