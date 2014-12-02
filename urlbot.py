@@ -269,8 +269,6 @@ class bot(ClientXMPP):
 		)
 
 	def muc_message(self, msg):
-		print('%10s: %s' % (msg['mucnick'], msg['body']))
-
 		# don't talk to yourself
 		if msg['mucnick'] == self.nick:
 			return
