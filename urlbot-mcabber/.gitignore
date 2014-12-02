@@ -1,0 +1,6 @@
+.*swp
+*.pyc
+cmdfifo
+logs/
+event_files/
+urlbot.persistent
