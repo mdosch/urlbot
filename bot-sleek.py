@@ -3,7 +3,23 @@
 import logging
 
 from sleekxmpp import ClientXMPP
-from local_config import conf
+
+try:
+	from local_config import conf
+except ImportError:
+	import sys
+	sys.stderr.write('''
+%s: E: local_config.py isn't tracked because of included secrets and
+%s     site specific configurations. Rename local_config.py.skel and
+%s     adjust to you needs.
+'''[1:] % (
+		sys.argv[0],
+		' ' * len(sys.argv[0]),
+		' ' * len(sys.argv[0])
+	)
+	)
+
+	sys.exit(-1)
 
 import time
 t = -time.time()
