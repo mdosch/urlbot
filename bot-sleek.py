@@ -32,7 +32,7 @@ class bot(ClientXMPP):
 		self.nick = nick
 
 		self.add_event_handler('session_start', self.session_start)
-		self.add_event_handler('message', self.message)
+		self.add_event_handler('groupchat_message', self.muc_message)
 
 	def session_start(self, event):
 		self.get_roster()
@@ -44,12 +44,19 @@ class bot(ClientXMPP):
 			wait=True
 		)
 
-	def message(self, event):
-		print((t + time.time()) + ': ' + str(msg))
+	def muc_message(self, msg):
+		print(msg['mucnick'])
+		print(msg['body'])
 
-#		if msg['type'] in ['chat', 'normal']:
-#			msg.reply('pong[%s]' % msg).send()
+		# don't talk to yourself
+		if msg['mucnick'] == self.nick:
+			return
 
+		self.send_message(
+			mto=msg['from'].bare,
+			mbody='got[%s]' % msg['body'],
+			mtype='groupchat'
+		)
 
 if '__main__' == __name__:
 	logging.basicConfig(
@@ -66,4 +73,4 @@ if '__main__' == __name__:
 
 	xmpp.connect()
 	xmpp.register_plugin('xep_0045')
-	xmpp.process()
+	xmpp.process(threaded=False)
