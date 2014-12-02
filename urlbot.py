@@ -3,9 +3,29 @@
 
 import sys, os, stat, re, time, pickle, random
 import urllib.request, urllib.parse, urllib.error, html.parser
-from local_config import conf, set_conf
 from common import *
 from strsim import str_sim
+
+try:
+	from local_config import conf, set_conf
+except ImportError:
+	import sys
+	sys.stderr.write('''
+%s: E: local_config.py isn't tracked because of included secrets and
+%s     site specific configurations. Rename local_config.py.skel and
+%s     adjust to you needs.
+'''[1:] % (
+		sys.argv[0],
+		' ' * len(sys.argv[0]),
+		' ' * len(sys.argv[0])
+	)
+	)
+
+	sys.exit(-1)
+
+import logging
+
+from sleekxmpp import ClientXMPP
 
 # rate limiting to 5 messages per 10 minutes
 hist_ts = []
@@ -215,29 +235,15 @@ def parse_pn(data):
 	logger('warn', 'received PN: ' + data)
 	return False
 
-def parse_delete(filepath):
-	try:
-		fd = open(filepath, 'r')
-	except IOError as e:
-		logger('err', 'file has vanished: %s: %s' % (filepath, e))
-		return False
+def handle_msg(msg):
+	content = msg['body']
 
-	content = fd.read(BUFSIZ) # ignore more than BUFSIZ
-	fd.close()
-	os.remove(filepath) # probably better crash here
-
-	if content[1:1+len(conf('bot_user'))] == conf('bot_user'):
-		return
-
+# FIXME: still needed?
 	if 'has set the subject to:' in content:
-		return
-	
-	if content.startswith('PRIV#'):
-		parse_pn(content)
 		return
 
 	if 'nospoiler' in content:
-#		logger('info', "no spoiler for: " + content)
+		logger('info', "no spoiler for: " + content)
 		return
 
 	if sys.argv[0] in content:
@@ -248,6 +254,42 @@ def parse_delete(filepath):
 		plugins.data_parse_commands(content)
 		plugins.data_parse_other(content)
 		return
+
+class bot(ClientXMPP):
+	def __init__(self, jid, password, room, nick):
+		ClientXMPP.__init__(self, jid, password)
+
+		self.room = room
+		self.nick = nick
+
+		self.add_event_handler('session_start', self.session_start)
+		self.add_event_handler('groupchat_message', self.muc_message)
+
+	def session_start(self, event):
+		self.get_roster()
+		self.send_presence()
+
+		self.plugin['xep_0045'].joinMUC(
+			self.room,
+			self.nick,
+			wait=True
+		)
+
+	def muc_message(self, msg):
+		print(msg['mucnick'])
+		print(msg['body'])
+
+		# don't talk to yourself
+		if msg['mucnick'] == self.nick:
+			return
+
+#		self.send_message(
+#			mto=msg['from'].bare,
+#			mbody='got[%s]' % msg['body'],
+#			mtype='groupchat'
+#		)
+
+		return handle_msg(msg)
 
 if '__main__' == __name__:
 	import plugins
@@ -260,6 +302,23 @@ if '__main__' == __name__:
 
 	print(sys.argv[0] + ' ' + VERSION)
 
+	logging.basicConfig(
+		level=logging.DEBUG,
+		format='%(levelname)-8s %(message)s'
+	)
+
+	xmpp = bot(
+		jid=conf('jid'),
+		password=conf('password'),
+		room=conf('room'),
+		nick=conf('bot_user')
+	)
+
+	xmpp.connect()
+	xmpp.register_plugin('xep_0045')
+	xmpp.process(threaded=False)
+
+
 	if not os.path.exists(fifo_path):
 		logger('error', 'fifo_path "%s" does not exist, exiting' % fifo_path)
 		exit(1)
@@ -270,10 +329,6 @@ if '__main__' == __name__:
 
 	while 1:
 		try:
-			for f in os.listdir(event_files_dir):
-				if 'mcabber-' == f[:8]:
-					parse_delete(os.path.join(event_files_dir, f))
-
 			plugins.event_trigger()
 
 			time.sleep(delay)
