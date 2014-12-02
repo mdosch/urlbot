@@ -112,18 +112,9 @@ def chat_write(message):
 	if debug_enabled():
 		print(message)
 	else:
-		# FIXME: somehow, unicode chars can end up inside a <str> message,
-		# which seems to make both unicode() and ''.encode('utf8') fail.
-		try:
-			msg = str(message)
-			msg = msg.encode('utf8')
-		except UnicodeDecodeError as e:
-			logger('warn', 'encoding msg failed: ' + str(e))
-			msg = message
-
 		xmpp.send_message(
 			mto=conf('room'),
-			mbody=msg,
+			mbody=message,
 			mtype='groupchat'
 		)
 
@@ -276,8 +267,7 @@ class bot(ClientXMPP):
 		)
 
 	def muc_message(self, msg):
-		print(msg['mucnick'])
-		print(msg['body'])
+		print('%10s: %s' % (msg['mucnick'], msg['body']))
 
 		# don't talk to yourself
 		if msg['mucnick'] == self.nick:
