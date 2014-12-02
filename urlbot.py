@@ -40,7 +40,7 @@ def fetch_page(url):
 		request = urllib.request.Request(url)
 		request.add_header('User-Agent', '''Mozilla/5.0 (X11; Linux x86_64; rv:31.0) Gecko/20100101 Firefox/31.0 Iceweasel/31.0''')
 		response = urllib.request.urlopen(request)
-		html_text = response.read(BUFSIZ) # ignore more than BUFSIZ
+		html_text = response.read(BUFSIZ)  # ignore more than BUFSIZ
 		response.close()
 		return (0, html_text, response.headers)
 	except Exception as e:
@@ -59,7 +59,7 @@ def extract_title(url):
 	logger('info', 'extracting title from ' + url)
 
 	(code, html_text, headers) = fetch_page(url)
-	
+
 	if 1 == code:
 		return (3, 'failed: %s for %s' %(html_text, url))
 
@@ -71,8 +71,10 @@ def extract_title(url):
 			if 'text/' != headers['content-type'][:len('text/')]:
 				return (1, headers['content-type'])
 
-			charset = re.sub('.*charset=(?P<charset>\S+).*',
-				'\g<charset>', headers['content-type'], re.IGNORECASE)
+			charset = re.sub(
+				'.*charset=(?P<charset>\S+).*',
+				'\g<charset>', headers['content-type'], re.IGNORECASE
+			)
 
 		if '' != charset:
 			try:
@@ -92,7 +94,7 @@ def extract_title(url):
 
 			try:
 				expanded_html = parser.unescape(match)
-			except UnicodeDecodeError as e: # idk why this can happen, but it does
+			except UnicodeDecodeError as e:  # idk why this can happen, but it does
 				logger('warn', 'parser.unescape() expoded here: ' + str(e))
 				expanded_html = match
 			return (0, expanded_html)
@@ -118,14 +120,14 @@ def chat_write(message):
 			mtype='groupchat'
 		)
 
-def ratelimit_touch(ignored=None): # FIXME: separate counters
+def ratelimit_touch(ignored=None):  # FIXME: separate counters
 	hist_ts.append(time.time())
 
 	if conf('hist_max_count') < len(hist_ts):
 		hist_ts.pop(0)
 
 
-def ratelimit_exceeded(ignored=None): # FIXME: separate counters
+def ratelimit_exceeded(ignored=None):  # FIXME: separate counters
 	global hist_flag
 
 	if conf('hist_max_count') < len(hist_ts):
@@ -304,6 +306,7 @@ if '__main__' == __name__:
 
 	while 1:
 		try:
+# FIXME: find a way to trigger them
 			plugins.event_trigger()
 
 			time.sleep(delay)

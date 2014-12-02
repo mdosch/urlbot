@@ -14,4 +14,3 @@ class TestEventlooper(unittest.TestCase):
 		broken_url = 'http://foo'
 		result = fetch_page(url=broken_url)
 		self.assertEqual(result, (None, None))
-

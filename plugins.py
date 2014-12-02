@@ -117,7 +117,8 @@ def data_parse_other(msg):
 
 		if 'args' in list(p.keys()):
 			for a in p['args']:
-				if None == a: continue
+				if None == a:
+					continue
 
 				if 'data' == a:
 					args['data'] = data
@@ -157,7 +158,6 @@ def command_help(args):
 			'ratelimit_class': RATE_GLOBAL
 		}
 
-
 	cmd = None
 	flag = False
 
@@ -169,7 +169,7 @@ def command_help(args):
 		if 'help' == word:
 			flag = True
 
-	if False == flag: # no match on 'help'
+	if False == flag:  # no match on 'help'
 		return None
 
 	if None == cmd:
@@ -219,15 +219,14 @@ def command_klammer(args):
 	if 'klammer' in args['data']:
 		logger('plugin', 'sent karl klammer')
 		return {
-			'msg': 
-				(
-					args['reply_user'] + r''':  _, Was moechten''',
-					args['reply_user'] + r''': ( _\_   Sie tun?''',
-					args['reply_user'] + r''':  \0 O\          ''',
-					args['reply_user'] + r''':   \\ \\  [ ] ja ''',
-					args['reply_user'] + r''':    \`' ) [ ] noe''',
-					args['reply_user'] + r''':     `''         '''
-				)
+			'msg': (
+				args['reply_user'] + r''':  _, Was moechten''',
+				args['reply_user'] + r''': ( _\_   Sie tun?''',
+				args['reply_user'] + r''':  \0 O\          ''',
+				args['reply_user'] + r''':   \\ \\  [ ] ja ''',
+				args['reply_user'] + r''':    \`' ) [ ] noe''',
+				args['reply_user'] + r''':     `''         '''
+			)
 		}
 
 def command_unicode(args):
@@ -242,12 +241,11 @@ def command_unicode(args):
 	if 'unikot' in args['data']:
 		logger('plugin', 'sent some unicode')
 		return {
-			'msg': 
-				(
-					args['reply_user'] + ''': ┌────────┐''',
-					args['reply_user'] + ''': │Unicode!│''',
-					args['reply_user'] + ''': └────────┘'''
-				)
+			'msg': (
+				args['reply_user'] + ''': ┌────────┐''',
+				args['reply_user'] + ''': │Unicode!│''',
+				args['reply_user'] + ''': └────────┘'''
+			)
 		}
 
 def command_source(args):
@@ -276,7 +274,7 @@ def command_dice(args):
 
 	if 'dice' in args['data']:
 		if args['reply_user'] in conf('enhanced-random-user'):
-			rnd = 0 # this might confuse users. good.
+			rnd = 0  # this might confuse users. good.
 			logger('plugin', 'sent random (enhanced)')
 		else:
 			rnd = random.randint(1, 6)
@@ -301,8 +299,10 @@ def command_uptime(args):
 		plural_uptime = 's'
 		plural_request = 's'
 
-		if 1 == u: plural_uptime = ''
-		if 1 == conf('request_counter'): plural_request = ''
+		if 1 == u:
+			plural_uptime = ''
+		if 1 == conf('request_counter'):
+			plural_request = ''
 
 		logger('plugin', 'sent statistics')
 		return {
@@ -319,7 +319,7 @@ def command_ping(args):
 		}
 
 	if 'ping' in args['data']:
-		rnd = random.randint(0, 3) # 1:4
+		rnd = random.randint(0, 3)  # 1:4
 		if 0 == rnd:
 			msg = args['reply_user'] + ''': peng (You're dead now.)'''
 			logger('plugin', 'sent pong (variant)')
@@ -381,7 +381,7 @@ def command_teatimer(args):
 			}
 
 		register_event(ready, chat_write, args['reply_user'] + ': Your tea is ready!')
-		
+
 		return {
 			'msg': args['reply_user'] + ': Tea timer set to %s' % time.strftime(
 				'%F.%T', time.localtime(ready)
@@ -434,11 +434,11 @@ def command_show_blacklist(args):
 
 	if 'show-blacklist' in args['data']:
 		logger('plugin', 'sent URL blacklist')
-		
+
 		return {
 			'msg': [
 				args['reply_user'] + ': URL blacklist: ' + b
-					for b in conf('url_blacklist')
+				for b in conf('url_blacklist')
 			]
 		}
 
@@ -453,7 +453,7 @@ def command_show_blacklist(args):
 #
 #	if 'dummy' in args['data']:
 #		logger('plugin', 'dummy plugin called')
-#		
+#
 #		return {
 #			'msg': args['reply_user'] + ': dummy plugin called'
 #		}
@@ -468,7 +468,7 @@ def data_parse_commands(msg):
 	data = msg['body']
 	words = data.split(' ')
 
-	if 2 > len(words): # need at least two words
+	if 2 > len(words):  # need at least two words
 		return None
 
 	# don't reply if beginning of the text matches bot_user
@@ -491,7 +491,8 @@ def data_parse_commands(msg):
 
 		if 'args' in list(p.keys()):
 			for a in p['args']:
-				if None == a: continue
+				if None == a:
+					continue
 
 				if 'data' == a:
 					args['data'] = data
@@ -512,7 +513,7 @@ def data_parse_commands(msg):
 
 		if None != ret:
 			if 'msg' in list(ret.keys()):
-				if str == type(ret['msg']): # FIXME 2to3
+				if str == type(ret['msg']):  # FIXME 2to3
 					ratelimit_touch(RATE_CHAT)
 					if ratelimit_exceeded(RATE_CHAT):
 						return False
@@ -551,19 +552,37 @@ funcs['command'] = (
 _dir = dir()
 
 if debug_enabled():
-	def _chat_write(a): logger('chat_write', a)
-	def _conf(a): return 'bot'
-	def _ratelimit_exceeded(ignored=None): return False
-	def _ratelimit_touch(ignored=None): return True
+	def _chat_write(a):
+		logger('chat_write', a)
 
-	try: chat_write
-	except NameError: chat_write = _chat_write
-	try: conf
-	except NameError: conf = _conf
-	try: ratelimit_exceeded
-	except NameError: ratelimit_exceeded = _ratelimit_exceeded
-	try: ratelimit_touch
-	except NameError: ratelimit_touch = _ratelimit_touch
+	def _conf(a):
+		return 'bot'
+
+	def _ratelimit_exceeded(ignored=None):
+		return False
+
+	def _ratelimit_touch(ignored=None):
+		return True
+
+	try:
+		chat_write
+	except NameError:
+		chat_write = _chat_write
+
+	try:
+		conf
+	except NameError:
+		conf = _conf
+
+	try:
+		ratelimit_exceeded
+	except NameError:
+		ratelimit_exceeded = _ratelimit_exceeded
+
+	try:
+		ratelimit_touch
+	except NameError:
+		ratelimit_touch = _ratelimit_touch
 
 	logger('info', 'debugging enabled')
 

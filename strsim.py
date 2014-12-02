@@ -17,7 +17,7 @@ def str_sim(a, b, do_print=False):
 		for j in range(0, len(b_parts)-1):
 			if a_parts[i] == b_parts[j]:
 				out[i][j] += 1
-	
+
 	if do_print:
 		i = 0
 		for j in range(0, len(b_parts)):
@@ -41,7 +41,10 @@ def sum_array(array):
 
 def wrapper_print(a, b, comment=''):
 	ret = str_sim(a, b, do_print=True)
-	if '' != comment: comment = ' ^ ' + comment
+
+	if '' != comment:
+		comment = ' ^ ' + comment
+
 	print('[%2dx%2d::%2d]%s' %(len(ret), len(ret[0]), sum_array(ret), comment))
 
 if '__main__' == __name__:

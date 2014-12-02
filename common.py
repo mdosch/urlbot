@@ -8,17 +8,18 @@ if '__main__' == __name__:
 import sys, os, time, pickle
 from local_config import conf
 
-RATE_GLOBAL      = 0x01
-RATE_NO_SILENCE  = 0x02
+RATE_GLOBAL = 0x01
+RATE_NO_SILENCE = 0x02
 RATE_INTERACTIVE = 0x04
-RATE_CHAT        = 0x08
-RATE_URL         = 0x10
+RATE_CHAT = 0x08
+RATE_URL = 0x10
 
 BUFSIZ = 8192
-delay = 0.100 # seconds
+delay = 0.100  # seconds
 
 basedir = '.'
-if 2 == len(sys.argv): basedir = sys.argv[1]
+if 2 == len(sys.argv):
+	basedir = sys.argv[1]
 
 def debug_enabled():
 #	return True
@@ -42,7 +43,7 @@ def conf_load():
 def levenshtein(a, b, return_table=False):
 	'''returns the levenshtein distance between a and b'''
 	# initialisize a table with 0, but the 0-rows/cols with their index
-	d = [[ (i if 0 == j else j if 0 == i else 0) for j in range(len(b)+1) ] for i in range(len(a)+1) ]
+	d = [[(i if 0 == j else j if 0 == i else 0) for j in range(len(b)+1)] for i in range(len(a)+1)]
 
 	i = j = 0
 	for i in range(1, len(a)+1):
@@ -51,9 +52,9 @@ def levenshtein(a, b, return_table=False):
 				d[i][j] = d[i-1][j-1]
 			else:
 				d[i][j] = min(
-					d[i-1][j] + 1,   # deletion
-					d[i][j-1] + 1,   # insertion
-					d[i-1][j-1] + 1, # substitution
+					d[i-1][j] + 1,    # deletion
+					d[i][j-1] + 1,    # insertion
+					d[i-1][j-1] + 1,  # substitution
 				)
 
 	if return_table:
