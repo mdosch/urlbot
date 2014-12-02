@@ -16,20 +16,6 @@ plugins = {}
 plugins['parse'] = []
 plugins['command'] = []
 
-def get_reply_data(data, field=0):
-	# FIXME: we can't determine if a user named 'foo> ' just wrote ' > bar'
-	# or a user 'foo' just wrote '> > bar'
-	f = data.split()
-
-	if 0 == field:
-		if 1 > len(f):
-			return None
-		return f[0].strip('<>')
-	else:
-		if field >= len(f):
-			return None
-		return f[field]
-
 def register_event(t, callback, args):
 	joblist.append((t, callback, args))
 
@@ -119,8 +105,9 @@ def parse_skynet(args):
 			'msg': '''I'm an independent bot and have nothing to do with other artificial intelligence systems!'''
 		}
 
-def data_parse_other(data):
-	reply_user = get_reply_data(data)
+def data_parse_other(msg):
+	data = msg['body']
+	reply_user = msg['mucnick']
 
 	for p in plugins['parse']:
 		if ratelimit_exceeded(p['ratelimit_class']):
@@ -477,7 +464,8 @@ def command_else(args):
 		'msg': args['reply_user'] + ''': I'm a bot (highlight me with 'info' for more information).'''
 	}
 
-def data_parse_commands(data):
+def data_parse_commands(msg):
+	data = msg['body']
 	words = data.split(' ')
 
 	if 2 > len(words): # need at least two words
@@ -492,9 +480,8 @@ def data_parse_commands(data):
 		sys.exit(1)
 		return None
 
-	reply_user = get_reply_data(data)
-	argv0 = get_reply_data(data, field=2)
-	argv1 = get_reply_data(data, field=3)
+	reply_user = msg['mucnick']
+	(argv0, argv1) = (words[0], words[1])
 
 	for p in plugins['command']:
 		if ratelimit_exceeded(p['ratelimit_class']):

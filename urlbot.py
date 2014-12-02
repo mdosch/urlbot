@@ -251,8 +251,8 @@ def handle_msg(msg):
 		return
 
 	if True != extract_url(content):
-		plugins.data_parse_commands(content)
-		plugins.data_parse_other(content)
+		plugins.data_parse_commands(msg)
+		plugins.data_parse_other(msg)
 		return
 
 class bot(ClientXMPP):
