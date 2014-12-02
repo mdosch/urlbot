@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+import logging
+
 from sleekxmpp import ClientXMPP
 from local_config import conf
 
@@ -34,6 +36,11 @@ class bot(ClientXMPP):
 
 
 if '__main__' == __name__:
+	logging.basicConfig(
+		level=logging.DEBUG,
+		format='%(levelname)-8s %(message)s'
+	)
+
 	xmpp = bot(
 		jid=conf('jid'),
 		password=conf('password'),
