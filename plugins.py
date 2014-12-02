@@ -173,10 +173,9 @@ def command_help(args):
 		return None
 
 	if None == cmd:
-		logger('plugin', 'empty help request')
-		return {
-			'msg': args['reply_user'] + ': no command given'
-		}
+		logger('plugin', 'empty help request, sent all commands')
+		args['data'] += 'command'  # this is a little hacky...
+		return command_command(args)
 
 	if not cmd in [p['name'] for p in plugins['command']]:
 		logger('plugin', 'no help found for %s' % cmd)
