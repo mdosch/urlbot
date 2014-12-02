@@ -302,11 +302,10 @@ if '__main__' == __name__:
 
 	xmpp.connect()
 	xmpp.register_plugin('xep_0045')
-	xmpp.process(threaded=False)
+	xmpp.process()
 
 	while 1:
 		try:
-# FIXME: find a way to trigger them
 			plugins.event_trigger()
 
 			time.sleep(delay)
