@@ -32,6 +32,7 @@ hist_ts = []
 hist_flag = True
 
 parser = None
+xmpp = None
 
 def fetch_page(url):
 	logger('info', 'fetching page ' + url)
@@ -100,7 +101,7 @@ def extract_title(url):
 
 	return (-1, 'error')
 
-def chat_write(message, prefix='/say '):
+def chat_write(message):
 	set_conf('request_counter', conf('request_counter') + 1)
 
 	for m in message:
@@ -111,22 +112,20 @@ def chat_write(message, prefix='/say '):
 	if debug_enabled():
 		print(message)
 	else:
+		# FIXME: somehow, unicode chars can end up inside a <str> message,
+		# which seems to make both unicode() and ''.encode('utf8') fail.
 		try:
-			fd = open(fifo_path, 'wb')
-# FIXME 2to3
-			# FIXME: somehow, unicode chars can end up inside a <str> message,
-			# which seems to make both unicode() and ''.encode('utf8') fail.
-			try:
-				msg = str(prefix) + str(message) + '\n'
-				msg = msg.encode('utf8')
-			except UnicodeDecodeError as e:
-				logger('warn', 'encoding msg failed: ' + str(e))
-				msg = prefix + message + '\n'
+			msg = str(message)
+			msg = msg.encode('utf8')
+		except UnicodeDecodeError as e:
+			logger('warn', 'encoding msg failed: ' + str(e))
+			msg = message
 
-			fd.write(msg)
-			fd.close()
-		except IOError as e:
-			logger('err', "couldn't print to fifo %s: %s" % (fifo_path, str(e)))
+		xmpp.send_message(
+			mto=conf('room'),
+			mbody=msg,
+			mtype='groupchat'
+		)
 
 def ratelimit_touch(ignored=None): # FIXME: separate counters
 	hist_ts.append(time.time())
@@ -229,6 +228,7 @@ def extract_url(data):
 	return ret
 
 def parse_pn(data):
+# FIXME: changed
 	## reply_user = data.split(' ')[0].strip('<>')
 	# since we can't determine if a user named 'foo> ' just wrote ' > bar'
 	# or a user 'foo' just wrote '> > bar', we can't safely answer here
@@ -283,12 +283,6 @@ class bot(ClientXMPP):
 		if msg['mucnick'] == self.nick:
 			return
 
-#		self.send_message(
-#			mto=msg['from'].bare,
-#			mbody='got[%s]' % msg['body'],
-#			mtype='groupchat'
-#		)
-
 		return handle_msg(msg)
 
 if '__main__' == __name__:
@@ -317,15 +311,6 @@ if '__main__' == __name__:
 	xmpp.connect()
 	xmpp.register_plugin('xep_0045')
 	xmpp.process(threaded=False)
-
-
-	if not os.path.exists(fifo_path):
-		logger('error', 'fifo_path "%s" does not exist, exiting' % fifo_path)
-		exit(1)
-
-	if not stat.S_ISFIFO(os.stat(fifo_path).st_mode):
-		logger('error', 'fifo_path "%s" is not a FIFO, exiting' % fifo_path)
-		exit(1)
 
 	while 1:
 		try:
