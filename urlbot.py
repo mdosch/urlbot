@@ -287,7 +287,7 @@ if '__main__' == __name__:
 	print(sys.argv[0] + ' ' + VERSION)
 
 	logging.basicConfig(
-		level=logging.DEBUG,
+		level=logging.INFO,
 		format='%(levelname)-8s %(message)s'
 	)
 
