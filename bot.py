@@ -18,7 +18,7 @@ def message_handler(connect_object, message_node):
 	if not type(msg_body) in [str, unicode]:
 		return None
 
-	if msg_body.startswith(conf('nick')):
+	if msg_body.startswith(conf('bot_user')):
 		connect_object.send(
 			xmpp.protocol.Message(
 				to=conf('room'),
@@ -41,7 +41,7 @@ client.connect()
 client.auth(jid.getNode(), conf('password'))
 client.RegisterHandler('message', message_handler) 
 
-client.send(xmpp.Presence(to=(conf('room') + '/' + conf('nick'))))
+client.send(xmpp.Presence(to=(conf('room') + '/' + conf('bot_user'))))
 
 while (t + time.time()) < 30:
 	client.Process(1)
