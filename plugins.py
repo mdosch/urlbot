@@ -471,6 +471,10 @@ def data_parse_commands(msg):
 	if 2 > len(words): # need at least two words
 		return None
 
+	# don't reply if beginning of the text matches bot_user
+	if not data.startswith(conf('bot_user')):
+		return None
+
 	if 'hangup' in data:
 		logger('warn', 'received hangup: ' + data)
 		sys.exit(1)
