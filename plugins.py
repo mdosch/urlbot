@@ -481,7 +481,11 @@ def data_parse_commands(msg):
 		return None
 
 	reply_user = msg['mucnick']
-	(argv0, argv1) = (words[0], words[1])
+	(argv0, argv1) = (None, None)
+	if 1 < len(words):
+		argv0 = words[1]
+	if 2 < len(words):
+		argv1 = words[2]
 
 	for p in plugins['command']:
 		if ratelimit_exceeded(p['ratelimit_class']):
