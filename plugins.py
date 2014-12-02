@@ -5,7 +5,7 @@ if '__main__' == __name__:
 	print('''this is a plugin file, which is not meant to be executed''')
 	exit(-1)
 
-import time, random, unicodedata, re
+import time, random, unicodedata, re, sys
 from local_config import conf
 from common import *
 from urlbot import extract_title
@@ -488,8 +488,8 @@ def data_parse_commands(data):
 		return None
 
 	if 'hangup' in data:
-		chat_write('', prefix='/quit')
 		logger('warn', 'received hangup: ' + data)
+		sys.exit(1)
 		return None
 
 	reply_user = get_reply_data(data)
