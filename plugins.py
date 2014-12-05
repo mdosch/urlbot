@@ -426,8 +426,8 @@ def command_show_blacklist(args):
 	if 'register' == args:
 		return {
 			'name': 'show-blacklist',
-			'desc': 'show the current URL blacklist',
-			'args': ('data', 'reply_user'),
+			'desc': 'show the current URL blacklist, optionally filtered',
+			'args': ('data', 'reply_user', 'argv1'),
 			'ratelimit_class': RATE_GLOBAL
 		}
 
@@ -438,6 +438,7 @@ def command_show_blacklist(args):
 			'msg': [
 				args['reply_user'] + ': URL blacklist: ' + b
 				for b in conf('url_blacklist')
+				if not args['argv1'] or args['argv1'] in b
 			]
 		}
 
