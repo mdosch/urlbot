@@ -63,7 +63,7 @@ def parse_debbug(args):
 	status, title = extract_title(url)
 
 	if 0 == status:
-		title = 'Debian Bug: ' + title
+		title = 'Debian Bug: %s: %s' % (title, url)
 	elif 3 == status:
 		pass
 	else:
