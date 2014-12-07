@@ -4,7 +4,6 @@
 import sys, os, stat, re, time, pickle, random
 import urllib.request, urllib.parse, urllib.error, html.parser
 from common import *
-from strsim import str_sim
 
 try:
 	from local_config import conf, set_conf
@@ -179,18 +178,6 @@ def extract_url(data):
 
 			if 0 == status:
 				title = title.strip()
-				lev_url = re.sub(r'https?://[^/]*/', '', url)
-				lev_res = levenshtein(lev_url, title)
-
-				sim = str_sim(title, lev_url)
-				sim_len_title = len(sim)
-				sim_len_url = len(sim[0])
-				sim_sum = sum([sum(a) for a in sim])
-
-				obj = conf_load()
-				obj['lev'].append((lev_res, title, url))
-				obj['sim'].append((sim_sum, sim_len_title, sim_len_url, title, url))
-				conf_save(obj)
 
 				message = 'Title: %s: %s' %(title, url)
 			elif 1 == status:
