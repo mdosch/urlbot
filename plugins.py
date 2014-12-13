@@ -626,10 +626,7 @@ def event_trigger():
 
 	now = time.time()
 
-	i = 0
-	for (t, callback, args) in joblist:
+	for (i, (t, callback, args)) in enumerate(joblist):
 		if t < now:
 			callback(*args)
 			del(joblist[i])
-
-		i += 1

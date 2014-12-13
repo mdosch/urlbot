@@ -245,6 +245,7 @@ class bot(ClientXMPP):
 
 		self.add_event_handler('session_start', self.session_start)
 		self.add_event_handler('groupchat_message', self.muc_message)
+		self.add_event_handler('message', self.message)
 
 	def session_start(self, event):
 		self.get_roster()
@@ -263,6 +264,12 @@ class bot(ClientXMPP):
 			return
 
 		return handle_msg(msg_obj)
+
+	def message(self, msg_obj):
+		if 'groupchat' == msg_obj['type']:
+			return
+
+		print('msg from %s: %s' % (msg_obj['from'].bare, msg_obj['body']))
 
 if '__main__' == __name__:
 	import plugins

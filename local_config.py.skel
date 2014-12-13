@@ -31,6 +31,7 @@ config = {
 	'request_counter': 0,
 
 	'persistent_storage': 'urlbot.persistent',
+	'persistent_locked': False,
 
 	'url_blacklist': [
 		r'^.*heise\.de/[^/]+/meldung/.*$',
