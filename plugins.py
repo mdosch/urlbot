@@ -105,9 +105,9 @@ def parse_skynet(args):
 			'msg': '''I'm an independent bot and have nothing to do with other artificial intelligence systems!'''
 		}
 
-def data_parse_other(msg):
-	data = msg['body']
-	reply_user = msg['mucnick']
+def data_parse_other(msg_obj):
+	data = msg_obj['body']
+	reply_user = msg_obj['mucnick']
 
 	for p in plugins['parse']:
 		if ratelimit_exceeded(p['ratelimit_class']):
@@ -132,7 +132,7 @@ def data_parse_other(msg):
 		if None != ret:
 			if 'msg' in list(ret.keys()):
 				ratelimit_touch(RATE_CHAT)
-				chat_write(ret['msg'])
+				send_reply(ret['msg'], msg_obj)
 
 def command_command(args):
 	if 'register' == args:
@@ -353,7 +353,7 @@ def command_teatimer(args):
 		return {
 			'name': 'teatimer',
 			'desc': 'sets a tea timer to $1 or currently %d seconds' % conf('tea_steep_time'),
-			'args': ('reply_user', 'argv0', 'argv1'),
+			'args': ('reply_user', 'msg_obj', 'argv0', 'argv1'),
 			'ratelimit_class': RATE_GLOBAL
 		}
 
@@ -379,7 +379,7 @@ def command_teatimer(args):
 				'msg': args['reply_user'] + ': time format error: ' + str(e)
 			}
 
-		register_event(ready, chat_write, args['reply_user'] + ': Your tea is ready!')
+		register_event(ready, send_reply, (args['reply_user'] + ': Your tea is ready!', args['msg_obj']))
 
 		return {
 			'msg': args['reply_user'] + ': Tea timer set to %s' % time.strftime(
@@ -464,8 +464,8 @@ def command_else(args):
 		'msg': args['reply_user'] + ''': I'm a bot (highlight me with 'info' for more information).'''
 	}
 
-def data_parse_commands(msg):
-	data = msg['body']
+def data_parse_commands(msg_obj):
+	data = msg_obj['body']
 	words = data.split(' ')
 
 	if 2 > len(words):  # need at least two words
@@ -480,7 +480,7 @@ def data_parse_commands(msg):
 		sys.exit(1)
 		return None
 
-	reply_user = msg['mucnick']
+	reply_user = msg_obj['mucnick']
 	(argv0, argv1) = (None, None)
 	if 1 < len(words):
 		argv0 = words[1]
@@ -506,6 +506,8 @@ def data_parse_commands(msg):
 					args['cmd_list'] = cmds
 				elif 'reply_user' == a:
 					args['reply_user'] = reply_user
+				elif 'msg_obj' == a:
+					args['msg_obj'] = msg_obj
 				elif 'argv0' == a:
 					args['argv0'] = argv0
 				elif 'argv1' == a:
@@ -522,14 +524,14 @@ def data_parse_commands(msg):
 					if ratelimit_exceeded(RATE_CHAT):
 						return False
 
-					chat_write(ret['msg'])
+					send_reply(ret['msg'], msg_obj)
 				else:
 					for line in ret['msg']:
 						ratelimit_touch(RATE_CHAT)
 						if ratelimit_exceeded(RATE_CHAT):
 							return False
 
-						chat_write(line)
+						send_reply(line, msg_obj)
 
 			return None
 
@@ -541,9 +543,9 @@ def data_parse_commands(msg):
 		if 'msg' in list(ret.keys()):
 			if list is type(ret['msg']):
 				for m in ret['msg']:
-					chat_write(m)
+					send_reply(m, msg_obj)
 			else:
-				chat_write(ret['msg'])
+				send_reply(ret['msg'], msg_obj)
 
 funcs = {}
 funcs['parse'] = (parse_mental_ill, parse_skynet, parse_debbug, parse_cve)
@@ -556,8 +558,8 @@ funcs['command'] = (
 _dir = dir()
 
 if debug_enabled():
-	def _chat_write(a):
-		logger('chat_write', a)
+	def _send_reply(a, msg_obj):
+		logger('send_reply[%s]' % msg_obj, a)
 
 	def _conf(a):
 		return 'bot'
@@ -569,9 +571,9 @@ if debug_enabled():
 		return True
 
 	try:
-		chat_write
+		send_reply
 	except NameError:
-		chat_write = _chat_write
+		send_reply = _send_reply
 
 	try:
 		conf

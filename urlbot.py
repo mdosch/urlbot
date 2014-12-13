@@ -102,21 +102,21 @@ def extract_title(url):
 
 	return (-1, 'error')
 
-def chat_write(message):
+def send_reply(message, msg_obj):
 	set_conf('request_counter', conf('request_counter') + 1)
 
 	for m in message:
 		if 0x20 > ord(m):
-			logger('warn', 'strange char 0x%02x in chat_write(message), skipping' % ord(m))
+			logger('warn', 'strange char 0x%02x in send_reply(message), skipping' % ord(m))
 			return False
 
 	if debug_enabled():
 		print(message)
 	else:
 		xmpp.send_message(
-			mto=conf('room'),
+			mto=msg_obj['from'].bare,
 			mbody=message,
-			mtype='groupchat'
+			mtype=msg_obj['type']
 		)
 
 def ratelimit_touch(ignored=None):  # FIXME: separate counters
@@ -134,7 +134,8 @@ def ratelimit_exceeded(ignored=None):  # FIXME: separate counters
 		if (time.time() - first) < conf('hist_max_time'):
 			if hist_flag:
 				hist_flag = False
-				chat_write('(rate limited to %d messages in %d seconds, try again at %s)' %(conf('hist_max_count'), conf('hist_max_time'), time.strftime('%T %Z', time.localtime(hist_ts[0] + conf('hist_max_time')))))
+# FIXME: this is very likely broken now
+				send_reply('(rate limited to %d messages in %d seconds, try again at %s)' %(conf('hist_max_count'), conf('hist_max_time'), time.strftime('%T %Z', time.localtime(hist_ts[0] + conf('hist_max_time')))))
 
 			logger('warn', 'rate limiting exceeded: ' + pickle.dumps(hist_ts))
 			return True
@@ -142,13 +143,13 @@ def ratelimit_exceeded(ignored=None):  # FIXME: separate counters
 	hist_flag = True
 	return False
 
-def extract_url(data):
+def extract_url(data, msg_obj):
 	ret = None
 	result = re.findall("(https?://[^\s>]+)", data)
 	if result:
 		for url in result:
 			ratelimit_touch()
-			if ratelimit_exceeded():
+			if ratelimit_exceeded(msg_obj):
 				return False
 
 			flag = False
@@ -203,7 +204,7 @@ def extract_url(data):
 			message = message.replace('\n', '\\n')
 
 			logger('info', 'printing ' + message)
-			chat_write(message)
+			send_reply(message, msg_obj)
 			ret = True
 	return ret
 
@@ -215,8 +216,8 @@ def parse_pn(data):
 	logger('warn', 'received PN: ' + data)
 	return False
 
-def handle_msg(msg):
-	content = msg['body']
+def handle_msg(msg_obj):
+	content = msg_obj['body']
 
 # FIXME: still needed?
 	if 'has set the subject to:' in content:
@@ -230,16 +231,16 @@ def handle_msg(msg):
 		logger('info', 'silenced, this is my own log')
 		return
 
-	if True != extract_url(content):
-		plugins.data_parse_commands(msg)
-		plugins.data_parse_other(msg)
+	if True != extract_url(content, msg_obj):
+		plugins.data_parse_commands(msg_obj)
+		plugins.data_parse_other(msg_obj)
 		return
 
 class bot(ClientXMPP):
-	def __init__(self, jid, password, room, nick):
+	def __init__(self, jid, password, rooms, nick):
 		ClientXMPP.__init__(self, jid, password)
 
-		self.room = room
+		self.rooms = rooms
 		self.nick = nick
 
 		self.add_event_handler('session_start', self.session_start)
@@ -249,23 +250,24 @@ class bot(ClientXMPP):
 		self.get_roster()
 		self.send_presence()
 
-		self.plugin['xep_0045'].joinMUC(
-			self.room,
-			self.nick,
-			wait=True
-		)
+		for room in self.rooms:
+			self.plugin['xep_0045'].joinMUC(
+				room,
+				self.nick,
+				wait=True
+			)
 
-	def muc_message(self, msg):
+	def muc_message(self, msg_obj):
 		# don't talk to yourself
-		if msg['mucnick'] == self.nick:
+		if msg_obj['mucnick'] == self.nick:
 			return
 
-		return handle_msg(msg)
+		return handle_msg(msg_obj)
 
 if '__main__' == __name__:
 	import plugins
 
-	plugins.chat_write = chat_write
+	plugins.send_reply = send_reply
 	plugins.ratelimit_exceeded = ratelimit_exceeded
 	plugins.ratelimit_touch = ratelimit_touch
 
@@ -281,7 +283,7 @@ if '__main__' == __name__:
 	xmpp = bot(
 		jid=conf('jid'),
 		password=conf('password'),
-		room=conf('room'),
+		rooms=conf('rooms'),
 		nick=conf('bot_user')
 	)
 

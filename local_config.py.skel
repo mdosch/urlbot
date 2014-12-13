@@ -17,7 +17,7 @@ if '__main__' == __name__:
 config = {
 	'jid': 'FIXME',
 	'password': 'FIXME',
-	'room': 'FIXME',
+	'rooms': ['FIXME'],
 
 	'src-url': 'FIXME',
 
