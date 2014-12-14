@@ -212,19 +212,32 @@ def extract_url(data, msg_obj):
 def handle_msg(msg_obj):
 	content = msg_obj['body']
 
-# FIXME: still needed?
 	if 'has set the subject to:' in content:
-		return
-
-	if 'nospoiler' in content:
-		logger('info', "no spoiler for: " + content)
 		return
 
 	if sys.argv[0] in content:
 		logger('info', 'silenced, this is my own log')
 		return
 
-	if True != extract_url(content, msg_obj):
+	if 'nospoiler' in content:
+		logger('info', 'no spoiler for: ' + content)
+		return
+
+	arg_user = msg_obj['mucnick']
+	blob_userpref = conf_load()['user_pref']
+	nospoiler = False
+
+	if arg_user in blob_userpref:
+		if 'spoiler' in blob_userpref[arg_user]:
+			if not blob_userpref[arg_user]['spoiler']:
+				logger('info', 'nospoiler from conf')
+				nospoiler = True
+
+	ret = None
+	if not nospoiler:
+		ret = extract_url(content, msg_obj)
+
+	if True != ret:
 		plugins.data_parse_commands(msg_obj)
 		plugins.data_parse_other(msg_obj)
 		return
