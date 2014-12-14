@@ -442,6 +442,36 @@ def command_show_blacklist(args):
 			]
 		}
 
+def command_usersetting(args):
+	if 'register' == args:
+		return {
+			'name': 'set',
+			'desc': 'modify a user setting',
+			'args': ('reply_user', 'argv0', 'argv1', 'argv2', 'msg_obj'),
+			'ratelimit_class': RATE_GLOBAL
+		}
+
+	settings = ['spoiler']
+
+	if 'set' != args['argv0']:
+		return
+
+	if not args['argv1'] in settings:
+		return {
+			'msg': args['reply_user'] + ': known settings: %s' % settings
+		}
+
+	if not args['argv2'] in ['on', 'off']:
+		return {
+			'msg': args['reply_user'] + ': possible values for %s: on, off' % args['argv1']
+		}
+
+	logger('plugin', 'user setting plugin called')
+
+	return {
+		'msg': args['reply_user'] + ': FIXME: implement functionality'
+	}
+
 #def command_dummy(args):
 #	if 'register' == args:
 #		return {
@@ -481,11 +511,13 @@ def data_parse_commands(msg_obj):
 		return None
 
 	reply_user = msg_obj['mucnick']
-	(argv0, argv1) = (None, None)
+	(argv0, argv1, argv2) = (None, None, None)
 	if 1 < len(words):
 		argv0 = words[1]
 	if 2 < len(words):
 		argv1 = words[2]
+	if 3 < len(words):
+		argv2 = words[3]
 
 	for p in plugins['command']:
 		if ratelimit_exceeded(p['ratelimit_class']):
@@ -512,6 +544,8 @@ def data_parse_commands(msg_obj):
 					args['argv0'] = argv0
 				elif 'argv1' == a:
 					args['argv1'] = argv1
+				elif 'argv2' == a:
+					args['argv2'] = argv2
 				else:
 					logger('warn', 'unknown required arg for %s: %s' %(p['name'], a))
 
@@ -552,7 +586,8 @@ funcs['parse'] = (parse_mental_ill, parse_skynet, parse_debbug, parse_cve)
 funcs['command'] = (
 	command_command, command_help, command_version, command_unicode,
 	command_klammer, command_source, command_dice, command_uptime, command_ping,
-	command_info, command_teatimer, command_decode, command_show_blacklist
+	command_info, command_teatimer, command_decode, command_show_blacklist,
+	command_usersetting
 )
 
 _dir = dir()
