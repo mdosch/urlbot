@@ -113,11 +113,12 @@ def send_reply(message, msg_obj):
 	if debug_enabled():
 		print(message)
 	else:
-		xmpp.send_message(
-			mto=msg_obj['from'].bare,
-			mbody=message,
-			mtype=msg_obj['type']
-		)
+		msg_obj.reply(body=message).send()
+#		xmpp.send_message(
+#			mto=msg_obj['from'].bare,
+#			mbody=message,
+#			mtype=msg_obj['type']
+#		)
 
 def ratelimit_touch(ignored=None):  # FIXME: separate counters
 	hist_ts.append(time.time())
@@ -208,14 +209,6 @@ def extract_url(data, msg_obj):
 			ret = True
 	return ret
 
-def parse_pn(data):
-# FIXME: changed
-	## reply_user = data.split(' ')[0].strip('<>')
-	# since we can't determine if a user named 'foo> ' just wrote ' > bar'
-	# or a user 'foo' just wrote '> > bar', we can't safely answer here
-	logger('warn', 'received PN: ' + data)
-	return False
-
 def handle_msg(msg_obj):
 	content = msg_obj['body']
 
@@ -269,7 +262,11 @@ class bot(ClientXMPP):
 		if 'groupchat' == msg_obj['type']:
 			return
 
-		print('msg from %s: %s' % (msg_obj['from'].bare, msg_obj['body']))
+		plugins.data_parse_commands(msg_obj)
+		plugins.data_parse_other(msg_obj)
+
+		print('msg from %s: %s' % (msg_obj['from'].bare, msg_obj))
+#		msg_obj.reply(body='waaaaah').send()
 
 if '__main__' == __name__:
 	import plugins
