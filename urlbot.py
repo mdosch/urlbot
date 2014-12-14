@@ -105,10 +105,8 @@ def extract_title(url):
 def send_reply(message, msg_obj):
 	set_conf('request_counter', conf('request_counter') + 1)
 
-	for m in message:
-		if 0x20 > ord(m):
-			logger('warn', 'strange char 0x%02x in send_reply(message), skipping' % ord(m))
-			return False
+	if str is not type(message):
+		message = '\n'.join(message)
 
 	if debug_enabled():
 		print(message)
@@ -145,23 +143,25 @@ def ratelimit_exceeded(ignored=None):  # FIXME: separate counters
 	return False
 
 def extract_url(data, msg_obj):
-	ret = None
 	result = re.findall("(https?://[^\s>]+)", data)
-	if result:
-		for url in result:
-			ratelimit_touch()
-			if ratelimit_exceeded(msg_obj):
-				return False
+	if not result:
+		return
 
-			flag = False
-			for b in conf('url_blacklist'):
-				if not None is re.match(b, url):
-					flag = True
-					logger('info', 'url blacklist match for ' + url)
+	ret = None
+	for url in result:
+		ratelimit_touch()
+		if ratelimit_exceeded(msg_obj):
+			return False
 
-			if flag:
-				# an URL has matched the blacklist, continue to the next URL
-				continue
+		flag = False
+		for b in conf('url_blacklist'):
+			if not None is re.match(b, url):
+				flag = True
+				logger('info', 'url blacklist match for ' + url)
+
+		if flag:
+			# an URL has matched the blacklist, continue to the next URL
+			continue
 
 # urllib.request is broken:
 # >>> '.'.encode('idna')
@@ -173,40 +173,41 @@ def extract_url(data, msg_obj):
 # >>> 'a.a.'.encode('idna')
 # b'a.a.'
 
-			try:
-				(status, title) = extract_title(url)
-			except UnicodeError as e:
-				(status, title) = (4, str(e))
+		try:
+			(status, title) = extract_title(url)
+		except UnicodeError as e:
+			(status, title) = (4, str(e))
 
-			if 0 == status:
-				title = title.strip()
+		if 0 == status:
+			title = title.strip()
 
-				message = 'Title: %s: %s' %(title, url)
-			elif 1 == status:
-				if conf('image_preview'):
-					# of course it's fake, but it looks interesting at least
-					char = """,._-+=\|/*`~"'"""
-					message = 'No text but %s, 1-bit ASCII art preview: [%c] %s' %(
-						title, random.choice(char), url
-					)
-				else:
-					logger('info', 'no message sent for non-text %s (%s)' %(url, title))
-					continue
-			elif 2 == status:
-				message = 'No title: %s' % url
-			elif 3 == status:
-				message = title
-			elif 4 == status:
-				message = 'Bug triggered (%s), invalid URL/domain part: %s' % (title, url)
-				logger('warn', message)
+			message = 'Title: %s: %s' %(title, url)
+		elif 1 == status:
+			if conf('image_preview'):
+				# of course it's fake, but it looks interesting at least
+				char = """,._-+=\|/*`~"'"""
+				message = 'No text but %s, 1-bit ASCII art preview: [%c] %s' %(
+					title, random.choice(char), url
+				)
 			else:
-				message = 'some error occurred when fetching %s' % url
+				logger('info', 'no message sent for non-text %s (%s)' %(url, title))
+				continue
+		elif 2 == status:
+			message = 'No title: %s' % url
+		elif 3 == status:
+			message = title
+		elif 4 == status:
+			message = 'Bug triggered (%s), invalid URL/domain part: %s' % (title, url)
+			logger('warn', message)
+		else:
+			message = 'some error occurred when fetching %s' % url
 
-			message = message.replace('\n', '\\n')
+		message = message.replace('\n', '\\n')
 
-			logger('info', 'printing ' + message)
-			send_reply(message, msg_obj)
-			ret = True
+		logger('info', 'printing ' + message)
+		send_reply(message, msg_obj)
+		ret = True
+
 	return ret
 
 def handle_msg(msg_obj):

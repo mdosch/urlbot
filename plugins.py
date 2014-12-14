@@ -594,19 +594,11 @@ def data_parse_commands(msg_obj):
 
 		if None != ret:
 			if 'msg' in list(ret.keys()):
-				if str == type(ret['msg']):  # FIXME 2to3
-					ratelimit_touch(RATE_CHAT)
-					if ratelimit_exceeded(RATE_CHAT):
-						return False
+				ratelimit_touch(RATE_CHAT)
+				if ratelimit_exceeded(RATE_CHAT):
+					return False
 
-					send_reply(ret['msg'], msg_obj)
-				else:
-					for line in ret['msg']:
-						ratelimit_touch(RATE_CHAT)
-						if ratelimit_exceeded(RATE_CHAT):
-							return False
-
-						send_reply(line, msg_obj)
+				send_reply(ret['msg'], msg_obj)
 
 			return None
 
@@ -616,11 +608,7 @@ def data_parse_commands(msg_obj):
 			return False
 
 		if 'msg' in list(ret.keys()):
-			if list is type(ret['msg']):
-				for m in ret['msg']:
-					send_reply(m, msg_obj)
-			else:
-				send_reply(ret['msg'], msg_obj)
+			send_reply(ret['msg'], msg_obj)
 
 funcs = {}
 funcs['parse'] = (parse_mental_ill, parse_skynet, parse_debbug, parse_cve)
