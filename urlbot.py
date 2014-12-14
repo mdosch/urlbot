@@ -148,6 +148,7 @@ def extract_url(data, msg_obj):
 		return
 
 	ret = None
+	out = []
 	for url in result:
 		ratelimit_touch()
 		if ratelimit_exceeded(msg_obj):
@@ -158,6 +159,7 @@ def extract_url(data, msg_obj):
 			if not None is re.match(b, url):
 				flag = True
 				logger('info', 'url blacklist match for ' + url)
+				break
 
 		if flag:
 			# an URL has matched the blacklist, continue to the next URL
@@ -204,9 +206,12 @@ def extract_url(data, msg_obj):
 
 		message = message.replace('\n', '\\n')
 
-		logger('info', 'printing ' + message)
-		send_reply(message, msg_obj)
+		logger('info', 'adding to out buf: ' + message)
+		out.append(message)
 		ret = True
+
+	if True == ret:
+		send_reply(out, msg_obj)
 
 	return ret
 
