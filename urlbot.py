@@ -1,14 +1,13 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import sys, os, stat, re, time, pickle, random
+import sys, re, time, pickle, random
 import urllib.request, urllib.parse, urllib.error, html.parser
 from common import *
 
 try:
 	from local_config import conf, set_conf
 except ImportError:
-	import sys
 	sys.stderr.write('''
 %s: E: local_config.py isn't tracked because of included secrets and
 %s     site specific configurations. Rename local_config.py.skel and
@@ -60,7 +59,7 @@ def extract_title(url):
 	(code, html_text, headers) = fetch_page(url)
 
 	if 1 == code:
-		return (3, 'failed: %s for %s' %(html_text, url))
+		return (3, 'failed: %s for %s' % (html_text, url))
 
 	if html_text:
 		charset = ''
@@ -134,7 +133,7 @@ def ratelimit_exceeded(ignored=None):  # FIXME: separate counters
 			if hist_flag:
 				hist_flag = False
 # FIXME: this is very likely broken now
-				send_reply('(rate limited to %d messages in %d seconds, try again at %s)' %(conf('hist_max_count'), conf('hist_max_time'), time.strftime('%T %Z', time.localtime(hist_ts[0] + conf('hist_max_time')))))
+				send_reply('(rate limited to %d messages in %d seconds, try again at %s)' % (conf('hist_max_count'), conf('hist_max_time'), time.strftime('%T %Z', time.localtime(hist_ts[0] + conf('hist_max_time')))))
 
 			logger('warn', 'rate limiting exceeded: ' + pickle.dumps(hist_ts))
 			return True
@@ -183,16 +182,16 @@ def extract_url(data, msg_obj):
 		if 0 == status:
 			title = title.strip()
 
-			message = 'Title: %s: %s' %(title, url)
+			message = 'Title: %s: %s' % (title, url)
 		elif 1 == status:
 			if conf('image_preview'):
 				# of course it's fake, but it looks interesting at least
 				char = """,._-+=\|/*`~"'"""
-				message = 'No text but %s, 1-bit ASCII art preview: [%c] %s' %(
+				message = 'No text but %s, 1-bit ASCII art preview: [%c] %s' % (
 					title, random.choice(char), url
 				)
 			else:
-				logger('info', 'no message sent for non-text %s (%s)' %(url, title))
+				logger('info', 'no message sent for non-text %s (%s)' % (url, title))
 				continue
 		elif 2 == status:
 			message = 'No title: %s' % url
@@ -281,11 +280,10 @@ class bot(ClientXMPP):
 		if 'groupchat' == msg_obj['type']:
 			return
 
-		plugins.data_parse_commands(msg_obj)
-		plugins.data_parse_other(msg_obj)
+#		plugins.data_parse_commands(msg_obj)
+#		plugins.data_parse_other(msg_obj)
 
 		print('msg from %s: %s' % (msg_obj['from'].bare, msg_obj))
-#		msg_obj.reply(body='waaaaah').send()
 
 if '__main__' == __name__:
 	import plugins

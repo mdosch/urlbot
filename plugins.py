@@ -125,7 +125,7 @@ def data_parse_other(msg_obj):
 				elif 'reply_user' == a:
 					args['reply_user'] = reply_user
 				else:
-					logger('warn', 'unknown required arg for %s: %s' %(p['name'], a))
+					logger('warn', 'unknown required arg for %s: %s' % (p['name'], a))
 
 		ret = p['func'](args)
 
@@ -187,7 +187,7 @@ def command_help(args):
 		if cmd == p['name']:
 			logger('plugin', 'sent help for %s' % cmd)
 			return {
-				'msg': args['reply_user'] + ': help for %s: %s' %(cmd, p['desc'])
+				'msg': args['reply_user'] + ': help for %s: %s' % (cmd, p['desc'])
 			}
 
 
@@ -281,7 +281,7 @@ def command_dice(args):
 
 		dice_char = ['◇', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅']
 		return {
-			'msg': 'rolling a dice for %s: %s (%d)' %(args['reply_user'], dice_char[rnd], rnd)
+			'msg': 'rolling a dice for %s: %s (%d)' % (args['reply_user'], dice_char[rnd], rnd)
 		}
 
 def command_uptime(args):
@@ -305,7 +305,7 @@ def command_uptime(args):
 
 		logger('plugin', 'sent statistics')
 		return {
-			'msg': args['reply_user'] + (''': happily serving for %d second%s, %d request%s so far.''' %(u, plural_uptime, conf('request_counter'), plural_request))
+			'msg': args['reply_user'] + (''': happily serving for %d second%s, %d request%s so far.''' % (u, plural_uptime, conf('request_counter'), plural_request))
 		}
 
 def command_ping(args):
@@ -345,7 +345,7 @@ def command_info(args):
 	if 'info' in args['data']:
 		logger('plugin', 'sent long info')
 		return {
-			'msg': args['reply_user'] + (''': I'm a bot, my job is to extract <title> tags from posted URLs. In case I'm annoying or for further questions, please talk to my master %s. I'm rate limited and shouldn't post more than %d messages per %d seconds. To make me exit immediately, highlight me with 'hangup' in the message (emergency only, please). For other commands, highlight me with 'command'.''' %(conf('bot_owner'), conf('hist_max_count'), conf('hist_max_time')))
+			'msg': args['reply_user'] + (''': I'm a bot, my job is to extract <title> tags from posted URLs. In case I'm annoying or for further questions, please talk to my master %s. I'm rate limited and shouldn't post more than %d messages per %d seconds. To make me exit immediately, highlight me with 'hangup' in the message (emergency only, please). For other commands, highlight me with 'command'.''' % (conf('bot_owner'), conf('hist_max_count'), conf('hist_max_time')))
 		}
 
 def command_teatimer(args):
@@ -409,13 +409,13 @@ def command_decode(args):
 		try:
 			uni_name = unicodedata.name(char)
 		except Exception as e:
-			logger('plugin', 'decode(%s) failed: %s' %(char, str(e)))
+			logger('plugin', 'decode(%s) failed: %s' % (char, str(e)))
 			return {
-				'msg': args['reply_user'] + ": can't decode %s (%s): %s" %(char, char_esc, str(e))
+				'msg': args['reply_user'] + ": can't decode %s (%s): %s" % (char, char_esc, str(e))
 			}
 
 		return {
-			'msg': args['reply_user'] + ': %s (%s) is called "%s"' %(char, char_esc, uni_name)
+			'msg': args['reply_user'] + ': %s (%s) is called "%s"' % (char, char_esc, uni_name)
 		}
 	else:
 		return {
@@ -588,7 +588,7 @@ def data_parse_commands(msg_obj):
 				elif 'argv2' == a:
 					args['argv2'] = argv2
 				else:
-					logger('warn', 'unknown required arg for %s: %s' %(p['name'], a))
+					logger('warn', 'unknown required arg for %s: %s' % (p['name'], a))
 
 		ret = p['func'](args)
 
@@ -625,7 +625,7 @@ if debug_enabled():
 	def _send_reply(a, msg_obj):
 		logger('send_reply[%s]' % msg_obj, a)
 
-	def _conf(a):
+	def _conf(ignored):
 		return 'bot'
 
 	def _ratelimit_exceeded(ignored=None):
@@ -672,7 +672,7 @@ def register(func_type, auto=False):
 				ret['func'] = f
 				plugins[func_type].append(ret)
 			except Exception as e:
-				logger('warn', 'auto-registering %s failed: %s' %(f, e))
+				logger('warn', 'auto-registering %s failed: %s' % (f, e))
 
 	else:
 		for f in funcs[func_type]:

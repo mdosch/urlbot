@@ -5,7 +5,7 @@ if '__main__' == __name__:
 	print('''this is a library file, which is not meant to be executed''')
 	exit(-1)
 
-import sys, os, time, pickle
+import sys, time, pickle
 from local_config import conf
 
 RATE_GLOBAL = 0x01
