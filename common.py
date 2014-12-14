@@ -32,15 +32,8 @@ def logger(severity, message):
 	sys.stderr.write('%s %s %s: %s\n' % args)
 
 def conf_save(obj):
-	if conf('persistent_locked'):
-		return False
-
-	set_conf('persistent_locked', True)
-
 	with open(conf('persistent_storage'), 'wb') as fd:
 		return pickle.dump(obj, fd)
-
-	set_conf('persistent_locked', False)
 
 def conf_load():
 	with open(conf('persistent_storage'), 'rb') as fd:

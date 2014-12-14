@@ -6,7 +6,7 @@ if '__main__' == __name__:
 	exit(-1)
 
 import time, random, unicodedata, re, sys
-from local_config import conf
+from local_config import conf, set_conf
 from common import *
 from urlbot import extract_title
 
@@ -442,6 +442,25 @@ def command_show_blacklist(args):
 			]
 		}
 
+def usersetting_get(args):
+	blob = conf_load()
+
+	arg_user = args['reply_user']
+	arg_key = args['argv1']
+
+	if not arg_user in blob['user_pref']:
+		return {
+			'msg': args['reply_user'] + ': user key not found'
+		}
+
+	return {
+		'msg': args['reply_user'] + ': %s == %s' % (
+			arg_key,
+			'on' if blob['user_pref'][arg_user][arg_key] else 'off'
+		)
+	}
+
+
 def command_usersetting(args):
 	if 'register' == args:
 		return {
@@ -451,26 +470,48 @@ def command_usersetting(args):
 			'ratelimit_class': RATE_GLOBAL
 		}
 
-	settings = ['spoiler']
-
 	if 'set' != args['argv0']:
 		return
 
-	if not args['argv1'] in settings:
+	settings = ['spoiler']
+	arg_user = args['reply_user']
+	arg_key = args['argv1']
+	arg_val = args['argv2']
+
+	if not arg_key in settings:
 		return {
-			'msg': args['reply_user'] + ': known settings: %s' % settings
+			'msg': args['reply_user'] + ': known settings: ' + (', '.join(settings))
 		}
 
-	if not args['argv2'] in ['on', 'off']:
+	if not arg_val in ['on', 'off', None]:
 		return {
-			'msg': args['reply_user'] + ': possible values for %s: on, off' % args['argv1']
+			'msg': args['reply_user'] + ': possible values for %s: on, off' % arg_key
 		}
 
-	logger('plugin', 'user setting plugin called')
+	if None == arg_val:
+		# display current value
+		return usersetting_get(args)
 
-	return {
-		'msg': args['reply_user'] + ': FIXME: implement functionality'
-	}
+	if conf('persistent_locked'):
+		return {
+			'msg': args['reply_user'] + ''': couldn't get exclusive lock'''
+		}
+
+	set_conf('persistent_locked', True)
+	blob = conf_load()
+
+	if not arg_user in blob['user_pref']:
+		blob['user_pref'][arg_user] = {}
+
+	blob['user_pref'][arg_user][arg_key] = (
+		True if 'on' == arg_val else False
+	)
+
+	conf_save(blob)
+	set_conf('persistent_locked', False)
+
+	# display value written to db
+	return usersetting_get(args)
 
 #def command_dummy(args):
 #	if 'register' == args:
