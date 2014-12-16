@@ -513,6 +513,22 @@ def command_usersetting(args):
 	# display value written to db
 	return usersetting_get(args)
 
+def command_cake(args):
+	if 'register' == args:
+		return {
+			'name': 'cake',
+			'desc': 'displays a cake ASCII art',
+			'args': ('argv0', 'reply_user'),
+			'ratelimit_class': RATE_GLOBAL
+		}
+
+	if 'cake' != args['argv0']:
+		return
+
+	return {
+		'msg': args['reply_user'] + ': no cake for you'
+	}
+
 #def command_dummy(args):
 #	if 'register' == args:
 #		return {
@@ -616,7 +632,7 @@ funcs['command'] = (
 	command_command, command_help, command_version, command_unicode,
 	command_klammer, command_source, command_dice, command_uptime, command_ping,
 	command_info, command_teatimer, command_decode, command_show_blacklist,
-	command_usersetting
+	command_usersetting, command_cake
 )
 
 _dir = dir()
