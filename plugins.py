@@ -267,8 +267,8 @@ def command_dice(args):
 	if 'register' == args:
 		return {
 			'name': 'dice',
-			'desc': 'rolls a dice',
-			'args': ('argv0', 'reply_user'),
+			'desc': 'rolls a dice, optional N times',
+			'args': ('argv0', 'argv1', 'reply_user'),
 			'ratelimit_class': RATE_INTERACTIVE
 		}
 
@@ -283,8 +283,30 @@ def command_dice(args):
 		logger('plugin', 'sent random')
 
 	dice_char = ['◇', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅']
+	count = 0
+	msg = None
+
+	try:
+		count = 1 if None is args['argv1'] else int(args['argv1'])
+	except ValueError as e:
+		return {
+			'msg': '%s: dice: error when parsing int(%s): %s' % (
+				args['reply_user'], args['argv1'], str(e)
+			)
+		}
+
+	if 0 >= count or 5 <= count:
+		return {
+			'msg': '%s: dice: invalid arguments (0 < N < 5)' % args['reply_user']
+		}
+
+	msg = [
+		'rolling a dice for %s: %s (%d)' % (args['reply_user'], dice_char[rnd], rnd)
+		for i in range(count)
+	]
+
 	return {
-		'msg': 'rolling a dice for %s: %s (%d)' % (args['reply_user'], dice_char[rnd], rnd)
+		'msg': msg[0] if 1 == count else msg
 	}
 
 def command_uptime(args):
