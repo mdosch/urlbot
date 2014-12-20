@@ -275,16 +275,7 @@ def command_dice(args):
 	if 'dice' != args['argv0']:
 		return
 
-	if args['reply_user'] in conf('enhanced-random-user'):
-		rnd = 0  # this might confuse users. good.
-		logger('plugin', 'sent random (enhanced)')
-	else:
-		rnd = random.randint(1, 6)
-		logger('plugin', 'sent random')
-
-	dice_char = ['◇', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅']
 	count = 0
-	msg = None
 
 	try:
 		count = 1 if None is args['argv1'] else int(args['argv1'])
@@ -300,13 +291,25 @@ def command_dice(args):
 			'msg': '%s: dice: invalid arguments (0 < N < 5)' % args['reply_user']
 		}
 
-	msg = [
-		'rolling a dice for %s: %s (%d)' % (args['reply_user'], dice_char[rnd], rnd)
-		for i in range(count)
-	]
+	dice_char = ['◇', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅']
+
+	msg = 'rolling %s for %s:' % (
+		'a dice' if 1 == count else '%d dices' % count, args['reply_user']
+	)
+
+	for i in range(count):
+		rnd = 0
+		if args['reply_user'] in conf('enhanced-random-user'):
+			rnd = 0  # this might confuse users. good.
+			logger('plugin', 'sent random (enhanced)')
+		else:
+			rnd = random.randint(1, 6)
+			logger('plugin', 'sent random')
+
+		msg += ' %s (%d)' % (dice_char[rnd], rnd)
 
 	return {
-		'msg': msg[0] if 1 == count else msg
+		'msg': msg
 	}
 
 def command_uptime(args):
