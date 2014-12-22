@@ -473,7 +473,11 @@ def command_show_blacklist(args):
 	logger('plugin', 'sent URL blacklist')
 
 	return {
-		'msg': [args['reply_user'] + ': URL blacklist: '] + [
+		'msg': [
+			args['reply_user'] + ': URL blacklist%s: ' % (
+				'' if not args['argv1'] else ' (limited to %s)' % args['argv1']
+			)
+		] + [
 			b for b in conf('url_blacklist')
 			if not args['argv1'] or args['argv1'] in b
 		]
