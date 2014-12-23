@@ -570,6 +570,50 @@ def command_cake(args):
 		'msg': args['reply_user'] + ': no cake for you'
 	}
 
+def command_remember(args):
+	if 'register' == args:
+		return {
+			'name': 'remember',
+			'desc': 'remembers something',
+			'args': ('argv0', 'argv1', 'data', 'reply_user'),
+			'ratelimit_class': RATE_GLOBAL
+		}
+
+	if 'remember' != args['argv0']:
+		return
+
+	logger('plugin', 'remember plugin called')
+
+	if not args['argv1']:
+		return {
+			'msg': args['reply_user'] + ': invalid message'
+		}
+
+	print(args['data'])
+	set_conf('data_remember', ' '.join(args['data'].split()[2:]))
+
+	return {
+		'msg': args['reply_user'] + ': ok.'
+	}
+
+def command_recall(args):
+	if 'register' == args:
+		return {
+			'name': 'recall',
+			'desc': "recalls something previously 'remember'ed",
+			'args': ('argv0', 'reply_user'),
+			'ratelimit_class': RATE_GLOBAL
+		}
+
+	if 'recall' != args['argv0']:
+		return
+
+	logger('plugin', 'recall plugin called')
+
+	return {
+		'msg': args['reply_user'] + ': recalling %s' % conf('data_remember')
+	}
+
 #def command_dummy(args):
 #	if 'register' == args:
 #		return {
@@ -675,7 +719,7 @@ funcs['command'] = (
 	command_command, command_help, command_version, command_unicode,
 	command_klammer, command_source, command_dice, command_uptime, command_ping,
 	command_info, command_teatimer, command_decode, command_show_blacklist,
-	command_usersetting, command_cake
+	command_usersetting, command_cake, command_remember, command_recall
 )
 
 _dir = dir()
