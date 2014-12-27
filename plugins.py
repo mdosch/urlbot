@@ -590,10 +590,11 @@ def command_remember(args):
 		}
 
 	print(args['data'])
-	set_conf('data_remember', ' '.join(args['data'].split()[2:]))
+	to_remember = ' '.join(args['data'].split()[2:])  # this is a little dirty. A little lot
+	set_conf('data_remember', to_remember)
 
 	return {
-		'msg': args['reply_user'] + ': ok.'
+		'msg': args['reply_user'] + ': remembering ' + to_remember
 	}
 
 def command_recall(args):
