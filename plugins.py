@@ -134,53 +134,42 @@ def data_parse_other(msg_obj):
 				ratelimit_touch(RATE_CHAT)
 				send_reply(ret['msg'], msg_obj)
 
-def command_command(args):
-	if 'register' == args:
-		return {
-			'name': 'command',
-			'desc': 'lists commands',
-			'args': ('argv0', 'reply_user', 'cmd_list'),
-			'is_enabled': True,
-			'ratelimit_class': RATE_GLOBAL
-		}
-
-	if 'command' != args['argv0'] and 'commands' != args['argv0']:
-		return
-
-	logger('plugin', 'sent command list')
-	return {
-		'msg': args['reply_user'] + ': known commands: ' + str(args['cmd_list']).strip('[]')
-	}
-
 def command_help(args):
 	if 'register' == args:
 		return {
 			'name': 'help',
-			'desc': 'print help for a command',
+			'desc': 'print help for a command or all known commands',
 			'args': ('argv0', 'argv1', 'reply_user', 'cmd_list'),
 			'is_enabled': True,
 			'ratelimit_class': RATE_GLOBAL
 		}
 
-	if 'help' != args['argv0']:
+	command = args['argv0']
+	what = args['argv1']
+
+	if 'help' != command:
 		return
 
-	if None == args['argv1']:
+	if None == what:
 		logger('plugin', 'empty help request, sent all commands')
-		args['argv0'] = 'command'  # this is a little hacky...
-		return command_command(args)
-
-	if not args['argv1'] in [p['name'] for p in plugins['command']]:
-		logger('plugin', 'no help found for %s' % args['argv1'])
 		return {
-			'msg': args['reply_user'] + ': no such command: %s' % args['argv1']
+			'msg': args['reply_user'] + ': known commands: ' +
+			str(args['cmd_list']).strip('[]')
+		}
+
+	if not what in [p['name'] for p in plugins['command']]:
+		logger('plugin', 'no help found for %s' % what)
+		return {
+			'msg': args['reply_user'] + ': no such command: %s' % what
 		}
 
 	for p in plugins['command']:
-		if args['argv1'] == p['name']:
-			logger('plugin', 'sent help for %s' % args['argv1'])
+		if what == p['name']:
+			logger('plugin', 'sent help for %s' % what)
 			return {
-				'msg': args['reply_user'] + ': help for %s: %s' % (args['argv1'], p['desc'])
+				'msg': args['reply_user'] + ': help for %s: %s' % (
+					what, p['desc']
+				)
 			}
 
 
@@ -780,11 +769,10 @@ def data_parse_commands(msg_obj):
 funcs = {}
 funcs['parse'] = (parse_mental_ill, parse_skynet, parse_debbug, parse_cve)
 funcs['command'] = (
-	command_command, command_help, command_version, command_unicode,
-	command_klammer, command_source, command_dice, command_uptime, command_ping,
-	command_info, command_teatimer, command_decode, command_show_blacklist,
-	command_usersetting, command_cake, command_remember, command_recall,
-	command_plugin_activation
+	command_help, command_version, command_unicode, command_klammer,
+	command_source, command_dice, command_uptime, command_ping, command_info,
+	command_teatimer, command_decode, command_show_blacklist, command_usersetting,
+	command_cake, command_remember, command_recall, command_plugin_activation
 )
 
 _dir = dir()
