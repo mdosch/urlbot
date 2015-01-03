@@ -615,6 +615,57 @@ def command_recall(args):
 		'msg': args['reply_user'] + ': recalling %s' % conf('data_remember')
 	}
 
+def command_plugin_activation(args):
+	if 'register' == args:
+		return {
+			'name': 'plugin',
+			'desc': 'disables or re-enables plugins',
+			'args': ('argv0', 'argv1', 'argv2', 'reply_user'),
+			'ratelimit_class': RATE_GLOBAL
+		}
+
+	if 'plugin' != args['argv0']:
+		return
+
+	command = args['argv1']
+	plugin = args['argv2']
+
+	logger('plugin', 'plugin activation plugin called')
+
+	if None == command or 'list' == command:
+		return {
+			'msg': [args['reply_user'] + ': known plugins:'] +
+			[c['name'] for c in plugins['command']]
+		}
+
+	if None == plugin:
+		return {
+			'msg': args['reply_user'] + ': no plugin given'
+		}
+
+	if 'enable' == command:
+		return {
+			'msg': args['reply_user'] + ': enable not implemented yet'
+		}
+
+	if 'disable' == command:
+		for i, c in enumerate(plugins['command']):
+			if c['name'] == plugin:
+				del(plugins['command'][i])
+
+				return {
+					'msg': args['reply_user'] + ': disabled %s' %
+					plugin
+				}
+
+		return {
+			'msg': args['reply_user'] + ': unknown plugin %s' % plugin
+		}
+
+	return {
+		'msg': args['reply_user'] + ': dummy plugin called'
+	}
+
 #def command_dummy(args):
 #	if 'register' == args:
 #		return {
@@ -720,7 +771,8 @@ funcs['command'] = (
 	command_command, command_help, command_version, command_unicode,
 	command_klammer, command_source, command_dice, command_uptime, command_ping,
 	command_info, command_teatimer, command_decode, command_show_blacklist,
-	command_usersetting, command_cake, command_remember, command_recall
+	command_usersetting, command_cake, command_remember, command_recall,
+	command_plugin_activation
 )
 
 _dir = dir()
