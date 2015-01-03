@@ -140,6 +140,7 @@ def command_command(args):
 			'name': 'command',
 			'desc': 'lists commands',
 			'args': ('argv0', 'reply_user', 'cmd_list'),
+			'is_enabled': True,
 			'ratelimit_class': RATE_GLOBAL
 		}
 
@@ -157,6 +158,7 @@ def command_help(args):
 			'name': 'help',
 			'desc': 'print help for a command',
 			'args': ('argv0', 'argv1', 'reply_user', 'cmd_list'),
+			'is_enabled': True,
 			'ratelimit_class': RATE_GLOBAL
 		}
 
@@ -188,6 +190,7 @@ def command_version(args):
 			'name': 'version',
 			'desc': 'prints version',
 			'args': ('argv0', 'reply_user'),
+			'is_enabled': True,
 			'ratelimit_class': RATE_GLOBAL
 		}
 
@@ -205,6 +208,7 @@ def command_klammer(args):
 			'name': 'klammer',
 			'desc': 'prints an anoying paper clip aka. Karl Klammer',
 			'args': ('argv0', 'reply_user'),
+			'is_enabled': True,
 			'ratelimit_class': RATE_GLOBAL
 		}
 
@@ -230,6 +234,7 @@ def command_unicode(args):
 			'name': 'unikot',
 			'desc': 'prints an unicode string',
 			'args': ('argv0', 'reply_user'),
+			'is_enabled': True,
 			'ratelimit_class': RATE_GLOBAL
 		}
 
@@ -252,6 +257,7 @@ def command_source(args):
 			'name': 'source',
 			'desc': 'prints git URL',
 			'args': ('argv0', 'reply_user'),
+			'is_enabled': True,
 			'ratelimit_class': RATE_GLOBAL
 		}
 
@@ -269,6 +275,7 @@ def command_dice(args):
 			'name': 'dice',
 			'desc': 'rolls a dice, optional N times',
 			'args': ('argv0', 'argv1', 'reply_user'),
+			'is_enabled': True,
 			'ratelimit_class': RATE_INTERACTIVE
 		}
 
@@ -318,6 +325,7 @@ def command_uptime(args):
 			'name': 'uptime',
 			'desc': 'prints uptime',
 			'args': ('argv0', 'reply_user'),
+			'is_enabled': True,
 			'ratelimit_class': RATE_GLOBAL
 		}
 
@@ -344,6 +352,7 @@ def command_ping(args):
 			'name': 'ping',
 			'desc': 'sends pong',
 			'args': ('argv0', 'reply_user'),
+			'is_enabled': True,
 			'ratelimit_class': RATE_INTERACTIVE
 		}
 
@@ -371,6 +380,7 @@ def command_info(args):
 			'name': 'info',
 			'desc': 'prints info message',
 			'args': ('argv0', 'reply_user'),
+			'is_enabled': True,
 			'ratelimit_class': RATE_GLOBAL
 		}
 
@@ -388,6 +398,7 @@ def command_teatimer(args):
 			'name': 'teatimer',
 			'desc': 'sets a tea timer to $1 or currently %d seconds' % conf('tea_steep_time'),
 			'args': ('reply_user', 'msg_obj', 'argv0', 'argv1'),
+			'is_enabled': True,
 			'ratelimit_class': RATE_GLOBAL
 		}
 
@@ -431,6 +442,7 @@ def command_decode(args):
 			'name': 'decode',
 			'desc': 'prints the long description of an unicode character',
 			'args': ('argv0', 'argv1', 'reply_user'),
+			'is_enabled': True,
 			'ratelimit_class': RATE_GLOBAL
 		}
 
@@ -464,6 +476,7 @@ def command_show_blacklist(args):
 			'name': 'show-blacklist',
 			'desc': 'show the current URL blacklist, optionally filtered',
 			'args': ('argv0', 'reply_user', 'argv1'),
+			'is_enabled': True,
 			'ratelimit_class': RATE_GLOBAL
 		}
 
@@ -508,6 +521,7 @@ def command_usersetting(args):
 			'name': 'set',
 			'desc': 'modify a user setting',
 			'args': ('reply_user', 'argv0', 'argv1', 'argv2', 'msg_obj'),
+			'is_enabled': True,
 			'ratelimit_class': RATE_GLOBAL
 		}
 
@@ -560,6 +574,7 @@ def command_cake(args):
 			'name': 'cake',
 			'desc': 'displays a cake ASCII art',
 			'args': ('argv0', 'reply_user'),
+			'is_enabled': True,
 			'ratelimit_class': RATE_GLOBAL
 		}
 
@@ -576,6 +591,7 @@ def command_remember(args):
 			'name': 'remember',
 			'desc': 'remembers something',
 			'args': ('argv0', 'argv1', 'data', 'reply_user'),
+			'is_enabled': True,
 			'ratelimit_class': RATE_GLOBAL
 		}
 
@@ -603,6 +619,7 @@ def command_recall(args):
 			'name': 'recall',
 			'desc': "recalls something previously 'remember'ed",
 			'args': ('argv0', 'reply_user'),
+			'is_enabled': True,
 			'ratelimit_class': RATE_GLOBAL
 		}
 
@@ -621,6 +638,7 @@ def command_plugin_activation(args):
 			'name': 'plugin',
 			'desc': 'disables or re-enables plugins',
 			'args': ('argv0', 'argv1', 'argv2', 'reply_user'),
+			'is_enabled': True,
 			'ratelimit_class': RATE_GLOBAL
 		}
 
@@ -634,8 +652,8 @@ def command_plugin_activation(args):
 
 	if None == command or 'list' == command:
 		return {
-			'msg': [args['reply_user'] + ': known plugins:'] +
-			[c['name'] for c in plugins['command']]
+			'msg': args['reply_user'] + ': known plugins: ' +
+			str([c['name'] for c in plugins['command']])[1:-1]
 		}
 
 	if None == plugin:
@@ -643,19 +661,16 @@ def command_plugin_activation(args):
 			'msg': args['reply_user'] + ': no plugin given'
 		}
 
-	if 'enable' == command:
-		return {
-			'msg': args['reply_user'] + ': enable not implemented yet'
-		}
-
-	if 'disable' == command:
+	if 'enable' == command or 'disable' == command:
 		for i, c in enumerate(plugins['command']):
 			if c['name'] == plugin:
-				del(plugins['command'][i])
+				plugins['command'][i]['is_enabled'] = \
+					True if 'enable' == command else False
 
 				return {
-					'msg': args['reply_user'] + ': disabled %s' %
-					plugin
+					'msg': args['reply_user'] + ': %sd %s' %(
+						command, plugin
+					)
 				}
 
 		return {
@@ -672,6 +687,7 @@ def command_plugin_activation(args):
 #			'name': 'dummy',
 #			'desc': 'dummy description',
 #			'args': ('argv0', 'reply_user'),
+#			'is_enabled': True,
 #			'ratelimit_class': RATE_GLOBAL
 #		}
 #
@@ -717,6 +733,9 @@ def data_parse_commands(msg_obj):
 
 	for p in plugins['command']:
 		if ratelimit_exceeded(p['ratelimit_class']):
+			continue
+
+		if not p['is_enabled']:
 			continue
 
 		args = {}
