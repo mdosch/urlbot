@@ -636,25 +636,19 @@ def command_plugin_activation(args):
 	if 'register' == args:
 		return {
 			'name': 'plugin',
-			'desc': 'disables or re-enables plugins',
-			'args': ('argv0', 'argv1', 'argv2', 'reply_user'),
+			'desc': "'disable' or 'enable' plugins",
+			'args': ('argv0', 'argv1', 'reply_user'),
 			'is_enabled': True,
 			'ratelimit_class': RATE_GLOBAL
 		}
 
-	if 'plugin' != args['argv0']:
+	command = args['argv0']
+	plugin = args['argv1']
+
+	if not command in ('enable', 'disable'):
 		return
 
-	command = args['argv1']
-	plugin = args['argv2']
-
 	logger('plugin', 'plugin activation plugin called')
-
-	if command in (None, 'list'):
-		return {
-			'msg': args['reply_user'] + ': known plugins: ' +
-			str([c['name'] for c in plugins['command']])[1:-1]
-		}
 
 	if None == plugin:
 		return {
@@ -665,24 +659,19 @@ def command_plugin_activation(args):
 			'msg': args['reply_user'] + ': not allowed'
 		}
 
-	if command in ('enable', 'disable'):
-		for i, c in enumerate(plugins['command']):
-			if c['name'] == plugin:
-				plugins['command'][i]['is_enabled'] = \
-					True if 'enable' == command else False
+	for i, c in enumerate(plugins['command']):
+		if c['name'] == plugin:
+			plugins['command'][i]['is_enabled'] = \
+				True if 'enable' == command else False
 
-				return {
-					'msg': args['reply_user'] + ': %sd %s' %(
-						command, plugin
-					)
-				}
-
-		return {
-			'msg': args['reply_user'] + ': unknown plugin %s' % plugin
-		}
+			return {
+				'msg': args['reply_user'] + ': %sd %s' %(
+					command, plugin
+				)
+			}
 
 	return {
-		'msg': args['reply_user'] + ': dummy plugin called'
+		'msg': args['reply_user'] + ': unknown plugin %s' % plugin
 	}
 
 #def command_dummy(args):
