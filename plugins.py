@@ -650,7 +650,7 @@ def command_plugin_activation(args):
 
 	logger('plugin', 'plugin activation plugin called')
 
-	if None == command or 'list' == command:
+	if command in (None, 'list'):
 		return {
 			'msg': args['reply_user'] + ': known plugins: ' +
 			str([c['name'] for c in plugins['command']])[1:-1]
@@ -660,8 +660,12 @@ def command_plugin_activation(args):
 		return {
 			'msg': args['reply_user'] + ': no plugin given'
 		}
+	elif 'plugin' == plugin:
+		return {
+			'msg': args['reply_user'] + ': not allowed'
+		}
 
-	if 'enable' == command or 'disable' == command:
+	if command in ('enable', 'disable'):
 		for i, c in enumerate(plugins['command']):
 			if c['name'] == plugin:
 				plugins['command'][i]['is_enabled'] = \
