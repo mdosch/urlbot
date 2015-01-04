@@ -250,7 +250,7 @@ def command_source(args):
 			'ratelimit_class': RATE_GLOBAL
 		}
 
-	if 'source' != args['argv0']:
+	if not args['argv0'] in ('source', 'src'):
 		return
 
 	logger('plugin', 'sent source URL')
