@@ -5,7 +5,7 @@ if '__main__' == __name__:
 	print('''this is a plugin file, which is not meant to be executed''')
 	exit(-1)
 
-import time, random, unicodedata, re, sys
+import time, random, unicodedata, re, sys, urllib.request, json
 from local_config import conf, set_conf
 from common import *
 from urlbot import extract_title
@@ -663,6 +663,70 @@ def command_plugin_activation(args):
 		'msg': args['reply_user'] + ': unknown plugin %s' % plugin
 	}
 
+def command_wp(args):
+	if 'register' == args:
+		return {
+			'name': 'wp',
+			'desc': 'crawl the Wikipedia',
+			'args': ('argv0', 'argv1', 'reply_user'),
+			'is_enabled': True,
+			'ratelimit_class': RATE_GLOBAL
+		}
+
+	if 'wp' != args['argv0']:
+		return
+
+	logger('plugin', 'wp plugin called')
+
+	query = args['argv1']
+	# FIXME: escaping. probably.
+	api = 'https://de.wikipedia.org/w/api.php?action=query&prop=extracts&' + \
+		'exsentences=2&rawcontinue=1&format=json&titles=' + query
+	link = 'https://en.wikipedia.org/wiki/' + query
+
+	(j, short) = (None, None)
+	failed = False
+
+	try:
+		response = urllib.request.urlopen(api)
+		buf = response.read(BUFSIZ)
+		j = json.loads(buf.decode('utf-8'))
+	except Exception as e:
+		logger('plugin', 'wp(%s) failed: %s' % (query, str(e)))
+		return {
+			'msg': args['reply_user'] + ": something failed: %s" % str(e)
+		}
+
+	# FIXME: this looks rather shitty. We're looking for
+	# >>> j['query']['pages']['88112']['extract'] == str()
+	if not 'query' in j:
+		failed = True
+	else:
+		j = j['query']
+		if not 'pages' in j:
+			failed = True
+		else:
+			j = j['pages']
+			flag = True
+			for stuff in j:
+				print((stuff, j[stuff]))
+				if 'extract' in j[stuff]:
+					flag = False
+					j = j[stuff]['extract']
+					break
+			failed = flag
+
+	if failed:
+		return {
+			'msg': args['reply_user'] + ': the json object looks bad, sorry for that.'
+		}
+	else:
+		short = str(j)
+
+	return {
+		'msg': args['reply_user'] + ': %s (<%s>)' % (short, link)
+	}
+
 #def command_dummy(args):
 #	if 'register' == args:
 #		return {
@@ -772,7 +836,8 @@ funcs['command'] = (
 	command_help, command_version, command_unicode, command_klammer,
 	command_source, command_dice, command_uptime, command_ping, command_info,
 	command_teatimer, command_decode, command_show_blacklist, command_usersetting,
-	command_cake, command_remember, command_recall, command_plugin_activation
+	command_cake, command_remember, command_recall, command_plugin_activation,
+	command_wp
 )
 
 _dir = dir()
