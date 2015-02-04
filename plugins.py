@@ -681,8 +681,8 @@ def command_wp(args):
 	query = args['argv1']
 	# FIXME: escaping. probably.
 	api = 'https://de.wikipedia.org/w/api.php?action=query&prop=extracts&' + \
-		'exsentences=2&rawcontinue=1&format=json&titles=' + query
-	link = 'https://en.wikipedia.org/wiki/' + query
+		'explaintext&exsentences=2&rawcontinue=1&format=json&titles=' + query
+	link = 'https://de.wikipedia.org/wiki/' + query
 
 	(j, short) = (None, None)
 	failed = False
@@ -709,7 +709,6 @@ def command_wp(args):
 			j = j['pages']
 			flag = True
 			for stuff in j:
-				print((stuff, j[stuff]))
 				if 'extract' in j[stuff]:
 					flag = False
 					j = j[stuff]['extract']
@@ -724,7 +723,9 @@ def command_wp(args):
 		short = str(j)
 
 	return {
-		'msg': args['reply_user'] + ': %s (<%s>)' % (short, link)
+		'msg': args['reply_user'] + ': %s (<%s>)' % (
+			'(nix)' if 0 == len(short.strip()) else short, link
+		)
 	}
 
 #def command_dummy(args):
