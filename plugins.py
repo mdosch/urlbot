@@ -378,7 +378,7 @@ def command_info(args):
 
 	logger('plugin', 'sent long info')
 	return {
-		'msg': args['reply_user'] + (''': I'm a bot, my job is to extract <title> tags from posted URLs. In case I'm annoying or for further questions, please talk to my master %s. I'm rate limited and shouldn't post more than %d messages per %d seconds. To make me exit immediately, highlight me with 'hangup' in the message (emergency only, please). For other commands, highlight me with 'command'.''' % (conf('bot_owner'), conf('hist_max_count'), conf('hist_max_time')))
+		'msg': args['reply_user'] + (''': I'm a bot, my job is to extract <title> tags from posted URLs. In case I'm annoying or for further questions, please talk to my master %s. I'm rate limited and shouldn't post more than %d messages per %d seconds. To make me exit immediately, highlight me with 'hangup' in the message (emergency only, please). For other commands, highlight me with 'help'.''' % (conf('bot_owner'), conf('hist_max_count'), conf('hist_max_time')))
 	}
 
 def command_teatimer(args):
