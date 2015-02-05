@@ -20,6 +20,7 @@ joblist = []
 plugins = {p : [] for p in ptypes}
 
 def pluginfunction(name, desc, plugin_type, ratelimit_class = RATE_GLOBAL, enabled = True):
+	""" A decorator to make a plugin out of a function """
 	if plugin_type not in ptypes:
 		raise TypeError("Illegal plugin_type: %s" % plugin_type)
 
@@ -37,14 +38,7 @@ def register_event(t, callback, args):
 	joblist.append((t, callback, args))
 
 @pluginfunction("mental_ill", "parse mental illness", ptypes.PARSE, ratelimit_class = RATE_NO_SILENCE | RATE_GLOBAL)
-def parse_mental_ill(args):
-	if 'register' == args:
-		return {
-			'name': 'parse mental illness',
-			'args': ('data', 'reply_user'),
-			'ratelimit_class': RATE_NO_SILENCE | RATE_GLOBAL
-		}
-
+def parse_mental_ill(**args):
 	min_ill = 3
 	c = 0
 	flag = False
@@ -66,14 +60,7 @@ def parse_mental_ill(args):
 		}
 
 @pluginfunction("debbug", "parse Debian bug numbers", ptypes.PARSE, ratelimit_class = RATE_NO_SILENCE | RATE_GLOBAL)
-def parse_debbug(args):
-	if 'register' == args:
-		return {
-			'name': 'parse Debian bug numbers',
-			'args': ('data',),
-			'ratelimit_class': RATE_NO_SILENCE | RATE_GLOBAL
-		}
-
+def parse_debbug(**args):
 	bugs = re.findall(r'#(\d{4,})', args['data'])
 	if not bugs:
 		return None
@@ -94,14 +81,7 @@ def parse_debbug(args):
 	}
 
 @pluginfunction("cve", "parse a CVE handle", ptypes.PARSE, ratelimit_class = RATE_NO_SILENCE | RATE_GLOBAL)
-def parse_cve(args):
-	if 'register' == args:
-		return {
-			'name': 'parse a CVE handle',
-			'args': ('data',),
-			'ratelimit_class': RATE_NO_SILENCE | RATE_GLOBAL
-		}
-
+def parse_cve(**args):
 	cves = re.findall(r'(CVE-\d\d\d\d-\d+)', args['data'].upper())
 	if not cves:
 		return None
@@ -112,14 +92,7 @@ def parse_cve(args):
 	}
 
 @pluginfunction("skynet", "parse skynet", ptypes.PARSE) 
-def parse_skynet(args):
-	if 'register' == args:
-		return {
-			'name': 'parse skynet',
-			'args': ('data',),
-			'ratelimit_class': RATE_GLOBAL
-		}
-
+def parse_skynet(**args):
 	if 'skynet' in args['data'].lower():
 		logger('plugin', 'sent skynet reply')
 		return {
@@ -130,25 +103,11 @@ def data_parse_other(msg_obj):
 	data = msg_obj['body']
 	reply_user = msg_obj['mucnick']
 
-	for p in plugins['parse']:
-		if ratelimit_exceeded(p['ratelimit_class']):
+	for p in plugins[ptypes.PARSE]:
+		if ratelimit_exceeded(p.ratelimit_class):
 			continue
 
-		args = {}
-
-		if 'args' in list(p.keys()):
-			for a in p['args']:
-				if None == a:
-					continue
-
-				if 'data' == a:
-					args['data'] = data
-				elif 'reply_user' == a:
-					args['reply_user'] = reply_user
-				else:
-					logger('warn', 'unknown required arg for %s: %s' % (p['name'], a))
-
-		ret = p['func'](args)
+		ret = p(reply_user=reply_user, data=data)
 
 		if None != ret:
 			if 'msg' in list(ret.keys()):
