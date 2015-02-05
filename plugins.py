@@ -7,6 +7,7 @@ if '__main__' == __name__:
 
 import time, random, unicodedata, re, sys, urllib.request, json
 import types
+import traceback
 from local_config import conf, set_conf
 from common import *
 from urlbot import extract_title
@@ -768,7 +769,7 @@ def command_wp(args, lang='de'):
 #		'msg': args['reply_user'] + ': dummy plugin called'
 #	}
 
-def command_else(args):
+def else_command(args):
 	logger('plugin', 'sent short info')
 	return {
 		'msg': args['reply_user'] + ''': I'm a bot (highlight me with 'info' for more information).'''
@@ -844,7 +845,7 @@ def data_parse_commands(msg_obj):
 
 			return None
 
-	ret = command_else({'reply_user': reply_user})
+	ret = else_command({'reply_user': reply_user})
 	if None != ret:
 		if ratelimit_exceeded(RATE_GLOBAL):
 			return False
@@ -911,7 +912,8 @@ def register_plugin(function, func_type):
 		ret['func'] = function
 		plugins[func_type].append(ret)
 	except Exception as e:
-		logger('warn', 'registering %s failed: %s' % (function, e))
+		logger('warn', 'registering %s failed: %s, %s' % 
+			(function, e, traceback.format_exc()))
 
 def register_all():
 	register('parse')
