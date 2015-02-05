@@ -6,6 +6,7 @@ if '__main__' == __name__:
 	exit(-1)
 
 import time, random, unicodedata, re, sys, urllib.request, json
+import types
 from local_config import conf, set_conf
 from common import *
 from urlbot import extract_title
@@ -851,18 +852,6 @@ def data_parse_commands(msg_obj):
 		if 'msg' in list(ret.keys()):
 			send_reply(ret['msg'], msg_obj)
 
-funcs = {}
-funcs['parse'] = (parse_mental_ill, parse_skynet, parse_debbug, parse_cve)
-funcs['command'] = (
-	command_help, command_version, command_unicode, command_klammer,
-	command_source, command_dice, command_uptime, command_ping, command_info,
-	command_teatimer, command_decode, command_show_blacklist, command_usersetting,
-	command_cake, command_remember, command_recall, command_plugin_activation,
-	command_wp, command_wp_en
-)
-
-_dir = dir()
-
 if debug_enabled():
 	def _send_reply(a, msg_obj):
 		logger('send_reply[%s]' % msg_obj, a)
@@ -898,29 +887,31 @@ if debug_enabled():
 
 	logger('info', 'debugging enabled')
 
-def register(func_type, auto=False):
+def register(func_type):
+	"""
+	Register plugins.
+	
+	Arguments:
+	func_type -- functions with startswith(func_type + "_") will be loaded
+	"""
+
 	plugins[func_type] = []
 
-	if auto:
-		# FIXME: this is broken. dir() returns str, but not
-		# the addr of the functions which we'd need here.
-		for f in _dir:
-			print('testing(%s)' % f)
-			if not f.startswith(func_type + '_'):
-				continue
+	functions = [f for n,f in globals().items() if n.startswith(func_type + "_") 
+				and type(f) == types.FunctionType]
+	
+	logger('info', 'auto registering plugins: %s' % (", ".join(f.__name__ for f in functions)))
 
-			try:
-				ret = f('register')
-				ret['func'] = f
-				plugins[func_type].append(ret)
-			except Exception as e:
-				logger('warn', 'auto-registering %s failed: %s' % (f, e))
+	for f in functions:
+		register_plugin(f, func_type)
 
-	else:
-		for f in funcs[func_type]:
-			ret = f('register')
-			ret['func'] = f
-			plugins[func_type].append(ret)
+def register_plugin(function, func_type):
+	try:
+		ret = function('register')
+		ret['func'] = function
+		plugins[func_type].append(ret)
+	except Exception as e:
+		logger('warn', 'registering %s failed: %s' % (function, e))
 
 def register_all():
 	register('parse')
