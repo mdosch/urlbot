@@ -5,7 +5,7 @@ if '__main__' == __name__:
 	print('''this is a library file, which is not meant to be executed''')
 	exit(-1)
 
-import sys, time, pickle
+import sys, time, pickle, os
 from local_config import conf
 
 RATE_GLOBAL = 0x01
@@ -36,9 +36,13 @@ def conf_save(obj):
 		return pickle.dump(obj, fd)
 
 def conf_load():
-	with open(conf('persistent_storage'), 'rb') as fd:
-		fd.seek(0)
-		return pickle.load(fd)
+	path = conf('persistent_storage')
+	if os.path.isfile(path):
+		with open(path, 'rb') as fd:
+			fd.seek(0)
+			return pickle.load(fd)
+	else:
+		return {}
 
 def get_version_git():
 	import subprocess
