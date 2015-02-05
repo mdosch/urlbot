@@ -667,8 +667,8 @@ def command_wp(args):
 	if 'register' == args:
 		return {
 			'name': 'wp',
-			'desc': 'crawl the Wikipedia',
-			'args': ('argv0', 'argv1', 'reply_user'),
+			'desc': 'crawl the Wikipedia, language via argv2=en,de[default]',
+			'args': ('argv0', 'argv1', 'argv2', 'reply_user'),
 			'is_enabled': True,
 			'ratelimit_class': RATE_GLOBAL
 		}
@@ -679,10 +679,13 @@ def command_wp(args):
 	logger('plugin', 'wp plugin called')
 
 	query = args['argv1']
+	lang = 'de' if not 'en' == args['argv2'] else 'en'
 	# FIXME: escaping. probably.
-	api = 'https://de.wikipedia.org/w/api.php?action=query&prop=extracts&' + \
-		'explaintext&exsentences=2&rawcontinue=1&format=json&titles=' + query
-	link = 'https://de.wikipedia.org/wiki/' + query
+	api = ('https://%s.wikipedia.org/w/api.php?action=query&prop=extracts&' + \
+		'explaintext&exsentences=2&rawcontinue=1&format=json&titles=%s') % (
+			lang, query
+		)
+	link = 'https://%s.wikipedia.org/wiki/%s' % (lang, query)
 
 	(j, short) = (None, None)
 	failed = False
