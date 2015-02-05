@@ -440,13 +440,14 @@ def command_usersetting(argv, **args):
 
 	set_conf('persistent_locked', True)
 	blob = conf_load()
+	
+	if 'user_pref' not in blob:
+		blob['user_pref'] = {}
 
 	if not arg_user in blob['user_pref']:
 		blob['user_pref'][arg_user] = {}
 
-	blob['user_pref'][arg_user][arg_key] = (
-		True if 'on' == arg_val else False
-	)
+	blob['user_pref'][arg_user][arg_key] = 'on' == arg_val
 
 	conf_save(blob)
 	set_conf('persistent_locked', False)

@@ -229,7 +229,7 @@ def handle_msg(msg_obj):
 		return
 
 	arg_user = msg_obj['mucnick']
-	blob_userpref = conf_load()['user_pref']
+	blob_userpref = conf_load().get('user_pref',[])
 	nospoiler = False
 
 	if arg_user in blob_userpref:
