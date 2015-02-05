@@ -663,11 +663,29 @@ def command_plugin_activation(args):
 		'msg': args['reply_user'] + ': unknown plugin %s' % plugin
 	}
 
-def command_wp(args):
+def command_wp_en(args):
+	if 'register' == args:
+		return {
+			'name': 'wp-en',
+			'desc': 'crawl the english Wikipedia',
+			'args': ('argv0', 'argv1', 'argv2', 'reply_user'),
+			'is_enabled': True,
+			'ratelimit_class': RATE_GLOBAL
+		}
+
+	if 'wp-en' != args['argv0']:
+		return
+
+	if args['argv0']:
+		args['argv0'] = 'wp'
+
+	return command_wp(args, lang='en')
+
+def command_wp(args, lang='de'):
 	if 'register' == args:
 		return {
 			'name': 'wp',
-			'desc': 'crawl the Wikipedia, language via argv2=en,de[default]',
+			'desc': 'crawl the german Wikipedia',
 			'args': ('argv0', 'argv1', 'argv2', 'reply_user'),
 			'is_enabled': True,
 			'ratelimit_class': RATE_GLOBAL
@@ -679,7 +697,6 @@ def command_wp(args):
 	logger('plugin', 'wp plugin called')
 
 	query = args['argv1']
-	lang = 'de' if not 'en' == args['argv2'] else 'en'
 	# FIXME: escaping. probably.
 	api = ('https://%s.wikipedia.org/w/api.php?action=query&prop=extracts&' + \
 		'explaintext&exsentences=2&rawcontinue=1&format=json&titles=%s') % (
@@ -841,7 +858,7 @@ funcs['command'] = (
 	command_source, command_dice, command_uptime, command_ping, command_info,
 	command_teatimer, command_decode, command_show_blacklist, command_usersetting,
 	command_cake, command_remember, command_recall, command_plugin_activation,
-	command_wp
+	command_wp, command_wp_en
 )
 
 _dir = dir()
