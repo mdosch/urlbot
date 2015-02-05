@@ -11,6 +11,9 @@ import traceback
 from local_config import conf, set_conf
 from common import *
 from urlbot import extract_title
+from enum import Enum
+
+ptypes = Enum("plugin_types", "PARSE COMMAND")
 
 joblist = []
 
@@ -18,9 +21,24 @@ plugins = {}
 plugins['parse'] = []
 plugins['command'] = []
 
+def pluginfunction(name, desc, plugin_type, ratelimit_class = RATE_GLOBAL, enabled = True):
+	if plugin_type not in ptypes:
+		raise TypeError("Illegal plugin_type: %s" % plugin_type)
+
+	def decorate(f):
+		f.is_plugin = True
+		f.is_enabled = True
+		f.plugin_name = name
+		f.plugin_desc = desc
+		f.plugin_type = plugin_type
+		f.ratelimit_class = ratelimit_class
+		return f
+	return decorate
+
 def register_event(t, callback, args):
 	joblist.append((t, callback, args))
 
+@pluginfunction("mental_ill", "parse mental illness", ptypes.PARSE, ratelimit_class = RATE_NO_SILENCE | RATE_GLOBAL)
 def parse_mental_ill(args):
 	if 'register' == args:
 		return {
@@ -49,6 +67,7 @@ def parse_mental_ill(args):
 			'msg': '''Multiple exclamation/question marks are a sure sign of mental disease, with %s as a living example.''' % args['reply_user']
 		}
 
+@pluginfunction("debbug", "parse Debian bug numbers", ptypes.PARSE, ratelimit_class = RATE_NO_SILENCE | RATE_GLOBAL)
 def parse_debbug(args):
 	if 'register' == args:
 		return {
@@ -76,6 +95,7 @@ def parse_debbug(args):
 		'msg': title
 	}
 
+@pluginfunction("cve", "parse a CVE handle", ptypes.PARSE, ratelimit_class = RATE_NO_SILENCE | RATE_GLOBAL)
 def parse_cve(args):
 	if 'register' == args:
 		return {
@@ -93,6 +113,7 @@ def parse_cve(args):
 		'msg': 'https://security-tracker.debian.org/tracker/%s' % cves[0]
 	}
 
+@pluginfunction("skynet", "parse skynet", ptypes.PARSE) 
 def parse_skynet(args):
 	if 'register' == args:
 		return {
@@ -136,6 +157,7 @@ def data_parse_other(msg_obj):
 				ratelimit_touch(RATE_CHAT)
 				send_reply(ret['msg'], msg_obj)
 
+@pluginfunction("help", "print help for a command or all known commands", ptypes.COMMAND)  
 def command_help(args):
 	if 'register' == args:
 		return {
@@ -174,7 +196,7 @@ def command_help(args):
 				)
 			}
 
-
+@pluginfunction("version", "prints version", ptypes.COMMAND)
 def command_version(args):
 	if 'register' == args:
 		return {
@@ -193,6 +215,7 @@ def command_version(args):
 		'msg': args['reply_user'] + (''': I'm running ''' + VERSION)
 	}
 
+@pluginfunction("klammer", "prints an anoying paper clip aka. Karl Klammer", ptypes.COMMAND)
 def command_klammer(args):
 	if 'register' == args:
 		return {
@@ -219,6 +242,7 @@ def command_klammer(args):
 		)
 	}
 
+@pluginfunction("unikot", "prints an unicode string", ptypes.COMMAND)
 def command_unicode(args):
 	if 'register' == args:
 		return {
@@ -242,6 +266,7 @@ def command_unicode(args):
 		)
 	}
 
+@pluginfunction("source", "prints git URL", ptypes.COMMAND)
 def command_source(args):
 	if 'register' == args:
 		return {
@@ -260,6 +285,7 @@ def command_source(args):
 		'msg': 'My source code can be found at %s' % conf('src-url')
 	}
 
+@pluginfunction("dice", "rolls a dice, optional N times", ptypes.COMMAND, ratelimit_class = RATE_INTERACTIVE)
 def command_dice(args):
 	if 'register' == args:
 		return {
@@ -310,6 +336,7 @@ def command_dice(args):
 		'msg': msg
 	}
 
+@pluginfunction("uptime", "prints uptime", ptypes.COMMAND)
 def command_uptime(args):
 	if 'register' == args:
 		return {
@@ -337,6 +364,7 @@ def command_uptime(args):
 		'msg': args['reply_user'] + (''': happily serving for %d second%s, %d request%s so far.''' % (u, plural_uptime, conf('request_counter'), plural_request))
 	}
 
+@pluginfunction("ping", "sends pong", ptypes.COMMAND, ratelimit_class = RATE_INTERACTIVE)
 def command_ping(args):
 	if 'register' == args:
 		return {
@@ -365,6 +393,7 @@ def command_ping(args):
 		'msg': msg
 	}
 
+@pluginfunction("info", "prints info message", ptypes.COMMAND)
 def command_info(args):
 	if 'register' == args:
 		return {
@@ -383,6 +412,7 @@ def command_info(args):
 		'msg': args['reply_user'] + (''': I'm a bot, my job is to extract <title> tags from posted URLs. In case I'm annoying or for further questions, please talk to my master %s. I'm rate limited and shouldn't post more than %d messages per %d seconds. To make me exit immediately, highlight me with 'hangup' in the message (emergency only, please). For other commands, highlight me with 'help'.''' % (conf('bot_owner'), conf('hist_max_count'), conf('hist_max_time')))
 	}
 
+@pluginfunction("teatimer", 'sets a tea timer to $1 or currently %d seconds' % conf('tea_steep_time'), ptypes.COMMAND)
 def command_teatimer(args):
 	if 'register' == args:
 		return {
@@ -427,6 +457,7 @@ def command_teatimer(args):
 		)
 	}
 
+@pluginfunction("decode", "prints the long description of an unicode character", ptypes.COMMAND)
 def command_decode(args):
 	if 'register' == args:
 		return {
@@ -461,6 +492,7 @@ def command_decode(args):
 		'msg': args['reply_user'] + ': %s (%s) is called "%s"' % (char, char_esc, uni_name)
 	}
 
+@pluginfunction("show-blacklist", "show the current URL blacklist, optionally filtered", ptypes.COMMAND)
 def command_show_blacklist(args):
 	if 'register' == args:
 		return {
@@ -505,7 +537,7 @@ def usersetting_get(args):
 		)
 	}
 
-
+@pluginfunction("set", "modify a user setting", ptypes.COMMAND)
 def command_usersetting(args):
 	if 'register' == args:
 		return {
@@ -559,6 +591,7 @@ def command_usersetting(args):
 	# display value written to db
 	return usersetting_get(args)
 
+@pluginfunction("cake", "displays a cake ASCII art", ptypes.COMMAND)
 def command_cake(args):
 	if 'register' == args:
 		return {
@@ -576,6 +609,7 @@ def command_cake(args):
 		'msg': args['reply_user'] + ': no cake for you'
 	}
 
+@pluginfunction("remember", "remembers something", ptypes.COMMAND)
 def command_remember(args):
 	if 'register' == args:
 		return {
@@ -604,6 +638,7 @@ def command_remember(args):
 		'msg': args['reply_user'] + ': remembering ' + to_remember
 	}
 
+@pluginfunction("recall", "recalls something previously 'remember'ed", ptypes.COMMAND)
 def command_recall(args):
 	if 'register' == args:
 		return {
@@ -623,6 +658,7 @@ def command_recall(args):
 		'msg': args['reply_user'] + ': recalling %s' % conf('data_remember')
 	}
 
+@pluginfunction("plugin", "disable' or 'enable' plugins", ptypes.COMMAND)
 def command_plugin_activation(args):
 	if 'register' == args:
 		return {
@@ -665,6 +701,7 @@ def command_plugin_activation(args):
 		'msg': args['reply_user'] + ': unknown plugin %s' % plugin
 	}
 
+@pluginfunction("wp-en", "crawl the english Wikipedia", ptypes.COMMAND)
 def command_wp_en(args):
 	if 'register' == args:
 		return {
@@ -683,6 +720,7 @@ def command_wp_en(args):
 
 	return command_wp(args, lang='en')
 
+@pluginfunction("wp", "crawl the german Wikipedia", ptypes.COMMAND)
 def command_wp(args, lang='de'):
 	if 'register' == args:
 		return {
