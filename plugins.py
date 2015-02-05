@@ -17,9 +17,7 @@ ptypes = Enum("plugin_types", "PARSE COMMAND")
 
 joblist = []
 
-plugins = {}
-plugins['parse'] = []
-plugins['command'] = []
+plugins = {p : [] for p in ptypes}
 
 def pluginfunction(name, desc, plugin_type, ratelimit_class = RATE_GLOBAL, enabled = True):
 	if plugin_type not in ptypes:
@@ -931,31 +929,28 @@ def register(func_type):
 	Register plugins.
 	
 	Arguments:
-	func_type -- functions with startswith(func_type + "_") will be loaded
+	func_type -- plugin functions with this type (ptypes) will be loaded
 	"""
 
-	plugins[func_type] = []
-
-	functions = [f for n,f in globals().items() if n.startswith(func_type + "_") 
-				and type(f) == types.FunctionType]
+	functions = [f for n,f in globals().items() if type(f) == types.FunctionType 
+                    and f.__dict__.get('is_plugin', False) 
+                    and f.plugin_type == func_type]
 	
-	logger('info', 'auto registering plugins: %s' % (", ".join(f.__name__ for f in functions)))
+	logger('info', 'auto registering plugins: %s' % (", ".join(f.plugin_name for f in functions)))
 
 	for f in functions:
 		register_plugin(f, func_type)
 
 def register_plugin(function, func_type):
 	try:
-		ret = function('register')
-		ret['func'] = function
-		plugins[func_type].append(ret)
+		plugins[func_type].append(function)
 	except Exception as e:
 		logger('warn', 'registering %s failed: %s, %s' % 
 			(function, e, traceback.format_exc()))
 
 def register_all():
-	register('parse')
-	register('command')
+	register(ptypes.PARSE)
+	register(ptypes.COMMAND)
 
 def event_trigger():
 	if 0 == len(joblist):
