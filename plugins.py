@@ -27,7 +27,7 @@ def pluginfunction(name, desc, plugin_type, ratelimit_class = RATE_GLOBAL, enabl
 
 	def decorate(f):
 		f.is_plugin = True
-		f.is_enabled = True
+		f.is_enabled = enabled
 		f.plugin_name = name
 		f.plugin_desc = desc
 		f.plugin_type = plugin_type
@@ -525,7 +525,7 @@ def command_wp(argv,lang="de",**args):
 
 	logger('plugin', 'wp plugin called')
 
-	query = " ".join(argv[1:])
+	query = "_".join(argv[1:])
 
 	if query == "":
 		return {
