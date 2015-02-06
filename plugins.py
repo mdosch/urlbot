@@ -526,7 +526,7 @@ def command_wp(argv,lang="de",**args):
 
 	logger('plugin', 'wp plugin called')
 
-	query = "_".join(argv[1:])
+	query = " ".join(argv[1:])
 
 	if query == "":
 		return {
@@ -536,51 +536,30 @@ def command_wp(argv,lang="de",**args):
 	api = { "action" : "query", "prop" : "extracts", "explaintext": "" ,
 			"exsentences" : 2, "rawcontinue" : 1, "format" : "json", "titles" : query }
 	apiurl = "https://%s.wikipedia.org/w/api.php?%s" % (lang, urllib.parse.urlencode(api)) 
-	link = 'https://%s.wikipedia.org/wiki/%s' % (lang, query)
-
-	(j, short) = (None, None)
-	failed = False
 
 	try:
 		response = urllib.request.urlopen(apiurl)
 		buf = response.read(BUFSIZ)
 		j = json.loads(buf.decode("unicode_escape"))
+		
+		page = next(iter(j['query']['pages'].values()))
+		short = page.get("extract", None)
+		linktitle = page.get("title", query).replace(" ","_")
+		link = 'https://%s.wikipedia.org/wiki/%s' % (lang, linktitle)
 	except Exception as e:
 		logger('plugin', 'wp(%s) failed: %s, %s' % (query, e, traceback.format_exc()))
 		return {
 			'msg': args['reply_user'] + ": something failed: %s" % e
 		}
 
-	# FIXME: this looks rather shitty. We're looking for
-	# >>> j['query']['pages']['88112']['extract'] == str()
-	if not 'query' in j:
-		failed = True
-	else:
-		j = j['query']
-		if not 'pages' in j:
-			failed = True
-		else:
-			j = j['pages']
-			flag = True
-			for stuff in j:
-				if 'extract' in j[stuff]:
-					flag = False
-					j = j[stuff]['extract']
-					break
-			failed = flag
-
-	if failed:
-		return {
-			'msg': args['reply_user'] + ': the json object looks bad, sorry for that.'
+	if short is not None:
+	    return {
+		        'msg': args['reply_user'] + ': %s (<%s>)' % ( 
+					short if short.strip() else nix, link 
+				)
 		}
-	else:
-		short = str(j)
-
-	return {
-		'msg': args['reply_user'] + ': %s (<%s>)' % (
-			'(nix)' if 0 == len(short.strip()) else short, link
-		)
-	}
+	else: 
+		return { 'msg': "Something seems wrong with the json" }
 
 #def command_dummy(args):
 #	if 'register' == args:
