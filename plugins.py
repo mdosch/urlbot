@@ -533,7 +533,7 @@ def command_wp(argv,lang="de",**args):
             'msg': args['reply_user'] + ": You must enter a query" 
         }
 
-	api = { "action" : "query", "prop" : "extracts", "explaintext": "" ,
+	api = { "action" : "query", "prop" : "extracts", "explaintext": "" , "redirect": "",
 			"exsentences" : 2, "rawcontinue" : 1, "format" : "json", "titles" : query }
 	apiurl = "https://%s.wikipedia.org/w/api.php?%s" % (lang, urllib.parse.urlencode(api)) 
 
@@ -555,7 +555,7 @@ def command_wp(argv,lang="de",**args):
 	if short is not None:
 	    return {
 		        'msg': args['reply_user'] + ': %s (<%s>)' % ( 
-					short if short.strip() else nix, link 
+					short if short.strip() else "(nix)", link 
 				)
 		}
 	else: 
