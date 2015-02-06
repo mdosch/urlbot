@@ -8,6 +8,7 @@ if '__main__' == __name__:
 import time, random, unicodedata, re, sys, urllib.request, json
 import types
 import traceback
+import urllib.parse
 from local_config import conf, set_conf
 from common import *
 from urlbot import extract_title
@@ -532,24 +533,22 @@ def command_wp(argv,lang="de",**args):
             'msg': args['reply_user'] + ": You must enter a query" 
         }
 
-	# FIXME: escaping. probably.
-	api = ('https://%s.wikipedia.org/w/api.php?action=query&prop=extracts&' + \
-		'explaintext&exsentences=2&rawcontinue=1&format=json&titles=%s') % (
-			lang, query
-		)
+	api = { "action" : "query", "prop" : "extracts", "explaintext": "" ,
+			"exsentences" : 2, "rawcontinue" : 1, "format" : "json", "titles" : query }
+	apiurl = "https://%s.wikipedia.org/w/api.php?%s" % (lang, urllib.parse.urlencode(api)) 
 	link = 'https://%s.wikipedia.org/wiki/%s' % (lang, query)
 
 	(j, short) = (None, None)
 	failed = False
 
 	try:
-		response = urllib.request.urlopen(api)
+		response = urllib.request.urlopen(apiurl)
 		buf = response.read(BUFSIZ)
-		j = json.loads(buf.decode('utf-8'))
+		j = json.loads(buf.decode("unicode_escape"))
 	except Exception as e:
-		logger('plugin', 'wp(%s) failed: %s' % (query, str(e)))
+		logger('plugin', 'wp(%s) failed: %s, %s' % (query, e, traceback.format_exc()))
 		return {
-			'msg': args['reply_user'] + ": something failed: %s" % str(e)
+			'msg': args['reply_user'] + ": something failed: %s" % e
 		}
 
 	# FIXME: this looks rather shitty. We're looking for
