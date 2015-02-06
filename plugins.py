@@ -556,7 +556,7 @@ def command_wp(argv,lang="de",**args):
 		response = urllib.request.urlopen(apiurl)
 		buf = response.read(BUFSIZ)
 		j = json.loads(buf.decode("unicode_escape"))
-	
+
 		page = next(iter(j['query']['pages'].values()))
 		short = page.get("extract", None)
 		linktitle = page.get("title", query).replace(" ","_")
@@ -573,6 +573,8 @@ def command_wp(argv,lang="de",**args):
 					short if short.strip() else "(nix)", link 
 				)
 		}
+	elif "missing" in page:
+		return { 'msg': 'Article "%s" not found' % page.get("title", query) }
 	else: 
 		return { 'msg': "Something seems wrong with the json" }
 
