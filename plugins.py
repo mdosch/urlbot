@@ -533,15 +533,15 @@ def command_wp(argv,lang="de",**args):
             'msg': args['reply_user'] + ": You must enter a query" 
         }
 
-	api = { "action" : "query", "prop" : "extracts", "explaintext": "" , "redirect": "",
-			"exsentences" : 2, "rawcontinue" : 1, "format" : "json", "titles" : query }
+	api = { "action" : "query", "prop" : "extracts", "explaintext": "" , "redirects": "",
+			"exsentences" : 2, "continue" : "", "format" : "json", "titles" : query }
 	apiurl = "https://%s.wikipedia.org/w/api.php?%s" % (lang, urllib.parse.urlencode(api)) 
 
 	try:
 		response = urllib.request.urlopen(apiurl)
 		buf = response.read(BUFSIZ)
 		j = json.loads(buf.decode("unicode_escape"))
-		
+	
 		page = next(iter(j['query']['pages'].values()))
 		short = page.get("extract", None)
 		linktitle = page.get("title", query).replace(" ","_")
