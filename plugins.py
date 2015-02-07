@@ -568,9 +568,9 @@ def command_wp(argv,lang="de",**args):
 		}
 
 	if short is not None:
-	    return {
-		        'msg': args['reply_user'] + ': %s (<%s>)' % ( 
-					short if short.strip() else "(nix)", link 
+		return {
+				'msg': args['reply_user'] + ': %s (<%s>)' % ( 
+				short if short.strip() else "(nix)", link 
 				)
 		}
 	elif "missing" in page:
