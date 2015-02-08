@@ -127,9 +127,11 @@ def command_help(argv,**args):
 
 	if None == what:
 		logger('plugin', 'empty help request, sent all commands')
+		commands = args['cmd_list']
+		commands.sort()
 		return {
 			'msg': args['reply_user'] + ': known commands: ' +
-			str(args['cmd_list']).strip('[]')
+			str(commands).strip('[]')
 		}
 
 	if not what in [p.plugin_name for p in plugins[ptypes_COMMAND]]:
