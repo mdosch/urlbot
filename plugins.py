@@ -93,7 +93,7 @@ def parse_cve(**args):
 		'msg': 'https://security-tracker.debian.org/tracker/%s' % cves[0]
 	}
 
-@pluginfunction("skynet", "parse skynet", ptypes.PARSE) 
+@pluginfunction("skynet", "parse skynet", ptypes.PARSE)
 def parse_skynet(**args):
 	if 'skynet' in args['data'].lower():
 		logger('plugin', 'sent skynet reply')
@@ -116,7 +116,7 @@ def data_parse_other(msg_obj):
 				ratelimit_touch(RATE_CHAT)
 				send_reply(ret['msg'], msg_obj)
 
-@pluginfunction("help", "print help for a command or all known commands", ptypes.COMMAND)  
+@pluginfunction("help", "print help for a command or all known commands", ptypes.COMMAND)
 def command_help(argv,**args):
 	command = argv[0]
 	what = argv[1] if len(argv) > 1 else None
@@ -440,12 +440,12 @@ def command_cake(argv, **args):
 	if 'cake' != argv[0]:
 		return
 
-	cakes = [ "No cake for you!", 
+	cakes = [ "No cake for you!",
 			("The Enrichment Center is required to remind you "
 			"that you will be baked, and then there will be cake."),
 			"The cake is a lie!",
 			("This is your fault. I'm going to kill you. "
-			"And all the cake is gone. You don't even care, do you? "),
+			"And all the cake is gone. You don't even care, do you?"),
 			"Quit now and cake will be served immediately.",
 			("Enrichment Center regulations require both hands to be "
 			"empty before any cake..."),
@@ -512,7 +512,7 @@ def command_plugin_activation(argv,**args):
 
 	for c in plugins[ptypes.COMMAND]:
 		if c.plugin_name == plugin:
-			c.is_enabled = 'enable' == command 
+			c.is_enabled = 'enable' == command
 
 			return {
 				'msg': args['reply_user'] + ': %sd %s' %(
@@ -545,12 +545,12 @@ def command_wp(argv,lang="de",**args):
 
 	if query == "":
 		return {
-            'msg': args['reply_user'] + ": You must enter a query" 
+            'msg': args['reply_user'] + ": You must enter a query"
         }
 
 	api = { "action" : "query", "prop" : "extracts", "explaintext": "" , "redirects": "",
 			"exsentences" : 2, "continue" : "", "format" : "json", "titles" : query }
-	apiurl = "https://%s.wikipedia.org/w/api.php?%s" % (lang, urllib.parse.urlencode(api)) 
+	apiurl = "https://%s.wikipedia.org/w/api.php?%s" % (lang, urllib.parse.urlencode(api))
 
 	try:
 		response = urllib.request.urlopen(apiurl)
@@ -569,13 +569,13 @@ def command_wp(argv,lang="de",**args):
 
 	if short is not None:
 		return {
-				'msg': args['reply_user'] + ': %s (<%s>)' % ( 
-				short if short.strip() else "(nix)", link 
-				)
+			'msg': args['reply_user'] + ': %s (<%s>)' % (
+				short if short.strip() else "(nix)", link
+			)
 		}
 	elif "missing" in page:
 		return { 'msg': 'Article "%s" not found' % page.get("title", query) }
-	else: 
+	else:
 		return { 'msg': "Something seems wrong with the json" }
 
 #def command_dummy(args):
@@ -628,11 +628,13 @@ def data_parse_commands(msg_obj):
 		if not p.is_enabled:
 			continue
 
-		ret = p(data = data, 
-				cmd_list = [pl.plugin_name for pl in plugins[ptypes.COMMAND]],
-				reply_user = reply_user, 
-				msg_obj = msg_obj, 
-				argv = words[1:])
+		ret = p(
+			data = data,
+			cmd_list = [pl.plugin_name for pl in plugins[ptypes.COMMAND]],
+			reply_user = reply_user,
+			msg_obj = msg_obj,
+			argv = words[1:]
+		)
 
 
 		if None != ret:
@@ -691,15 +693,15 @@ if debug_enabled():
 def register(func_type):
 	"""
 	Register plugins.
-	
+
 	Arguments:
 	func_type -- plugin functions with this type (ptypes) will be loaded
 	"""
 
-	functions = [f for n,f in globals().items() if type(f) == types.FunctionType 
-                    and f.__dict__.get('is_plugin', False) 
+	functions = [f for n,f in globals().items() if type(f) == types.FunctionType
+                    and f.__dict__.get('is_plugin', False)
                     and f.plugin_type == func_type]
-	
+
 	logger('info', 'auto registering plugins: %s' % (", ".join(f.plugin_name for f in functions)))
 
 	for f in functions:
@@ -709,7 +711,7 @@ def register_plugin(function, func_type):
 	try:
 		plugins[func_type].append(function)
 	except Exception as e:
-		logger('warn', 'registering %s failed: %s, %s' % 
+		logger('warn', 'registering %s failed: %s, %s' %
 			(function, e, traceback.format_exc()))
 
 def register_all():

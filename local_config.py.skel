@@ -34,8 +34,11 @@ config = {
 	'persistent_locked': False,
 
 	'url_blacklist': [
-		r'^.*heise\.de/[^/]+/meldung/.*$',
-		r'^.*wikipedia\.org/wiki/.*$'
+		r'^.*heise\.de/.*-[0-9]+\.html$',
+		r'^.*wikipedia\.org/wiki/.*$',
+		r'^.*blog\.fefe\.de/\?ts=[0-9a-f]+$',
+		r'^.*ibash\.de/zitat.*$',
+		r'^.*golem\.de/news/.*$'
 	],
 
 	# the "dice" feature will use more efficient random data (0) for given users
