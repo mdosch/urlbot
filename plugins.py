@@ -102,6 +102,21 @@ def parse_skynet(**args):
 			'msg': '''I'm an independent bot and have nothing to do with other artificial intelligence systems!'''
 		}
 
+@pluginfunction('latex', r'reacts on \LaTeX', ptypes_PARSE)
+def parse_skynet(**args):
+	if r'\LaTeX' in args['data']:
+		return {
+			'msg': '''LaTeX is way too complex for me, I'm happy with fmt(1)'''
+		}
+
+#@pluginfunction('dummy_parser', 'dummy_parser desc', ptypes_PARSE)
+#def parse_skynet(**args):
+#	if 'dummy_parser' in args['data'].lower():
+#		logger('plugin', 'dummy_parser triggered')
+#		return {
+#			'msg': 'dummy_parser triggered'
+#		}
+
 def data_parse_other(msg_obj):
 	data = msg_obj['body']
 	reply_user = msg_obj['mucnick']
