@@ -23,9 +23,9 @@ joblist = []
 plugins = {p : [] for p in ptypes}
 
 def pluginfunction(name, desc, plugin_type, ratelimit_class = RATE_GLOBAL, enabled = True):
-	""" A decorator to make a plugin out of a function """
+	''' A decorator to make a plugin out of a function '''
 	if plugin_type not in ptypes:
-		raise TypeError("Illegal plugin_type: %s" % plugin_type)
+		raise TypeError('Illegal plugin_type: %s' % plugin_type)
 
 	def decorate(f):
 		f.is_plugin = True
@@ -40,7 +40,7 @@ def pluginfunction(name, desc, plugin_type, ratelimit_class = RATE_GLOBAL, enabl
 def register_event(t, callback, args):
 	joblist.append((t, callback, args))
 
-@pluginfunction("mental_ill", "parse mental illness", ptypes_PARSE, ratelimit_class = RATE_NO_SILENCE | RATE_GLOBAL)
+@pluginfunction('mental_ill', 'parse mental illness', ptypes_PARSE, ratelimit_class = RATE_NO_SILENCE | RATE_GLOBAL)
 def parse_mental_ill(**args):
 	min_ill = 3
 	c = 0
@@ -62,7 +62,7 @@ def parse_mental_ill(**args):
 			'msg': '''Multiple exclamation/question marks are a sure sign of mental disease, with %s as a living example.''' % args['reply_user']
 		}
 
-@pluginfunction("debbug", "parse Debian bug numbers", ptypes_PARSE, ratelimit_class = RATE_NO_SILENCE | RATE_GLOBAL)
+@pluginfunction('debbug', 'parse Debian bug numbers', ptypes_PARSE, ratelimit_class = RATE_NO_SILENCE | RATE_GLOBAL)
 def parse_debbug(**args):
 	bugs = re.findall(r'#(\d{4,})', args['data'])
 	if not bugs:
@@ -83,7 +83,7 @@ def parse_debbug(**args):
 		'msg': title
 	}
 
-@pluginfunction("cve", "parse a CVE handle", ptypes_PARSE, ratelimit_class = RATE_NO_SILENCE | RATE_GLOBAL)
+@pluginfunction('cve', 'parse a CVE handle', ptypes_PARSE, ratelimit_class = RATE_NO_SILENCE | RATE_GLOBAL)
 def parse_cve(**args):
 	cves = re.findall(r'(CVE-\d\d\d\d-\d+)', args['data'].upper())
 	if not cves:
@@ -94,7 +94,7 @@ def parse_cve(**args):
 		'msg': 'https://security-tracker.debian.org/tracker/%s' % cves[0]
 	}
 
-@pluginfunction("skynet", "parse skynet", ptypes_PARSE)
+@pluginfunction('skynet', 'parse skynet', ptypes_PARSE)
 def parse_skynet(**args):
 	if 'skynet' in args['data'].lower():
 		logger('plugin', 'sent skynet reply')
@@ -103,7 +103,7 @@ def parse_skynet(**args):
 		}
 
 @pluginfunction('latex', r'reacts on \LaTeX', ptypes_PARSE)
-def parse_skynet(**args):
+def parse_latex(**args):
 	if r'\LaTeX' in args['data']:
 		return {
 			'msg': '''LaTeX is way too complex for me, I'm happy with fmt(1)'''
@@ -132,8 +132,8 @@ def data_parse_other(msg_obj):
 				ratelimit_touch(RATE_CHAT)
 				send_reply(ret['msg'], msg_obj)
 
-@pluginfunction("help", "print help for a command or all known commands", ptypes_COMMAND)
-def command_help(argv,**args):
+@pluginfunction('help', 'print help for a command or all known commands', ptypes_COMMAND)
+def command_help(argv, **args):
 	command = argv[0]
 	what = argv[1] if len(argv) > 1 else None
 
@@ -164,8 +164,8 @@ def command_help(argv,**args):
 				)
 			}
 
-@pluginfunction("version", "prints version", ptypes_COMMAND)
-def command_version(argv,**args):
+@pluginfunction('version', 'prints version', ptypes_COMMAND)
+def command_version(argv, **args):
 	if 'version' != argv[0]:
 		return
 
@@ -174,8 +174,8 @@ def command_version(argv,**args):
 		'msg': args['reply_user'] + (''': I'm running ''' + VERSION)
 	}
 
-@pluginfunction("klammer", "prints an anoying paper clip aka. Karl Klammer", ptypes_COMMAND)
-def command_klammer(argv,**args):
+@pluginfunction('klammer', 'prints an anoying paper clip aka. Karl Klammer', ptypes_COMMAND)
+def command_klammer(argv, **args):
 	if 'klammer' != argv[0]:
 		return
 
@@ -192,8 +192,8 @@ def command_klammer(argv,**args):
 		)
 	}
 
-@pluginfunction("unikot", "prints an unicode string", ptypes_COMMAND)
-def command_unicode(argv,**args):
+@pluginfunction('unikot', 'prints an unicode string', ptypes_COMMAND)
+def command_unicode(argv, **args):
 	if 'unikot' != argv[0]:
 		return
 
@@ -207,8 +207,8 @@ def command_unicode(argv,**args):
 		)
 	}
 
-@pluginfunction("source", "prints git URL", ptypes_COMMAND)
-def command_source(argv,**args):
+@pluginfunction('source', 'prints git URL', ptypes_COMMAND)
+def command_source(argv, **args):
 	if not argv[0] in ('source', 'src'):
 		return
 
@@ -217,7 +217,7 @@ def command_source(argv,**args):
 		'msg': 'My source code can be found at %s' % conf('src-url')
 	}
 
-@pluginfunction("dice", "rolls a dice, optional N times", ptypes_COMMAND, ratelimit_class = RATE_INTERACTIVE)
+@pluginfunction('dice', 'rolls a dice, optional N times', ptypes_COMMAND, ratelimit_class = RATE_INTERACTIVE)
 def command_dice(argv, **args):
 	if 'dice' != argv[0]:
 		return
@@ -259,7 +259,7 @@ def command_dice(argv, **args):
 		'msg': msg
 	}
 
-@pluginfunction("uptime", "prints uptime", ptypes_COMMAND)
+@pluginfunction('uptime', 'prints uptime', ptypes_COMMAND)
 def command_uptime(argv, **args):
 	if 'uptime' != argv[0]:
 		return
@@ -278,7 +278,7 @@ def command_uptime(argv, **args):
 		'msg': args['reply_user'] + (''': happily serving for %d second%s, %d request%s so far.''' % (u, plural_uptime, conf('request_counter'), plural_request))
 	}
 
-@pluginfunction("ping", "sends pong", ptypes_COMMAND, ratelimit_class = RATE_INTERACTIVE)
+@pluginfunction('ping', 'sends pong', ptypes_COMMAND, ratelimit_class = RATE_INTERACTIVE)
 def command_ping(argv, **args):
 	if 'ping' != argv[0]:
 		return
@@ -298,8 +298,8 @@ def command_ping(argv, **args):
 		'msg': msg
 	}
 
-@pluginfunction("info", "prints info message", ptypes_COMMAND)
-def command_info(argv,**args):
+@pluginfunction('info', 'prints info message', ptypes_COMMAND)
+def command_info(argv, **args):
 	if 'info' != argv[0]:
 		return
 
@@ -308,8 +308,8 @@ def command_info(argv,**args):
 		'msg': args['reply_user'] + (''': I'm a bot, my job is to extract <title> tags from posted URLs. In case I'm annoying or for further questions, please talk to my master %s. I'm rate limited and shouldn't post more than %d messages per %d seconds. To make me exit immediately, highlight me with 'hangup' in the message (emergency only, please). For other commands, highlight me with 'help'.''' % (conf('bot_owner'), conf('hist_max_count'), conf('hist_max_time')))
 	}
 
-@pluginfunction("teatimer", 'sets a tea timer to $1 or currently %d seconds' % conf('tea_steep_time'), ptypes_COMMAND)
-def command_teatimer(argv,**args):
+@pluginfunction('teatimer', 'sets a tea timer to $1 or currently %d seconds' % conf('tea_steep_time'), ptypes_COMMAND)
+def command_teatimer(argv, **args):
 	if 'teatimer' != argv[0]:
 		return
 
@@ -344,8 +344,8 @@ def command_teatimer(argv,**args):
 		)
 	}
 
-@pluginfunction("decode", "prints the long description of an unicode character", ptypes_COMMAND)
-def command_decode(argv,**args):
+@pluginfunction('decode', 'prints the long description of an unicode character', ptypes_COMMAND)
+def command_decode(argv, **args):
 	if 'decode' != argv[0]:
 		return
 
@@ -370,8 +370,8 @@ def command_decode(argv,**args):
 		'msg': args['reply_user'] + ': %s (%s) is called "%s"' % (char, char_esc, uni_name)
 	}
 
-@pluginfunction("show-blacklist", "show the current URL blacklist, optionally filtered", ptypes_COMMAND)
-def command_show_blacklist(argv,**args):
+@pluginfunction('show-blacklist', 'show the current URL blacklist, optionally filtered', ptypes_COMMAND)
+def command_show_blacklist(argv, **args):
 	if 'show-blacklist' != argv[0]:
 		return
 
@@ -390,7 +390,7 @@ def command_show_blacklist(argv,**args):
 		]
 	}
 
-def usersetting_get(argv,args):
+def usersetting_get(argv, args):
 	blob = conf_load()
 
 	arg_user = args['reply_user']
@@ -408,8 +408,8 @@ def usersetting_get(argv,args):
 		)
 	}
 
-@pluginfunction("set", "modify a user setting", ptypes_COMMAND)
-def command_usersetting(argv,**args):
+@pluginfunction('set', 'modify a user setting', ptypes_COMMAND)
+def command_usersetting(argv, **args):
 	if 'set' != argv[0]:
 		return
 
@@ -451,9 +451,9 @@ def command_usersetting(argv,**args):
 	set_conf('persistent_locked', False)
 
 	# display value written to db
-	return usersetting_get(argv,args)
+	return usersetting_get(argv, args)
 
-@pluginfunction("cake", "displays a cake ASCII art", ptypes_COMMAND)
+@pluginfunction('cake', 'displays a cake ASCII art', ptypes_COMMAND)
 def command_cake(argv, **args):
 	if 'cake' != argv[0]:
 		return
@@ -477,8 +477,8 @@ def command_cake(argv, **args):
 		'msg': args['reply_user'] + ': %s' % (random.sample(cakes,1)[0])
 	}
 
-@pluginfunction("remember", "remembers something", ptypes_COMMAND)
-def command_remember(argv,**args):
+@pluginfunction('remember', 'remembers something', ptypes_COMMAND)
+def command_remember(argv, **args):
 	if 'remember' != argv[0]:
 		return
 
@@ -489,7 +489,6 @@ def command_remember(argv,**args):
 			'msg': args['reply_user'] + ': invalid message'
 		}
 
-	print(args['data'])
 	to_remember = ' '.join(args['data'].split()[2:])  # this is a little dirty. A little lot
 	set_conf('data_remember', to_remember)
 
@@ -497,8 +496,8 @@ def command_remember(argv,**args):
 		'msg': args['reply_user'] + ': remembering ' + to_remember
 	}
 
-@pluginfunction("recall", "recalls something previously 'remember'ed", ptypes_COMMAND)
-def command_recall(argv,**args):
+@pluginfunction('recall', "recalls something previously 'remember'ed", ptypes_COMMAND)
+def command_recall(argv, **args):
 	if 'recall' != argv[0]:
 		return
 
@@ -509,8 +508,8 @@ def command_recall(argv,**args):
 	}
 
 #TODO: send a hint if someone types plugin as command
-@pluginfunction("plugin", "disable' or 'enable' plugins", ptypes_COMMAND)
-def command_plugin_activation(argv,**args):
+@pluginfunction('plugin', "'disable' or 'enable' plugins", ptypes_COMMAND)
+def command_plugin_activation(argv, **args):
 	command = argv[0]
 	plugin = argv[1] if len(argv) > 1 else None
 
@@ -533,7 +532,7 @@ def command_plugin_activation(argv,**args):
 			c.is_enabled = 'enable' == command
 
 			return {
-				'msg': args['reply_user'] + ': %sd %s' %(
+				'msg': args['reply_user'] + ': %sd %s' % (
 					command, plugin
 				)
 			}
@@ -542,59 +541,73 @@ def command_plugin_activation(argv,**args):
 		'msg': args['reply_user'] + ': unknown plugin %s' % plugin
 	}
 
-@pluginfunction("wp-en", "crawl the english Wikipedia", ptypes_COMMAND)
-def command_wp_en(argv,**args):
+@pluginfunction('wp-en', 'crawl the english Wikipedia', ptypes_COMMAND)
+def command_wp_en(argv, **args):
 	if 'wp-en' != argv[0]:
 		return
 
 	if argv[0]:
 		argv[0] = 'wp'
 
-	return command_wp(argv, lang="en", **args)
+	return command_wp(argv, lang='en', **args)
 
-@pluginfunction("wp", "crawl the german Wikipedia", ptypes_COMMAND)
-def command_wp(argv,lang="de",**args):
+@pluginfunction('wp', 'crawl the german Wikipedia', ptypes_COMMAND)
+def command_wp(argv, lang='de', **args):
 	if 'wp' != argv[0]:
 		return
 
 	logger('plugin', 'wp plugin called')
 
-	query = " ".join(argv[1:])
+	query = ' '.join(argv[1:])
 
-	if query == "":
+	if query == '':
 		return {
-            'msg': args['reply_user'] + ": You must enter a query"
-        }
+			'msg': args['reply_user'] + ': no query given'
+		}
 
-	api = { "action" : "query", "prop" : "extracts", "explaintext": "" , "redirects": "",
-			"exsentences" : 2, "continue" : "", "format" : "json", "titles" : query }
-	apiurl = "https://%s.wikipedia.org/w/api.php?%s" % (lang, urllib.parse.urlencode(api))
+	api = {
+		'action': 'query',
+		'prop': 'extracts',
+		'explaintext': '',
+		'redirects': '',
+		'exsentences': 2,
+		'continue': '',
+		'format': 'json',
+		'titles': query
+	}
+	apiurl = 'https://%s.wikipedia.org/w/api.php?%s' % (
+		lang, urllib.parse.urlencode(api)
+	)
 
 	try:
 		response = urllib.request.urlopen(apiurl)
 		buf = response.read(BUFSIZ)
-		j = json.loads(buf.decode("unicode_escape"))
+		j = json.loads(buf.decode('unicode_escape'))
 
 		page = next(iter(j['query']['pages'].values()))
-		short = page.get("extract", None)
-		linktitle = page.get("title", query).replace(" ","_")
+		short = page.get('extract', None)
+		linktitle = page.get('title', query).replace(' ', '_')
 		link = 'https://%s.wikipedia.org/wiki/%s' % (lang, linktitle)
 	except Exception as e:
 		logger('plugin', 'wp(%s) failed: %s, %s' % (query, e, traceback.format_exc()))
 		return {
-			'msg': args['reply_user'] + ": something failed: %s" % e
+			'msg': args['reply_user'] + ': something failed: %s' % e
 		}
 
 	if short is not None:
 		return {
 			'msg': args['reply_user'] + ': %s (<%s>)' % (
-				short if short.strip() else "(nix)", link
+				short if short.strip() else '(nix)', link
 			)
 		}
-	elif "missing" in page:
-		return { 'msg': 'Article "%s" not found' % page.get("title", query) }
+	elif 'missing' in page:
+		return {
+			'msg': 'Article "%s" not found' % page.get('title', query)
+		}
 	else:
-		return { 'msg': "Something seems wrong with the json" }
+		return {
+			'msg': 'json data seem to be broken'
+		}
 
 #def command_dummy(args):
 #	if 'register' == args:
@@ -654,7 +667,6 @@ def data_parse_commands(msg_obj):
 			argv = words[1:]
 		)
 
-
 		if None != ret:
 			if 'msg' in list(ret.keys()):
 				ratelimit_touch(RATE_CHAT)
@@ -709,18 +721,24 @@ if debug_enabled():
 	logger('info', 'debugging enabled')
 
 def register(func_type):
-	"""
+	'''
 	Register plugins.
 
 	Arguments:
 	func_type -- plugin functions with this type (ptypes) will be loaded
-	"""
+	'''
 
-	functions = [f for n,f in globals().items() if type(f) == types.FunctionType
-                    and f.__dict__.get('is_plugin', False)
-                    and f.plugin_type == func_type]
+	functions = [
+		f for ignored, f in globals().items()
+			if
+				type(f) == types.FunctionType
+				and f.__dict__.get('is_plugin', False)
+				and f.plugin_type == func_type
+	]
 
-	logger('info', 'auto registering plugins: %s' % (", ".join(f.plugin_name for f in functions)))
+	logger('info', 'auto registering plugins: %s' % (', '.join(
+		f.plugin_name for f in functions
+	)))
 
 	for f in functions:
 		register_plugin(f, func_type)
