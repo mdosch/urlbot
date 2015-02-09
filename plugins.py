@@ -587,7 +587,9 @@ def command_wp(argv, lang='de', **args):
 		page = next(iter(j['query']['pages'].values()))
 		short = page.get('extract', None)
 		linktitle = page.get('title', query).replace(' ', '_')
-		link = 'https://%s.wikipedia.org/wiki/%s' % (lang, linktitle)
+		link = 'https://%s.wikipedia.org/wiki/%s' % (
+			lang, urllib.parse.quote(linktitle)
+		)
 	except Exception as e:
 		logger('plugin', 'wp(%s) failed: %s, %s' % (query, e, traceback.format_exc()))
 		return {
