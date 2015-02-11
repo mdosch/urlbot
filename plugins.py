@@ -11,6 +11,7 @@ import traceback
 import urllib.parse
 from local_config import conf, set_conf
 from common import *
+from excuses import excuses
 from urlbot import extract_title
 from functools import wraps
 
@@ -610,6 +611,19 @@ def command_wp(argv, lang='de', **args):
 		return {
 			'msg': 'json data seem to be broken'
 		}
+
+@pluginfunction('excuse', 'prints BOFH style excuses', ptypes_COMMAND)
+def command_dummy(argv, **args):
+	if 'excuse' != argv[0]:
+		return
+
+	logger('plugin', 'BOFH plugin called')
+
+	excuse = random.sample(excuses, 1)[0]
+
+	return {
+		'msg': args['reply_user'] + ': ' + excuse
+	}
 
 #@pluginfunction('dummy', 'dummy description', ptypes_COMMAND)
 #def command_dummy(argv, **args):
