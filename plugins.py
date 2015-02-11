@@ -611,16 +611,8 @@ def command_wp(argv, lang='de', **args):
 			'msg': 'json data seem to be broken'
 		}
 
-#def command_dummy(args):
-#	if 'register' == args:
-#		return {
-#			'name': 'dummy',
-#			'desc': 'dummy description',
-#			'args': ('argv0', 'reply_user'),
-#			'is_enabled': True,
-#			'ratelimit_class': RATE_GLOBAL
-#		}
-#
+#@pluginfunction('dummy', 'dummy description', ptypes_COMMAND)
+#def command_dummy(argv, **args):
 #	if 'dummy' != argv[0]:
 #		return
 #
