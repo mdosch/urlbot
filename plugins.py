@@ -581,10 +581,12 @@ def command_wp(argv, lang='de', **args):
 		lang, urllib.parse.urlencode(api)
 	)
 
+	logger('plugin', 'wp: fetching %s' % apiurl)
+
 	try:
 		response = urllib.request.urlopen(apiurl)
 		buf = response.read(BUFSIZ)
-		j = json.loads(buf.decode('unicode_escape'))
+		j = json.loads(buf.decode('utf8'))
 
 		page = next(iter(j['query']['pages'].values()))
 		short = page.get('extract', None)
