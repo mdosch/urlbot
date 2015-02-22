@@ -110,6 +110,23 @@ def parse_latex(**args):
 			'msg': '''LaTeX is way too complex for me, I'm happy with fmt(1)'''
 		}
 
+@pluginfunction('/me', 'reacts to /me.*%{bot_user}', ptypes_PARSE)
+def parse_slash_me(**args):
+	if args['data'].lower().startswith('/me') and (conf('bot_user') in args['data'].lower()):
+		logger('plugin', 'sent /me reply')
+
+		me_replys = [
+			'are you that rude to everybody?',
+			'oh, thank you...',
+			'do you really think that was nice?',
+			'that sounds very interesting...',
+			"excuse me, but I'm already late for an appointment"
+		]
+
+		return {
+			'msg': args['reply_user'] + ': %s' % (random.sample(me_replys, 1)[0])
+		}
+
 #@pluginfunction('dummy_parser', 'dummy_parser desc', ptypes_PARSE)
 #def parse_skynet(**args):
 #	if 'dummy_parser' in args['data'].lower():
@@ -476,7 +493,7 @@ def command_cake(argv, **args):
 			"Who's gonna make the cake when I'm gone? You?"	]
 
 	return {
-		'msg': args['reply_user'] + ': %s' % (random.sample(cakes,1)[0])
+		'msg': args['reply_user'] + ': %s' % (random.sample(cakes, 1)[0])
 	}
 
 @pluginfunction('remember', 'remembers something', ptypes_COMMAND)

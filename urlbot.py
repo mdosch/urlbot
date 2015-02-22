@@ -242,6 +242,8 @@ def handle_msg(msg_obj):
 	if not nospoiler:
 		ret = extract_url(content, msg_obj)
 
+#	print(' '.join(["%s->%s" % (x, msg_obj[x]) for x in msg_obj.keys()]))
+
 	if True != ret:
 		plugins.data_parse_commands(msg_obj)
 		plugins.data_parse_other(msg_obj)
