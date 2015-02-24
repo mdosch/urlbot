@@ -271,7 +271,9 @@ def command_dice(argv, **args):
 			rnd = random.randint(1, 6)
 			logger('plugin', 'sent random')
 
-		msg += ' %s (%d)' % (dice_char[rnd], rnd)
+		# the \u200b chars ('ZERO WIDTH SPACE') avoid interpreting stuff as smileys
+		# by some strange clients
+		msg += ' %s (\u200b%d\u200b)' % (dice_char[rnd], rnd)
 
 	return {
 		'msg': msg
