@@ -228,6 +228,10 @@ def handle_msg(msg_obj):
 		logger('info', 'no spoiler for: ' + content)
 		return
 
+	# don't react to itself
+	if str(msg_obj['from']).startswith(conf('bot_user')):
+		return
+
 	arg_user = msg_obj['mucnick']
 	blob_userpref = conf_load().get('user_pref',[])
 	nospoiler = False
