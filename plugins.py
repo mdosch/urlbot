@@ -369,7 +369,7 @@ def command_decode(argv, **args):
 	if 'decode' != argv[0]:
 		return
 
-	if len(argv) < 1:
+	if len(argv) <= 1:
 		return {
 			'msg': args['reply_user'] + ': usage: decode {single character}'
 		}
