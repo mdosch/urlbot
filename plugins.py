@@ -69,19 +69,22 @@ def parse_debbug(**args):
 	if not bugs:
 		return None
 
-	url = 'https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=%s' % bugs[0]
-	status, title = extract_title(url)
+	out = []
+	for b in bugs:
+		logger('plugin', 'detected Debian bug #%s' % b)
 
-	if 0 == status:
-		title = 'Debian Bug: %s: %s' % (title, url)
-	elif 3 == status:
-		pass
-	else:
-		return None
+		url = 'https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=%s' % b
+		status, title = extract_title(url)
 
-	logger('plugin', 'detected Debian bug')
+		if 0 == status:
+			out.append('Debian Bug: %s: %s' % (title, url))
+		elif 3 == status:
+			out.append('error for #%s: %s' % (b, title))
+		else:
+			logger('plugin', 'parse_debbug(): unknown status %d' % status)
+
 	return {
-		'msg': title
+		'msg': out
 	}
 
 @pluginfunction('cve', 'parse a CVE handle', ptypes_PARSE, ratelimit_class = RATE_NO_SILENCE | RATE_GLOBAL)
