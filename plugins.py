@@ -98,6 +98,17 @@ def parse_cve(**args):
 		'msg': 'https://security-tracker.debian.org/tracker/%s' % cves[0]
 	}
 
+@pluginfunction('dsa', 'parse a DSA handle', ptypes_PARSE, ratelimit_class = RATE_NO_SILENCE | RATE_GLOBAL)
+def parse_dsa(**args):
+	dsas = re.findall(r'(DSA-\d\d\d\d-\d+)', args['data'].upper())
+	if not dsas:
+		return None
+
+	logger('plugin', 'detected DSA handle')
+	return {
+		'msg': 'https://security-tracker.debian.org/tracker/%s' % dsas[0]
+	}
+
 @pluginfunction('skynet', 'parse skynet', ptypes_PARSE)
 def parse_skynet(**args):
 	if 'skynet' in args['data'].lower():
