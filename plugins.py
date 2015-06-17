@@ -134,13 +134,23 @@ def parse_moin_bye(**args):
 
 	for direction in [moin, bye]:
 		for d in direction:
-			if d.lower() in args['data'].lower() and len(args['data'].split()) < 3:
-				logger('plugin', 'sent %s reply' % (
-					'moin' if direction is moin else 'bye'
-				))
-				return {
-					'msg': '''%s, %s''' % (random.choice(direction), args['reply_user'])
-				}
+			words = re.split(r'\W+', args['data'])
+
+			# assumption: longer sentences are not greetings
+			if 3 < len(args['data'].split()):
+				continue
+
+			for w in words:
+				if d.lower() == w.lower():
+					logger('plugin', 'sent %s reply for %s' % (
+						'moin' if direction is moin else 'bye', w
+					))
+					return {
+						'msg': '''%s, %s''' % (
+							random.choice(direction),
+							args['reply_user']
+						)
+					}
 
 @pluginfunction('latex', r'reacts on \LaTeX', ptypes_PARSE)
 def parse_latex(**args):
