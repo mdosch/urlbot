@@ -117,6 +117,31 @@ def parse_skynet(**args):
 			'msg': '''I'm an independent bot and have nothing to do with other artificial intelligence systems!'''
 		}
 
+@pluginfunction('moin', 'parse moin/bye', ptypes_PARSE)
+def parse_moin_bye(**args):
+	moin = [
+		'Hi',
+		'Guten Morgen',
+		'Moin',
+		'Tag',
+	]
+
+	bye = [
+		'gN8',
+		'bye',
+		'Nacht'
+	]
+
+	for direction in [moin, bye]:
+		for d in direction:
+			if d.lower() in args['data'].lower() and len(args['data'].split()) < 3:
+				logger('plugin', 'sent %s reply' % (
+					'moin' if direction is moin else 'bye'
+				))
+				return {
+					'msg': '''%s, %s''' % (random.choice(direction), args['reply_user'])
+				}
+
 @pluginfunction('latex', r'reacts on \LaTeX', ptypes_PARSE)
 def parse_latex(**args):
 	if r'\LaTeX' in args['data']:
