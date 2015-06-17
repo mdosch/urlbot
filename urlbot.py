@@ -30,7 +30,6 @@ hist_ts = []
 hist_flag = True
 
 parser = None
-xmpp = None
 
 def fetch_page(url):
 	logger('info', 'fetching page ' + url)
@@ -111,11 +110,6 @@ def send_reply(message, msg_obj):
 		print(message)
 	else:
 		msg_obj.reply(body=message).send()
-#		xmpp.send_message(
-#			mto=msg_obj['from'].bare,
-#			mbody=message,
-#			mtype=msg_obj['type']
-#		)
 
 def ratelimit_touch(ignored=None):  # FIXME: separate counters
 	hist_ts.append(time.time())
