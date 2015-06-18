@@ -121,13 +121,13 @@ def parse_skynet(**args):
 def parse_moin_bye(**args):
 	moin = [
 		'Hi',
-		'Guten Morgen',
+		'Guten Morgen', 'Morgen',
 		'Moin',
 		'Tag', 'Tach',
-		'NAbend'
+		'NAbend', 'Abend'
 	]
 	bye = [
-		'Nacht', 'gN8', 'N8'
+		'Nacht', 'gN8', 'N8',
 		'bye',
 	]
 
