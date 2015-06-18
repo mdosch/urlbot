@@ -142,6 +142,16 @@ def parse_moin_bye(**args):
 
 			for w in words:
 				if d.lower() == w.lower():
+					if args['reply_user'] in conf('moin-modified-user'):
+						logger('plugin', 'being "quiet" for %s' % w)
+						return {
+							'msg': '/me %s' % random.choice([
+								"doesn't say anything at all",
+								'whistles uninterested',
+								'just ignores this incident'
+							])
+						}
+
 					logger('plugin', 'sent %s reply for %s' % (
 						'moin' if direction is moin else 'bye', w
 					))

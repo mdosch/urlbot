@@ -46,6 +46,9 @@ config = {
 	# the "dice" feature will use more efficient random data (0) for given users
 	'enhanced-random-user': ('FIXME', 'FIXME'),
 
+	# the "moin" feature will be "disabled" for given users
+	'moin-modified-user': (),
+
 	'tea_steep_time': (3*60 + 40),
 
 	'image_preview': True
