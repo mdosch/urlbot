@@ -235,12 +235,13 @@ def command_help(argv, **args):
 		}
 
 	flag = False
-	for p in plugins[ptypes_COMMAND]:
+	for p in plugins[ptypes_COMMAND] + plugins[ptypes_PARSE]:
 		if what == p.plugin_name:
 			flag = True
 			logger('plugin', 'sent help for %s' % what)
 			return {
-				'msg': args['reply_user'] + ': help for %s: %s' % (
+				'msg': args['reply_user'] + ': help for %s %s: %s' % (
+					'parser' if p.plugin_type == ptypes_PARSE else 'command',
 					what, p.plugin_desc
 				)
 			}
