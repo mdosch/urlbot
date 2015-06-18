@@ -123,13 +123,12 @@ def parse_moin_bye(**args):
 		'Hi',
 		'Guten Morgen',
 		'Moin',
-		'Tag',
+		'Tag', 'Tach',
+		'NAbend'
 	]
-
 	bye = [
-		'gN8',
+		'Nacht', 'gN8', 'N8'
 		'bye',
-		'Nacht'
 	]
 
 	for direction in [moin, bye]:
