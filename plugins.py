@@ -168,7 +168,7 @@ def parse_latex(**args):
 			'msg': '''LaTeX is way too complex for me, I'm happy with fmt(1)'''
 		}
 
-@pluginfunction('/me', 'reacts to /me.*%{bot_user}', ptypes_PARSE)
+@pluginfunction('me-action', 'reacts to /me.*%{bot_user}', ptypes_PARSE)
 def parse_slash_me(**args):
 	if args['data'].lower().startswith('/me') and (conf('bot_user') in args['data'].lower()):
 		logger('plugin', 'sent /me reply')
