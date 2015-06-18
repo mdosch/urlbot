@@ -201,6 +201,9 @@ def data_parse_other(msg_obj):
 		if ratelimit_exceeded(p.ratelimit_class):
 			continue
 
+		if not p.is_enabled:
+			continue
+
 		ret = p(reply_user=reply_user, data=data)
 
 		if None != ret:
@@ -220,25 +223,34 @@ def command_help(argv, **args):
 		logger('plugin', 'empty help request, sent all commands')
 		commands = args['cmd_list']
 		commands.sort()
+		parsers = args['parser_list']
+		parsers.sort()
 		return {
-			'msg': args['reply_user'] + ': known commands: ' +
-			str(commands).strip('[]')
+			'msg': [
+				'%s: known commands: %s' % (
+					args['reply_user'], str(commands).strip('[]')
+				),
+				'known parsers: %s' % str(parsers).strip('[]')
+			]
 		}
 
-	if not what in [p.plugin_name for p in plugins[ptypes_COMMAND]]:
-		logger('plugin', 'no help found for %s' % what)
-		return {
-			'msg': args['reply_user'] + ': no such command: %s' % what
-		}
-
+	flag = False
 	for p in plugins[ptypes_COMMAND]:
 		if what == p.plugin_name:
+			flag = True
 			logger('plugin', 'sent help for %s' % what)
 			return {
 				'msg': args['reply_user'] + ': help for %s: %s' % (
 					what, p.plugin_desc
 				)
 			}
+
+	if not flag:
+		logger('plugin', 'no help found for %s' % what)
+		return {
+			'msg': args['reply_user'] + ': no such command: %s' % what
+		}
+
 
 @pluginfunction('version', 'prints version', ptypes_COMMAND)
 def command_version(argv, **args):
@@ -606,9 +618,9 @@ def command_plugin_activation(argv, **args):
 			'msg': args['reply_user'] + ': not allowed'
 		}
 
-	for c in plugins[ptypes_COMMAND]:
-		if c.plugin_name == plugin:
-			c.is_enabled = 'enable' == command
+	for p in plugins[ptypes_COMMAND] + plugins[ptypes_PARSE]:
+		if p.plugin_name == plugin:
+			p.is_enabled = 'enable' == command
 
 			return {
 				'msg': args['reply_user'] + ': %sd %s' % (
@@ -750,6 +762,7 @@ def data_parse_commands(msg_obj):
 		ret = p(
 			data = data,
 			cmd_list = [pl.plugin_name for pl in plugins[ptypes_COMMAND]],
+			parser_list = [pl.plugin_name for pl in plugins[ptypes_PARSE]],
 			reply_user = reply_user,
 			msg_obj = msg_obj,
 			argv = words[1:]
