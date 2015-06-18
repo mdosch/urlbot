@@ -182,7 +182,7 @@ def parse_slash_me(**args):
 		]
 
 		return {
-			'msg': args['reply_user'] + ': %s' % (random.sample(me_replys, 1)[0])
+			'msg': args['reply_user'] + ': %s' % random.choice(me_replys)
 		}
 
 #@pluginfunction('dummy_parser', 'dummy_parser desc', ptypes_PARSE)
