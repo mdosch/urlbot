@@ -130,7 +130,8 @@ def parse_moin_bye(**args):
 		'Guten Morgen', 'Morgen',
 		'Moin',
 		'Tag', 'Tach',
-		'NAbend', 'Abend'
+		'NAbend', 'Abend',
+		'Hallo', 'Hello'
 	]
 	bye = [
 		'Nacht', 'gN8', 'N8',
