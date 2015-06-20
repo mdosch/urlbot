@@ -314,7 +314,9 @@ if '__main__' == __name__:
 
 	while 1:
 		try:
-			plugins.event_trigger()
+			if False == plugins.event_trigger():
+				xmpp.disconnect()
+				sys.exit(1)
 
 			time.sleep(delay)
 		except KeyboardInterrupt:

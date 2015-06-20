@@ -23,6 +23,8 @@ joblist = []
 
 plugins = {p : [] for p in ptypes}
 
+got_hangup = False
+
 def pluginfunction(name, desc, plugin_type, ratelimit_class = RATE_GLOBAL, enabled = True):
 	''' A decorator to make a plugin out of a function '''
 	if plugin_type not in ptypes:
@@ -736,6 +738,8 @@ def else_command(args):
 	}
 
 def data_parse_commands(msg_obj):
+	global got_hangup
+
 	data = msg_obj['body']
 	words = data.split()
 
@@ -748,6 +752,7 @@ def data_parse_commands(msg_obj):
 
 	if 'hangup' in data:
 		logger('warn', 'received hangup: ' + data)
+		got_hangup = True
 		sys.exit(1)
 		return None
 
@@ -857,6 +862,9 @@ def register_all():
 	register(ptypes_COMMAND)
 
 def event_trigger():
+	if got_hangup:
+		return False
+
 	if 0 == len(joblist):
 		return
 
