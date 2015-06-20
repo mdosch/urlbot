@@ -15,8 +15,8 @@ from excuses import excuses
 from urlbot import extract_title
 from functools import wraps
 
-ptypes_PARSE = 0
-ptypes_COMMAND = 1
+ptypes_PARSE = 'parser'
+ptypes_COMMAND = 'command'
 ptypes = [ptypes_PARSE, ptypes_COMMAND]
 
 joblist = []
@@ -848,7 +848,7 @@ def register(func_type):
 				and f.plugin_type == func_type
 	]
 
-	log.info('auto registering plugins: %s' % (', '.join(
+	log.info('auto-reg %s: %s' % (func_type, ', '.join(
 		f.plugin_name for f in functions
 	)))
 
