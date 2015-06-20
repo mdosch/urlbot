@@ -61,7 +61,7 @@ def extract_title(url):
 	if html_text:
 		charset = ''
 		if 'content-type' in headers:
-			logger('debug', 'content-type: ' + headers['content-type'])
+			log.debug('content-type: ' + headers['content-type'])
 
 			if 'text/' != headers['content-type'][:len('text/')]:
 				return (1, headers['content-type'])

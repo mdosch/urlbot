@@ -799,7 +799,7 @@ def data_parse_commands(msg_obj):
 
 if debug_enabled():
 	def _send_reply(a, msg_obj):
-		logger('send_reply[%s]' % msg_obj, a)
+		log.info('send_reply[%s]' % msg_obj, a)
 
 	def _conf(ignored):
 		return 'bot'

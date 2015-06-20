@@ -2,13 +2,11 @@
 
 import time, sys
 
-def _logger(a, b):
-	sys.stderr.write('logger: %s::%s\n' %(a, b))
-
 try:
-	logger
+	log
 except NameError:
-	logger = _logger
+	import logging
+	log = logging.getLogger()
 
 if '__main__' == __name__:
 	print('''this is a config file, which is not meant to be executed''')
@@ -58,7 +56,7 @@ config = {
 def conf(val):
 	if val in list(config.keys()):
 		return config[val]
-	logger('warn', 'conf(): unknown key ' + str(val))
+	log.warn('conf(): unknown key ' + str(val))
 	return None
 
 def set_conf(key, val):
