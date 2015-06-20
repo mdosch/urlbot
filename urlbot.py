@@ -263,6 +263,7 @@ class bot(ClientXMPP):
 		self.send_presence()
 
 		for room in self.rooms:
+			logger('info', 'joining %s' % room)
 			self.plugin['xep_0045'].joinMUC(
 				room,
 				self.nick,
