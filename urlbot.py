@@ -285,6 +285,10 @@ class bot(ClientXMPP):
 
 		print('msg from %s: %s' % (msg_obj['from'].bare, msg_obj))
 
+#	def set_presence(self, msg):
+#		for room in self.rooms:
+#			self.send_presence(pto=room, pstatus=msg)
+
 if '__main__' == __name__:
 	import plugins
 
