@@ -17,7 +17,6 @@ except ImportError:
 	)
 	)
 
-import logging
 from sleekxmpp import ClientXMPP
 
 got_hangup = False
@@ -37,7 +36,7 @@ class bot(ClientXMPP):
 		self.send_presence()
 
 		for room in self.rooms:
-			logger('info', 'joining %s' % room)
+			log.info('joining %s' % room)
 			self.plugin['xep_0045'].joinMUC(
 				room,
 				self.nick,
@@ -55,7 +54,7 @@ class bot(ClientXMPP):
 			return
 
 		if msg_obj['body'].startswith(conf('bot_user')) and 'hangup' in msg_obj['body']:
-			logger('warn', "got 'hangup' from '%s': '%s'" % (
+			log.warn("got 'hangup' from '%s': '%s'" % (
 				msg_obj['mucnick'], msg_obj['body']
 			))
 			got_hangup = True
@@ -63,12 +62,7 @@ class bot(ClientXMPP):
 
 
 if '__main__' == __name__:
-	print(sys.argv[0] + ' ' + VERSION)
-
-	logging.basicConfig(
-		level=logging.INFO,
-		format='%(levelname)-8s %(message)s'
-	)
+	log.info(VERSION)
 
 	xmpp = bot(
 		jid=conf('jid'),

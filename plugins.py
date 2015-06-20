@@ -60,7 +60,7 @@ def parse_mental_ill(**args):
 			break
 
 	if True == flag:
-		logger('plugin', 'sent mental illness reply')
+		log.plugin('sent mental illness reply')
 		return {
 			'msg': '''Multiple exclamation/question marks are a sure sign of mental disease, with %s as a living example.''' % args['reply_user']
 		}
@@ -73,7 +73,7 @@ def parse_debbug(**args):
 
 	out = []
 	for b in bugs:
-		logger('plugin', 'detected Debian bug #%s' % b)
+		log.plugin('detected Debian bug #%s' % b)
 
 		url = 'https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=%s' % b
 		status, title = extract_title(url)
@@ -83,7 +83,7 @@ def parse_debbug(**args):
 		elif 3 == status:
 			out.append('error for #%s: %s' % (b, title))
 		else:
-			logger('plugin', 'parse_debbug(): unknown status %d' % status)
+			log.plugin('parse_debbug(): unknown status %d' % status)
 
 	return {
 		'msg': out
@@ -95,7 +95,7 @@ def parse_cve(**args):
 	if not cves:
 		return None
 
-	logger('plugin', 'detected CVE handle')
+	log.plugin('detected CVE handle')
 	return {
 		'msg': ['https://security-tracker.debian.org/tracker/%s' % c for c in cves] 
 	}
@@ -106,7 +106,7 @@ def parse_dsa(**args):
 	if not dsas:
 		return None
 
-	logger('plugin', 'detected DSA handle')
+	log.plugin('detected DSA handle')
 	return {
 		'msg': ['https://security-tracker.debian.org/tracker/%s' % d for d in dsas] 
 	}
@@ -114,7 +114,7 @@ def parse_dsa(**args):
 @pluginfunction('skynet', 'parse skynet', ptypes_PARSE)
 def parse_skynet(**args):
 	if 'skynet' in args['data'].lower():
-		logger('plugin', 'sent skynet reply')
+		log.plugin('sent skynet reply')
 		return {
 			'msg': '''I'm an independent bot and have nothing to do with other artificial intelligence systems!'''
 		}
@@ -122,7 +122,7 @@ def parse_skynet(**args):
 @pluginfunction('moin', 'parse moin/bye', ptypes_PARSE)
 def parse_moin_bye(**args):
 	if args['reply_user'] in conf('moin-disabled-user'):
-		logger('plugin', 'moin blacklist match')
+		log.plugin('moin blacklist match')
 		return
 
 	moin = [
@@ -149,7 +149,7 @@ def parse_moin_bye(**args):
 			for w in words:
 				if d.lower() == w.lower():
 					if args['reply_user'] in conf('moin-modified-user'):
-						logger('plugin', 'being "quiet" for %s' % w)
+						log.plugin('being "quiet" for %s' % w)
 						return {
 							'msg': '/me %s' % random.choice([
 								"doesn't say anything at all",
@@ -158,7 +158,7 @@ def parse_moin_bye(**args):
 							])
 						}
 
-					logger('plugin', 'sent %s reply for %s' % (
+					log.plugin('sent %s reply for %s' % (
 						'moin' if direction is moin else 'bye', w
 					))
 					return {
@@ -178,7 +178,7 @@ def parse_latex(**args):
 @pluginfunction('me-action', 'reacts to /me.*%{bot_user}', ptypes_PARSE)
 def parse_slash_me(**args):
 	if args['data'].lower().startswith('/me') and (conf('bot_user') in args['data'].lower()):
-		logger('plugin', 'sent /me reply')
+		log.plugin('sent /me reply')
 
 		me_replys = [
 			'are you that rude to everybody?',
@@ -195,7 +195,7 @@ def parse_slash_me(**args):
 #@pluginfunction('dummy_parser', 'dummy_parser desc', ptypes_PARSE)
 #def parse_skynet(**args):
 #	if 'dummy_parser' in args['data'].lower():
-#		logger('plugin', 'dummy_parser triggered')
+#		log.plugin('dummy_parser triggered')
 #		return {
 #			'msg': 'dummy_parser triggered'
 #		}
@@ -227,7 +227,7 @@ def command_help(argv, **args):
 		return
 
 	if None == what:
-		logger('plugin', 'empty help request, sent all commands')
+		log.plugin('empty help request, sent all commands')
 		commands = args['cmd_list']
 		commands.sort()
 		parsers = args['parser_list']
@@ -245,7 +245,7 @@ def command_help(argv, **args):
 	for p in plugins[ptypes_COMMAND] + plugins[ptypes_PARSE]:
 		if what == p.plugin_name:
 			flag = True
-			logger('plugin', 'sent help for %s' % what)
+			log.plugin('sent help for %s' % what)
 			return {
 				'msg': args['reply_user'] + ': help for %s %s: %s' % (
 					'parser' if p.plugin_type == ptypes_PARSE else 'command',
@@ -254,7 +254,7 @@ def command_help(argv, **args):
 			}
 
 	if not flag:
-		logger('plugin', 'no help found for %s' % what)
+		log.plugin('no help found for %s' % what)
 		return {
 			'msg': args['reply_user'] + ': no such command: %s' % what
 		}
@@ -265,7 +265,7 @@ def command_version(argv, **args):
 	if 'version' != argv[0]:
 		return
 
-	logger('plugin', 'sent version string')
+	log.plugin('sent version string')
 	return {
 		'msg': args['reply_user'] + (''': I'm running ''' + VERSION)
 	}
@@ -275,7 +275,7 @@ def command_klammer(argv, **args):
 	if 'klammer' != argv[0]:
 		return
 
-	logger('plugin', 'sent karl klammer')
+	log.plugin('sent karl klammer')
 	return {
 		'msg': (
 			args['reply_user'] + ',',
@@ -293,7 +293,7 @@ def command_unicode(argv, **args):
 	if 'unikot' != argv[0]:
 		return
 
-	logger('plugin', 'sent some unicode')
+	log.plugin('sent some unicode')
 	return {
 		'msg': (
 			args['reply_user'] + ''', here's some''',
@@ -308,7 +308,7 @@ def command_source(argv, **args):
 	if not argv[0] in ('source', 'src'):
 		return
 
-	logger('plugin', 'sent source URL')
+	log.plugin('sent source URL')
 	return {
 		'msg': 'My source code can be found at %s' % conf('src-url')
 	}
@@ -344,10 +344,10 @@ def command_dice(argv, **args):
 		rnd = 0
 		if args['reply_user'] in conf('enhanced-random-user'):
 			rnd = 0  # this might confuse users. good.
-			logger('plugin', 'sent random (enhanced)')
+			log.plugin('sent random (enhanced)')
 		else:
 			rnd = random.randint(1, 6)
-			logger('plugin', 'sent random')
+			log.plugin('sent random')
 
 		# the \u200b chars ('ZERO WIDTH SPACE') avoid interpreting stuff as smileys
 		# by some strange clients
@@ -371,7 +371,7 @@ def command_uptime(argv, **args):
 	if 1 == conf('request_counter'):
 		plural_request = ''
 
-	logger('plugin', 'sent statistics')
+	log.plugin('sent statistics')
 	return {
 		'msg': args['reply_user'] + (''': happily serving for %d second%s, %d request%s so far.''' % (u, plural_uptime, conf('request_counter'), plural_request))
 	}
@@ -384,13 +384,13 @@ def command_ping(argv, **args):
 	rnd = random.randint(0, 3)  # 1:4
 	if 0 == rnd:
 		msg = args['reply_user'] + ''': peng (You're dead now.)'''
-		logger('plugin', 'sent pong (variant)')
+		log.plugin('sent pong (variant)')
 	elif 1 == rnd:
 		msg = args['reply_user'] + ''': I don't like you, leave me alone.'''
-		logger('plugin', 'sent pong (dontlike)')
+		log.plugin('sent pong (dontlike)')
 	else:
 		msg = args['reply_user'] + ''': pong'''
-		logger('plugin', 'sent pong')
+		log.plugin('sent pong')
 
 	return {
 		'msg': msg
@@ -401,7 +401,7 @@ def command_info(argv, **args):
 	if 'info' != argv[0]:
 		return
 
-	logger('plugin', 'sent long info')
+	log.plugin('sent long info')
 	return {
 		'msg': args['reply_user'] + (''': I'm a bot, my job is to extract <title> tags from posted URLs. In case I'm annoying or for further questions, please talk to my master %s. I'm rate limited and shouldn't post more than %d messages per %d seconds. To make me exit immediately, highlight me with 'hangup' in the message (emergency only, please). For other commands, highlight me with 'help'.''' % (conf('bot_owner'), conf('hist_max_count'), conf('hist_max_time')))
 	}
@@ -426,7 +426,7 @@ def command_teatimer(argv, **args):
 	ready = time.time() + steep
 
 	try:
-		logger('plugin', 'tea timer set to %s' % time.strftime('%F.%T', time.localtime(ready)))
+		log.plugin('tea timer set to %s' % time.strftime('%F.%T', time.localtime(ready)))
 	except ValueError as e:
 		return {
 			'msg': args['reply_user'] + ': time format error: ' + str(e)
@@ -454,12 +454,12 @@ def command_decode(argv, **args):
 
 	char = argv[1]
 	char_esc = str(char.encode('unicode_escape'))[3:-1]
-	logger('plugin', 'decode called for %s' % char)
+	log.plugin('decode called for %s' % char)
 
 	try:
 		uni_name = unicodedata.name(char)
 	except Exception as e:
-		logger('plugin', 'decode(%s) failed: %s' % (char, str(e)))
+		log.plugin('decode(%s) failed: %s' % (char, str(e)))
 		return {
 			'msg': args['reply_user'] + ": can't decode %s (%s): %s" % (char, char_esc, str(e))
 		}
@@ -473,7 +473,7 @@ def command_show_blacklist(argv, **args):
 	if 'show-blacklist' != argv[0]:
 		return
 
-	logger('plugin', 'sent URL blacklist')
+	log.plugin('sent URL blacklist')
 
 	argv1 = None if len(argv) < 2 else argv[1]
 
@@ -581,7 +581,7 @@ def command_remember(argv, **args):
 	if 'remember' != argv[0]:
 		return
 
-	logger('plugin', 'remember plugin called')
+	log.plugin('remember plugin called')
 
 	if not len(argv) > 1:
 		return {
@@ -600,7 +600,7 @@ def command_recall(argv, **args):
 	if 'recall' != argv[0]:
 		return
 
-	logger('plugin', 'recall plugin called')
+	log.plugin('recall plugin called')
 
 	return {
 		'msg': args['reply_user'] + ': recalling %s' % conf('data_remember')
@@ -615,7 +615,7 @@ def command_plugin_activation(argv, **args):
 	if not command in ('enable', 'disable'):
 		return
 
-	logger('plugin', 'plugin activation plugin called')
+	log.plugin('plugin activation plugin called')
 
 	if None == plugin:
 		return {
@@ -655,7 +655,7 @@ def command_wp(argv, lang='de', **args):
 	if 'wp' != argv[0]:
 		return
 
-	logger('plugin', 'wp plugin called')
+	log.plugin('wp plugin called')
 
 	query = ' '.join(argv[1:])
 
@@ -678,7 +678,7 @@ def command_wp(argv, lang='de', **args):
 		lang, urllib.parse.urlencode(api)
 	)
 
-	logger('plugin', 'wp: fetching %s' % apiurl)
+	log.plugin('wp: fetching %s' % apiurl)
 
 	try:
 		response = urllib.request.urlopen(apiurl)
@@ -692,7 +692,7 @@ def command_wp(argv, lang='de', **args):
 			lang, urllib.parse.quote(linktitle)
 		)
 	except Exception as e:
-		logger('plugin', 'wp(%s) failed: %s, %s' % (query, e, traceback.format_exc()))
+		log.plugin('wp(%s) failed: %s, %s' % (query, e, traceback.format_exc()))
 		return {
 			'msg': args['reply_user'] + ': something failed: %s' % e
 		}
@@ -717,7 +717,7 @@ def command_dummy(argv, **args):
 	if 'excuse' != argv[0]:
 		return
 
-	logger('plugin', 'BOFH plugin called')
+	log.plugin('BOFH plugin called')
 
 	excuse = random.sample(excuses, 1)[0]
 
@@ -730,14 +730,14 @@ def command_dummy(argv, **args):
 #	if 'dummy' != argv[0]:
 #		return
 #
-#	logger('plugin', 'dummy plugin called')
+#	log.plugin('dummy plugin called')
 #
 #	return {
 #		'msg': args['reply_user'] + ': dummy plugin called'
 #	}
 
 def else_command(args):
-	logger('plugin', 'sent short info')
+	log.plugin('sent short info')
 	return {
 		'msg': args['reply_user'] + ''': I'm a bot (highlight me with 'info' for more information).'''
 	}
@@ -756,7 +756,7 @@ def data_parse_commands(msg_obj):
 		return None
 
 	if 'hangup' in data:
-		logger('warn', 'received hangup: ' + data)
+		log.warn('received hangup: ' + data)
 		got_hangup = True
 		sys.exit(1)
 		return None
@@ -830,7 +830,7 @@ if debug_enabled():
 	except NameError:
 		ratelimit_touch = _ratelimit_touch
 
-	logger('info', 'debugging enabled')
+	log.info('debugging enabled')
 
 def register(func_type):
 	'''
@@ -848,7 +848,7 @@ def register(func_type):
 				and f.plugin_type == func_type
 	]
 
-	logger('info', 'auto registering plugins: %s' % (', '.join(
+	log.info('auto registering plugins: %s' % (', '.join(
 		f.plugin_name for f in functions
 	)))
 
@@ -859,7 +859,7 @@ def register_plugin(function, func_type):
 	try:
 		plugins[func_type].append(function)
 	except Exception as e:
-		logger('warn', 'registering %s failed: %s, %s' %
+		log.warn('registering %s failed: %s, %s' %
 			(function, e, traceback.format_exc()))
 
 def register_all():

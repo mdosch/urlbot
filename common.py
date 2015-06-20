@@ -5,7 +5,7 @@ if '__main__' == __name__:
 	print('''this is a library file, which is not meant to be executed''')
 	exit(-1)
 
-import sys, time, pickle, os
+import sys, time, pickle, os, logging
 from local_config import conf
 
 RATE_GLOBAL = 0x01
@@ -21,15 +21,16 @@ basedir = '.'
 if 2 == len(sys.argv):
 	basedir = sys.argv[1]
 
+logging.basicConfig(
+	level=logging.INFO,
+	format=sys.argv[0]+' %(asctime)s %(levelname)-8s %(message)s'
+)
+log = logging.getLogger()
+log.plugin = log.info  # ... probably fix this sometime (FIXME)
+
 def debug_enabled():
 #	return True
 	return False
-
-def logger(severity, message):
-#	sev = ( 'err', 'warn', 'info' )
-#	if severity in sev:
-	args = (sys.argv[0], time.strftime('%Y-%m-%d.%H:%M:%S'), severity, message)
-	sys.stderr.write('%s %s %s: %s\n' % args)
 
 def conf_save(obj):
 	with open(conf('persistent_storage'), 'wb') as fd:

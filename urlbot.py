@@ -21,8 +21,6 @@ except ImportError:
 
 	sys.exit(-1)
 
-import logging
-
 from sleekxmpp import ClientXMPP
 
 # rate limiting to 5 messages per 10 minutes
@@ -32,7 +30,7 @@ hist_flag = True
 parser = None
 
 def fetch_page(url):
-	logger('info', 'fetching page ' + url)
+	log.info('fetching page ' + url)
 	try:
 		request = urllib.request.Request(url)
 		request.add_header('User-Agent', '''Mozilla/5.0 (X11; Linux x86_64; rv:31.0) Gecko/20100101 Firefox/31.0 Iceweasel/31.0''')
@@ -41,7 +39,7 @@ def fetch_page(url):
 		response.close()
 		return (0, html_text, response.headers)
 	except Exception as e:
-		logger('warn', 'failed: ' + str(e))
+		log.warn('failed: %s' % e)
 		return (1, str(e), 'dummy')
 
 	return (-1, None, None)
@@ -50,10 +48,10 @@ def extract_title(url):
 	global parser
 
 	if 'repo/urlbot.git' in url:
-		logger('info', 'repo URL found: ' + url)
+		log.info('repo URL found: ' + url)
 		return (3, 'wee, that looks like my home repo!')
 
-	logger('info', 'extracting title from ' + url)
+	log.info('extracting title from ' + url)
 
 	(code, html_text, headers) = fetch_page(url)
 
@@ -77,7 +75,7 @@ def extract_title(url):
 			try:
 				html_text = html_text.decode(charset)
 			except LookupError:
-				logger('warn', 'invalid charset in ' + headers['content-type'])
+				log.warn('invalid charset in ' + headers['content-type'])
 
 		if str != type(html_text):
 			html_text = str(html_text)
@@ -92,7 +90,7 @@ def extract_title(url):
 			try:
 				expanded_html = parser.unescape(match)
 			except UnicodeDecodeError as e:  # idk why this can happen, but it does
-				logger('warn', 'parser.unescape() expoded here: ' + str(e))
+				log.warn('parser.unescape() expoded here: ' + str(e))
 				expanded_html = match
 			return (0, expanded_html)
 		else:
@@ -129,7 +127,7 @@ def ratelimit_exceeded(ignored=None):  # FIXME: separate counters
 # FIXME: this is very likely broken now
 				send_reply('(rate limited to %d messages in %d seconds, try again at %s)' % (conf('hist_max_count'), conf('hist_max_time'), time.strftime('%T %Z', time.localtime(hist_ts[0] + conf('hist_max_time')))))
 
-			logger('warn', 'rate limiting exceeded: ' + pickle.dumps(hist_ts))
+			log.warn('rate limiting exceeded: ' + pickle.dumps(hist_ts))
 			return True
 
 	hist_flag = True
@@ -151,7 +149,7 @@ def extract_url(data, msg_obj):
 		for b in conf('url_blacklist'):
 			if not None is re.match(b, url):
 				flag = True
-				logger('info', 'url blacklist match for ' + url)
+				log.info('url blacklist match for ' + url)
 				break
 
 		if flag:
@@ -185,7 +183,7 @@ def extract_url(data, msg_obj):
 					title, random.choice(char), url
 				)
 			else:
-				logger('info', 'no message sent for non-text %s (%s)' % (url, title))
+				log.info('no message sent for non-text %s (%s)' % (url, title))
 				continue
 		elif 2 == status:
 			message = 'No title: %s' % url
@@ -193,13 +191,13 @@ def extract_url(data, msg_obj):
 			message = title
 		elif 4 == status:
 			message = 'Bug triggered (%s), invalid URL/domain part: %s' % (title, url)
-			logger('warn', message)
+			log.warn(message)
 		else:
 			message = 'some error occurred when fetching %s' % url
 
 		message = message.replace('\n', '\\n')
 
-		logger('info', 'adding to out buf: ' + message)
+		log.info('adding to out buf: ' + message)
 		out.append(message)
 		ret = True
 
@@ -215,11 +213,11 @@ def handle_msg(msg_obj):
 		return
 
 	if sys.argv[0] in content:
-		logger('info', 'silenced, this is my own log')
+		log.info('silenced, this is my own log')
 		return
 
 	if 'nospoiler' in content:
-		logger('info', 'no spoiler for: ' + content)
+		log.info('no spoiler for: ' + content)
 		return
 
 	# don't react to itself
@@ -233,7 +231,7 @@ def handle_msg(msg_obj):
 	if arg_user in blob_userpref:
 		if 'spoiler' in blob_userpref[arg_user]:
 			if not blob_userpref[arg_user]['spoiler']:
-				logger('info', 'nospoiler from conf')
+				log.info('nospoiler from conf')
 				nospoiler = True
 
 	ret = None
@@ -263,7 +261,7 @@ class bot(ClientXMPP):
 		self.send_presence()
 
 		for room in self.rooms:
-			logger('info', 'joining %s' % room)
+			log.info('joining %s' % room)
 			self.plugin['xep_0045'].joinMUC(
 				room,
 				self.nick,
@@ -291,6 +289,8 @@ class bot(ClientXMPP):
 #			self.send_presence(pto=room, pstatus=msg)
 
 if '__main__' == __name__:
+	log.info(VERSION)
+
 	import plugins
 
 	plugins.send_reply = send_reply
@@ -298,8 +298,6 @@ if '__main__' == __name__:
 	plugins.ratelimit_touch = ratelimit_touch
 
 	plugins.register_all()
-
-	print(sys.argv[0] + ' ' + VERSION)
 
 	logging.basicConfig(
 		level=logging.INFO,
