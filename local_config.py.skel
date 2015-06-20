@@ -48,6 +48,7 @@ config = {
 
 	# the "moin" feature will be "disabled" for given users
 	'moin-modified-user': (),
+	'moin-disabled-user': (),
 
 	'tea_steep_time': (3*60 + 40),
 
