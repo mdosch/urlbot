@@ -121,10 +121,6 @@ def parse_skynet(**args):
 
 @pluginfunction('moin', 'parse moin/bye', ptypes_PARSE)
 def parse_moin_bye(**args):
-	if args['reply_user'] in conf('moin-disabled-user'):
-		log.plugin('moin blacklist match')
-		return
-
 	moin = [
 		'Hi',
 		'Guten Morgen', 'Morgen',
@@ -148,6 +144,10 @@ def parse_moin_bye(**args):
 
 			for w in words:
 				if d.lower() == w.lower():
+					if args['reply_user'] in conf('moin-disabled-user'):
+						log.plugin('moin blacklist match')
+						return
+
 					if args['reply_user'] in conf('moin-modified-user'):
 						log.plugin('being "quiet" for %s' % w)
 						return {
