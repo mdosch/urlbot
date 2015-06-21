@@ -11,7 +11,7 @@ import traceback
 import urllib.parse
 from local_config import conf, set_conf
 from common import *
-from excuses import excuses
+from string_constants import excuses
 from urlbot import extract_title
 from functools import wraps
 
@@ -119,9 +119,9 @@ def parse_skynet(**args):
 			'msg': '''I'm an independent bot and have nothing to do with other artificial intelligence systems!'''
 		}
 
-@pluginfunction('moin', 'parse moin/bye', ptypes_PARSE)
-def parse_moin_bye(**args):
-	moin = [
+@pluginfunction('moin', 'parse hi/bye', ptypes_PARSE)
+def parse_moin(**args):
+	moin_strings_hi = [
 		'Hi',
 		'Guten Morgen', 'Morgen',
 		'Moin',
@@ -129,12 +129,12 @@ def parse_moin_bye(**args):
 		'NAbend', 'Abend',
 		'Hallo', 'Hello'
 	]
-	bye = [
+	moin_strings_bye = [
 		'Nacht', 'gN8', 'N8',
 		'bye',
 	]
 
-	for direction in [moin, bye]:
+	for direction in [moin_strings_hi, moin_strings_bye]:
 		for d in direction:
 			words = re.split(r'\W+', args['data'])
 
@@ -159,7 +159,7 @@ def parse_moin_bye(**args):
 						}
 
 					log.plugin('sent %s reply for %s' % (
-						'moin' if direction is moin else 'bye', w
+						'hi' if direction is moin_strings_hi else 'bye', w
 					))
 					return {
 						'msg': '''%s, %s''' % (

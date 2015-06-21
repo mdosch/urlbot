@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 if '__main__' == __name__:
-	print('''this is a excuse file, which is not meant to be executed''')
+	print('''this file just contains a bunch of strings and is not meant to be executed''')
 	exit(-1)
 
 # retrived from http://pages.cs.wisc.edu/~ballard/bofh/excuses
