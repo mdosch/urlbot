@@ -722,14 +722,15 @@ def command_show_moinlist(argv, **args):
 	argv1 = None if len(argv) < 2 else argv[1]
 
 	return {
-		'msg': [
-			args['reply_user'] + ': moin reply list%s: ' % (
-				'' if not argv1 else ' (limited to %s)' % argv1
+		'msg': 
+			'%s: moin reply list%s: %s' % (
+				args['reply_user'],
+				'' if not argv1 else ' (limited to %s)' % argv1,
+				', '.join([
+					b for b in moin_strings_hi + moin_strings_bye
+					if not argv1 or argv1.lower() in b.lower()
+				])
 			)
-		] + [
-			b for b in moin_strings_hi + moin_strings_bye
-			if not argv1 or argv1 in b
-		]
 	}
 
 #@pluginfunction('dummy', 'dummy description', ptypes_COMMAND)
