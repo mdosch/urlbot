@@ -473,3 +473,17 @@ The math co-processor had an overflow error that leaked out and shorted the RAM
 Leap second overloaded RHEL6 servers
 DNS server drank too much and had a hiccup
 '''.split('\n')[1:-1]
+
+moin_strings_hi = [
+	'Hi',
+	'Guten Morgen', 'Morgen',
+	'Moin',
+	'Tag', 'Tach',
+	'NAbend', 'Abend',
+	'Hallo', 'Hello'
+]
+moin_strings_bye = [
+	'Nacht', 'gN8', 'N8',
+	'bye',
+]
+
