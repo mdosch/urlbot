@@ -712,6 +712,26 @@ def command_dummy(argv, **args):
 		'msg': args['reply_user'] + ': ' + excuse
 	}
 
+@pluginfunction('show-moinlist', 'show the current moin reply list, optionally filtered', ptypes_COMMAND)
+def command_show_moinlist(argv, **args):
+	if 'show-moinlist' != argv[0]:
+		return
+
+	log.plugin('sent moin reply list')
+
+	argv1 = None if len(argv) < 2 else argv[1]
+
+	return {
+		'msg': [
+			args['reply_user'] + ': moin reply list%s: ' % (
+				'' if not argv1 else ' (limited to %s)' % argv1
+			)
+		] + [
+			b for b in moin_strings_hi + moin_strings_bye
+			if not argv1 or argv1 in b
+		]
+	}
+
 #@pluginfunction('dummy', 'dummy description', ptypes_COMMAND)
 #def command_dummy(argv, **args):
 #	if 'dummy' != argv[0]:
