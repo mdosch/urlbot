@@ -25,6 +25,12 @@ plugins = {p : [] for p in ptypes}
 
 got_hangup = False
 
+def plugin_enabled_get(plugin):
+	return plugin.is_enabled
+
+def plugin_enabled_set(plugin, enabled):
+	plugin.is_enabled = enabled
+
 def pluginfunction(name, desc, plugin_type, ratelimit_class = RATE_GLOBAL, enabled = True):
 	''' A decorator to make a plugin out of a function '''
 	if plugin_type not in ptypes:
@@ -195,7 +201,7 @@ def data_parse_other(msg_obj):
 		if ratelimit_exceeded(p.ratelimit_class):
 			continue
 
-		if not p.is_enabled:
+		if not plugin_enabled_get(p):
 			continue
 
 		ret = p(reply_user=reply_user, data=data)
@@ -235,7 +241,7 @@ def command_help(argv, **args):
 			log.plugin('sent help for %s' % what)
 			return {
 				'msg': args['reply_user'] + ': help for %s %s %s: %s' % (
-					'enabled' if p.is_enabled else 'disabled',
+					'enabled' if plugin_enabled_get(p) else 'disabled',
 					'parser' if p.plugin_type == ptypes_PARSE else 'command',
 					what, p.plugin_desc
 				)
@@ -616,7 +622,7 @@ def command_plugin_activation(argv, **args):
 
 	for p in plugins[ptypes_COMMAND] + plugins[ptypes_PARSE]:
 		if p.plugin_name == plugin:
-			p.is_enabled = 'enable' == command
+			plugin_enabled_set(p, 'enable' == command)
 
 			return {
 				'msg': args['reply_user'] + ': %sd %s' % (
@@ -758,11 +764,11 @@ def command_list(argv, **args):
 	if 'parser' in argv:
 		out_parser = plugins[ptypes_PARSE]
 	if 'enabled' in argv:
-		out_command = [p for p in out_command if p.is_enabled]
-		out_parser = [p for p in out_parser if p.is_enabled]
+		out_command = [p for p in out_command if plugin_enabled_get(p)]
+		out_parser = [p for p in out_parser if plugin_enabled_get(p)]
 	if 'disabled' in argv:
-		out_command = [p for p in out_command if not p.is_enabled]
-		out_parser = [p for p in out_parser if not p.is_enabled]
+		out_command = [p for p in out_command if not plugin_enabled_get(p)]
+		out_parser = [p for p in out_parser if not plugin_enabled_get(p)]
 
 	msg = [args['reply_user'] + ': list of plugins:']
 
@@ -814,7 +820,7 @@ def data_parse_commands(msg_obj):
 		if ratelimit_exceeded(p.ratelimit_class):
 			continue
 
-		if not p.is_enabled:
+		if not plugin_enabled_get(p):
 			continue
 
 		ret = p(
