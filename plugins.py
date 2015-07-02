@@ -26,10 +26,36 @@ plugins = {p : [] for p in ptypes}
 got_hangup = False
 
 def plugin_enabled_get(plugin):
+	blob = conf_load()
+
+	if 'plugin_conf' in blob:
+		if plugin.plugin_name in blob['plugin_conf']:
+			return blob['plugin_conf'][plugin.plugin_name].get(
+				'enabled', plugin.is_enabled
+			)
+
 	return plugin.is_enabled
 
 def plugin_enabled_set(plugin, enabled):
-	plugin.is_enabled = enabled
+	if conf('persistent_locked'):
+		log.warn("couldn't get exclusive lock")
+		return False
+
+	set_conf('persistent_locked', True)
+	blob = conf_load()
+
+	if 'plugin_conf' not in blob:
+		blob['plugin_conf'] = {}
+
+	if not plugin.plugin_name in blob['plugin_conf']:
+		blob['plugin_conf'][plugin.plugin_name] = {}
+
+	blob['plugin_conf'][plugin.plugin_name]['enabled'] = enabled
+
+	conf_save(blob)
+	set_conf('persistent_locked', False)
+
+	return True
 
 def pluginfunction(name, desc, plugin_type, ratelimit_class = RATE_GLOBAL, enabled = True):
 	''' A decorator to make a plugin out of a function '''
