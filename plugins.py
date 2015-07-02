@@ -222,9 +222,9 @@ def command_help(argv, **args):
 		return {
 			'msg': [
 				'%s: known commands: %s' % (
-					args['reply_user'], str(commands).strip('[]')
+					args['reply_user'], ', '.join(commands)
 				),
-				'known parsers: %s' % str(parsers).strip('[]')
+				'known parsers: %s' % ', '.join(parsers)
 			]
 		}
 
@@ -234,7 +234,8 @@ def command_help(argv, **args):
 			flag = True
 			log.plugin('sent help for %s' % what)
 			return {
-				'msg': args['reply_user'] + ': help for %s %s: %s' % (
+				'msg': args['reply_user'] + ': help for %s %s %s: %s' % (
+					'enabled' if p.is_enabled else 'disabled',
 					'parser' if p.plugin_type == ptypes_PARSE else 'command',
 					what, p.plugin_desc
 				)
