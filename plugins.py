@@ -734,6 +734,44 @@ def command_show_moinlist(argv, **args):
 			)
 	}
 
+@pluginfunction('list', 'list plugin and parser status', ptypes_COMMAND)
+def command_list(argv, **args):
+	if 'list' != argv[0]:
+		return
+
+	log.plugin('list plugin called')
+
+	if 'enabled' in argv and 'disabled' in argv:
+		return {
+			'msg': args['reply_user'] + ": both 'enabled' and 'disabled' makes no sense"
+		}
+
+	# if not given, asume both
+	if not 'command' in argv and not 'parser' in argv:
+		argv.append('command')
+		argv.append('parser')
+
+	out_command = []
+	out_parser = []
+	if 'command' in argv:
+		out_command = plugins[ptypes_COMMAND]
+	if 'parser' in argv:
+		out_parser = plugins[ptypes_PARSE]
+	if 'enabled' in argv:
+		out_command = [p for p in out_command if p.is_enabled]
+		out_parser = [p for p in out_parser if p.is_enabled]
+	if 'disabled' in argv:
+		out_command = [p for p in out_command if not p.is_enabled]
+		out_parser = [p for p in out_parser if not p.is_enabled]
+
+	msg = [args['reply_user'] + ': list of plugins:']
+
+	if out_command:
+		msg.append('commands: %s' % ', '.join([p.plugin_name for p in out_command]))
+	if out_parser:
+		msg.append('parsers: %s' % ', '.join([p.plugin_name for p in out_parser]))
+	return {'msg': msg}
+
 #@pluginfunction('dummy', 'dummy description', ptypes_COMMAND)
 #def command_dummy(argv, **args):
 #	if 'dummy' != argv[0]:
