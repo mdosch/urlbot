@@ -75,7 +75,7 @@ def extract_title(url):
 			try:
 				html_text = html_text.decode(charset)
 			except LookupError:
-				log.warn('invalid charset in ' + headers['content-type'])
+				log.warn("invalid charset in '%s': '%s'" % (headers['content-type'], charset))
 
 		if str != type(html_text):
 			html_text = str(html_text)
