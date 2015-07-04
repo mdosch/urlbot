@@ -56,7 +56,7 @@ def extract_title(url):
 	(code, html_text, headers) = fetch_page(url)
 
 	if 1 == code:
-		return (3, 'failed: %s for %s' % (html_text, url))
+		return (3, 'failed: %s' % html_text)
 
 	if html_text:
 		charset = ''
@@ -174,26 +174,26 @@ def extract_url(data, msg_obj):
 		if 0 == status:
 			title = title.strip()
 
-			message = 'Title: %s: %s' % (title, url)
+			message = 'Title: %s' % title
 		elif 1 == status:
 			if conf('image_preview'):
 				# of course it's fake, but it looks interesting at least
 				char = """,._-+=\|/*`~"'"""
-				message = 'No text but %s, 1-bit ASCII art preview: [%c] %s' % (
-					title, random.choice(char), url
+				message = 'No text but %s, 1-bit ASCII art preview: [%c]' % (
+					title, random.choice(char)
 				)
 			else:
 				log.info('no message sent for non-text %s (%s)' % (url, title))
 				continue
 		elif 2 == status:
-			message = 'No title: %s' % url
+			message = '(No title)'
 		elif 3 == status:
 			message = title
 		elif 4 == status:
 			message = 'Bug triggered (%s), invalid URL/domain part: %s' % (title, url)
 			log.warn(message)
 		else:
-			message = 'some error occurred when fetching %s' % url
+			message = 'some error occurred while fetching'
 
 		message = message.replace('\n', '\\n')
 
