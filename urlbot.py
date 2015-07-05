@@ -56,7 +56,7 @@ def extract_title(url):
 	(code, html_text, headers) = fetch_page(url)
 
 	if 1 == code:
-		return (3, 'failed: %s' % html_text)
+		return (3, 'failed: %s for %s' % (html_text, url))
 
 	if html_text:
 		charset = ''
@@ -193,7 +193,7 @@ def extract_url(data, msg_obj):
 			message = 'Bug triggered (%s), invalid URL/domain part: %s' % (title, url)
 			log.warn(message)
 		else:
-			message = 'some error occurred while fetching'
+			message = 'some error occurred when fetching %s' % url
 
 		message = message.replace('\n', '\\n')
 
