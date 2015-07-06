@@ -472,21 +472,33 @@ def command_decode(argv, **args):
 			'msg': args['reply_user'] + ': usage: decode {single character}'
 		}
 
-	char = argv[1]
-	char_esc = str(char.encode('unicode_escape'))[3:-1]
-	log.plugin('decode called for %s' % char)
+	log.plugin('decode called for %s' % argv[1])
 
-	try:
-		uni_name = unicodedata.name(char)
-	except Exception as e:
-		log.plugin('decode(%s) failed: %s' % (char, str(e)))
+	out = []
+	for i, char in enumerate(argv[1]):
+		if i > 9:
+			out.append('... limit reached.')
+			break
+
+		char_esc = str(char.encode('unicode_escape'))[3:-1]
+
+		try:
+			uni_name = unicodedata.name(char)
+		except Exception as e:
+			log.plugin('decode(%s) failed: %s' % (char, e))
+			out.append("can't decode %s (%s): %s" % (char, char_esc, e))
+			continue
+
+		out.append('%s (%s) is called "%s"' % (char, char_esc, uni_name))
+
+	if 1 == len(out):
 		return {
-			'msg': args['reply_user'] + ": can't decode %s (%s): %s" % (char, char_esc, str(e))
+			'msg': args['reply_user'] + ': %s' % out[0]
 		}
-
-	return {
-		'msg': args['reply_user'] + ': %s (%s) is called "%s"' % (char, char_esc, uni_name)
-	}
+	else:
+		return {
+			'msg': [args['reply_user'] + ': decoding %s:' % argv[1]] + out
+		}
 
 @pluginfunction('show-blacklist', 'show the current URL blacklist, optionally filtered', ptypes_COMMAND)
 def command_show_blacklist(argv, **args):
