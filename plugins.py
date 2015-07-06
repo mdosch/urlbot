@@ -482,14 +482,19 @@ def command_decode(argv, **args):
 
 		char_esc = str(char.encode('unicode_escape'))[3:-1]
 
+		if 0 == len(char_esc):
+			char_esc = ''
+		else:
+			char_esc = ' (%s)' % char_esc
+
 		try:
 			uni_name = unicodedata.name(char)
 		except Exception as e:
 			log.plugin('decode(%s) failed: %s' % (char, e))
-			out.append("can't decode %s (%s): %s" % (char, char_esc, e))
+			out.append("can't decode %s%s: %s" % (char, char_esc, e))
 			continue
 
-		out.append('%s (%s) is called "%s"' % (char, char_esc, uni_name))
+		out.append('%s%s is called "%s"' % (char, char_esc, uni_name))
 
 	if 1 == len(out):
 		return {
