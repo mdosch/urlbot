@@ -256,6 +256,9 @@ class bot(ClientXMPP):
 		self.add_event_handler('groupchat_message', self.muc_message)
 		self.add_event_handler('message', self.message)
 
+		for r in self.rooms:
+			self.add_event_handler('muc::%s::got_online' % r, self.muc_online)
+
 	def session_start(self, event):
 		self.get_roster()
 		self.send_presence()
@@ -278,6 +281,33 @@ class bot(ClientXMPP):
 	def message(self, msg_obj):
 		if 'groupchat' == msg_obj['type']:
 			return
+
+	def muc_online(self, msg_obj):
+		# don't react to yourself
+		if msg_obj['mucnick'] == self.nick:
+			return
+
+# XXX: this is the 'foo has joined' message hook. Be careful: After joining,
+#      the bot user sees a single message for each existing user. E.g. the
+#      bot will likely highlight all users. Not good.
+#
+# XXX: example code:
+#
+#		self.send_message(
+#			mto=msg_obj['from'].bare,
+#			mbody='hello, %s %s' % (
+#				msg_obj['muc']['role'],
+#				msg_obj['muc']['nick']
+#			),
+#			mtype='groupchat'
+#		)
+#
+#		log.info('sent greeting to %s in %s' % (
+#			msg_obj['muc']['nick'],
+#			msg_obj['from'].bare
+#		))
+
+		return
 
 #		plugins.data_parse_commands(msg_obj)
 #		plugins.data_parse_other(msg_obj)
