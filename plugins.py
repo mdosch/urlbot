@@ -821,6 +821,43 @@ def command_list(argv, **args):
 		msg.append('parsers: %s' % ', '.join([p.plugin_name for p in out_parser]))
 	return {'msg': msg}
 
+@pluginfunction('record', 'record a message for a now offline user', ptypes_COMMAND)
+def command_record(argv, **args):
+	if 'record' != argv[0]:
+		return
+
+	if 3 > len(argv):
+		return {
+			'msg': '%s: usage: record {user} {some message}' % args['reply_user']
+		}
+
+	target_user = argv[1]
+	message = 'Message from %s (%s): ' % (args['reply_user'], time.strftime('%F.%T'))
+	message += ' '.join(argv[2:])
+
+	if conf('persistent_locked'):
+		return {
+			'msg': "%s: couldn't get exclusive lock" % args['reply_user']
+		}
+
+	set_conf('persistent_locked', True)
+	blob = conf_load()
+	
+	if 'user_records' not in blob:
+		blob['user_records'] = {}
+
+	if not target_user in blob['user_records']:
+		blob['user_records'][target_user] = []
+
+	blob['user_records'][target_user].append(message)
+
+	conf_save(blob)
+	set_conf('persistent_locked', False)
+
+	return {
+		'msg': '%s: message saved for %s' % (args['reply_user'], target_user)
+	}
+
 #@pluginfunction('dummy', 'dummy description', ptypes_COMMAND)
 #def command_dummy(argv, **args):
 #	if 'dummy' != argv[0]:
