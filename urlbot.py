@@ -225,7 +225,7 @@ def handle_msg(msg_obj):
 		return
 
 	arg_user = msg_obj['mucnick']
-	blob_userpref = conf_load().get('user_pref',[])
+	blob_userpref = conf_load().get('user_pref', [])
 	nospoiler = False
 
 	if arg_user in blob_userpref:
@@ -284,35 +284,49 @@ class bot(ClientXMPP):
 
 	def muc_online(self, msg_obj):
 		# don't react to yourself
-		if msg_obj['mucnick'] == self.nick:
+		if msg_obj['muc']['nick'] == self.nick:
 			return
 
-# XXX: this is the 'foo has joined' message hook. Be careful: After joining,
-#      the bot user sees a single message for each existing user. E.g. the
-#      bot will likely highlight all users. Not good.
-#
-# XXX: example code:
-#
-#		self.send_message(
-#			mto=msg_obj['from'].bare,
-#			mbody='hello, %s %s' % (
-#				msg_obj['muc']['role'],
-#				msg_obj['muc']['nick']
-#			),
-#			mtype='groupchat'
-#		)
-#
-#		log.info('sent greeting to %s in %s' % (
-#			msg_obj['muc']['nick'],
-#			msg_obj['from'].bare
-#		))
+		arg_user = msg_obj['muc']['nick']
+		blob_userrecords = conf_load().get('user_records', {})
+
+		if arg_user in blob_userrecords:
+			records = blob_userrecords[arg_user]
+
+			if not records:
+				return
+
+			self.send_message(
+				mto=msg_obj['from'].bare,
+				mbody='%s, there %s %d message%s for you:\n%s' % (
+					arg_user,
+					'is' if 1 == len(records) else 'are',
+					len(records),
+					'' if 1 == len(records) else 's',
+					'\n'.join(blob_userrecords[arg_user])
+				),
+				mtype='groupchat'
+			)
+			log.info('sent %d offline records to room %s' % (
+				len(records), msg_obj['from'].bare
+			))
+
+			if conf('persistent_locked'):
+				log.warn("couldn't get exclusive lock")
+				return False
+
+			set_conf('persistent_locked', True)
+			blob = conf_load()
+			
+			if 'user_records' not in blob:
+				blob['user_records'] = {}
+
+			blob['user_records'][arg_user] = []
+
+			conf_save(blob)
+			set_conf('persistent_locked', False)
 
 		return
-
-#		plugins.data_parse_commands(msg_obj)
-#		plugins.data_parse_other(msg_obj)
-
-		print('msg from %s: %s' % (msg_obj['from'].bare, msg_obj))
 
 #	def set_presence(self, msg):
 #		for room in self.rooms:

@@ -832,7 +832,7 @@ def command_record(argv, **args):
 		}
 
 	target_user = argv[1]
-	message = 'Message from %s (%s): ' % (args['reply_user'], time.strftime('%F.%T'))
+	message = '%s (%s): ' % (args['reply_user'], time.strftime('%F.%T'))
 	message += ' '.join(argv[2:])
 
 	if conf('persistent_locked'):
