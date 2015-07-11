@@ -831,7 +831,7 @@ def command_record(argv, **args):
 			'msg': '%s: usage: record {user} {some message}' % args['reply_user']
 		}
 
-	target_user = argv[1]
+	target_user = argv[1].lower()
 	message = '%s (%s): ' % (args['reply_user'], time.strftime('%F.%T'))
 	message += ' '.join(argv[2:])
 

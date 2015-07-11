@@ -288,10 +288,11 @@ class bot(ClientXMPP):
 			return
 
 		arg_user = msg_obj['muc']['nick']
+		arg_user_key = arg_user.lower()
 		blob_userrecords = conf_load().get('user_records', {})
 
-		if arg_user in blob_userrecords:
-			records = blob_userrecords[arg_user]
+		if arg_user_key in blob_userrecords:
+			records = blob_userrecords[arg_user_key]
 
 			if not records:
 				return
@@ -303,7 +304,7 @@ class bot(ClientXMPP):
 					'is' if 1 == len(records) else 'are',
 					len(records),
 					'' if 1 == len(records) else 's',
-					'\n'.join(blob_userrecords[arg_user])
+					'\n'.join(records)
 				),
 				mtype='groupchat'
 			)
@@ -321,7 +322,7 @@ class bot(ClientXMPP):
 			if 'user_records' not in blob:
 				blob['user_records'] = {}
 
-			blob['user_records'][arg_user] = []
+			blob['user_records'][arg_user_key] = []
 
 			conf_save(blob)
 			set_conf('persistent_locked', False)
