@@ -858,6 +858,27 @@ def command_record(argv, **args):
 		'msg': '%s: message saved for %s' % (args['reply_user'], target_user)
 	}
 
+@pluginfunction('show-records', 'show current offline records', ptypes_COMMAND)
+def command_show_recordlist(argv, **args):
+	if 'show-records' != argv[0]:
+		return
+
+	log.plugin('sent offline records list')
+
+	argv1 = None if len(argv) < 2 else argv[1]
+
+	return {
+		'msg': 
+			'%s: offline records%s: %s' % (
+				args['reply_user'],
+				'' if not argv1 else ' (limited to %s)' % argv1,
+				', '.join([
+					'%s (%d)' % (key, len(val)) for key, val in conf_load().get('user_records').items()
+					if not argv1 or argv1.lower() in key.lower()
+				])
+			)
+	}
+
 #@pluginfunction('dummy', 'dummy description', ptypes_COMMAND)
 #def command_dummy(argv, **args):
 #	if 'dummy' != argv[0]:
