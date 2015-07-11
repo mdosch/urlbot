@@ -322,7 +322,8 @@ class bot(ClientXMPP):
 			if 'user_records' not in blob:
 				blob['user_records'] = {}
 
-			blob['user_records'][arg_user_key] = []
+			if arg_user_key in blob['user_records']:
+				blob['user_records'].pop(arg_user_key)
 
 			conf_save(blob)
 			set_conf('persistent_locked', False)
