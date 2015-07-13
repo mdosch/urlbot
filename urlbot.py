@@ -119,7 +119,6 @@ def ratelimit_touch(ignored=None):  # FIXME: separate counters
 	if conf('hist_max_count') < len(hist_ts):
 		hist_ts.pop(0)
 
-
 def ratelimit_exceeded(ignored=None):  # FIXME: separate counters
 	global hist_flag
 
