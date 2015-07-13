@@ -107,7 +107,11 @@ def send_reply(message, msg_obj):
 	if debug_enabled():
 		print(message)
 	else:
-		msg_obj.reply(body=message).send()
+		xmpp.send_message(
+			mto = msg_obj['from'].bare,
+			mbody = message,
+			mtype = 'groupchat'
+		)
 
 def ratelimit_touch(ignored=None):  # FIXME: separate counters
 	hist_ts.append(time.time())
