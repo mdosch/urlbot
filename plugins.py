@@ -452,8 +452,6 @@ def command_teatimer(argv, **args):
 			'msg': args['reply_user'] + ': time format error: ' + str(e)
 		}
 
-# FIXME: this is currently broken because the msg_obj gets modified by the very
-#        first reply and can't be reused to .reply() with another message
 	register_event(ready, send_reply, (args['reply_user'] + ': Your tea is ready!', args['msg_obj']))
 
 	return {
