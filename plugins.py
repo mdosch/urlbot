@@ -877,6 +877,66 @@ def command_show_recordlist(argv, **args):
 			)
 	}
 
+@pluginfunction('dsa-watcher', 'automatically crawls for newly published Debian Security Announces', ptypes_COMMAND)
+def command_dsa_watcher(argv, **args):
+	if 'dsa-watcher' != argv[0]:
+		return
+
+	if 2 != len(argv):
+		msg = 'wrong number of arguments'
+		log.warn(msg)
+		return { 'msg': msg }
+
+	if 'crawl' == argv[1]:
+		dsa = conf_load().get('plugin_conf', {}).get('last_dsa', 1000)
+
+		url = 'https://security-tracker.debian.org/tracker/DSA-%d-1' % dsa
+		status, title = extract_title(url)
+
+		if 0 == status:
+			if conf('persistent_locked'):
+				msg = "command_dsa_watcher(): couldn't get exclusive lock"
+				log.warn(msg)
+#				return { 'msg': msg }
+			else:
+				set_conf('persistent_locked', True)
+				blob = conf_load()
+				
+				if 'plugin_conf' not in blob:
+					blob['plugin_conf'] = {}
+
+				if not 'last_dsa' in blob['plugin_conf']:
+					blob['plugin_conf']['last_dsa'] = 3308  # FIXME: fixed value
+
+				blob['plugin_conf']['last_dsa'] += 1
+
+				conf_save(blob)
+				set_conf('persistent_locked', False)
+
+			msg = 'new Debian Security Announce found: %s' % url
+			log.plugin(msg)
+			return { 'msg': msg }
+		elif 3 == status:
+			if not '404' in title:
+				msg = 'error for #%s: %s' % (url, title)
+				log.warn(msg)
+				return { 'msg': msg }
+
+			# that's good, no error, just 404 -> DSA not released yet
+		else:
+			log.plugin('command_dsa_watcher(): unknown status %d' % status)
+
+		crawl_at = time.time() + 15*60
+		register_event(crawl_at, command_dsa_watcher, (['dsa-watcher', 'crawl']))
+
+		msg = 'dsa_watcher: next crawl set to %s' % time.strftime('%F.%T', time.localtime(crawl_at))
+		log.plugin(msg)
+		return { 'msg': msg }
+	else:
+		msg = 'wrong argument'
+		log.warn(msg)
+		return { 'msg': msg }
+
 #@pluginfunction('dummy', 'dummy description', ptypes_COMMAND)
 #def command_dummy(argv, **args):
 #	if 'dummy' != argv[0]:
