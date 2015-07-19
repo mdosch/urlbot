@@ -23,7 +23,7 @@ if 2 == len(sys.argv):
 
 logging.basicConfig(
 	level=logging.INFO,
-	format=sys.argv[0]+' %(asctime)s %(levelname)-8s %(message)s'
+	format=sys.argv[0]+' %(asctime)s %(levelname).1s %(funcName)-15s %(message)s'
 )
 log = logging.getLogger()
 log.plugin = log.info  # ... probably fix this sometime (FIXME)
