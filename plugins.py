@@ -895,6 +895,8 @@ def command_dsa_watcher(argv, **args):
 		status, title = extract_title(url)
 
 		if 0 == status:
+			send_reply('new Debian Security Announce found: %s' % url)
+
 			if conf('persistent_locked'):
 				msg = "couldn't get exclusive lock"
 				log.warn(msg)

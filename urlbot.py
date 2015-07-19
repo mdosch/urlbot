@@ -98,7 +98,7 @@ def extract_title(url):
 
 	return (-1, 'error')
 
-def send_reply(message, msg_obj):
+def send_reply(message, msg_obj=None):
 	set_conf('request_counter', conf('request_counter') + 1)
 
 	if str is not type(message):
@@ -107,11 +107,19 @@ def send_reply(message, msg_obj):
 	if debug_enabled():
 		print(message)
 	else:
-		xmpp.send_message(
-			mto = msg_obj['from'].bare,
-			mbody = message,
-			mtype = 'groupchat'
-		)
+		if msg_obj:
+			xmpp.send_message(
+				mto = msg_obj['from'].bare,
+				mbody = message,
+				mtype = 'groupchat'
+			)
+		else:  # unset msg_obj == broadcast
+			for room in xmpp.rooms:
+				xmpp.send_message(
+					mto = room,
+					mbody = message,
+					mtype = 'groupchat'
+				)
 
 def ratelimit_touch(ignored=None):  # FIXME: separate counters
 	hist_ts.append(time.time())
