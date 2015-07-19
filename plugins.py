@@ -885,7 +885,6 @@ def command_dsa_watcher(argv, **args):
 			response = urllib.request.urlopen(request)
 			html_text = response.read(BUFSIZ)  # ignore more than BUFSIZ
 		except Exception as e:
-			log.warn('failed: %s' % e)
 			err = e
 
 		if not err:
