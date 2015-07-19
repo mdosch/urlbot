@@ -370,6 +370,9 @@ if '__main__' == __name__:
 	xmpp.register_plugin('xep_0045')
 	xmpp.process()
 
+	if plugins.plugin_enabled_get(plugins.command_dsa_watcher):
+		plugins.command_dsa_watcher(['dsa-watcher', 'crawl'])
+
 	while 1:
 		try:
 			if False == plugins.event_trigger():
