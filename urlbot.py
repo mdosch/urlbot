@@ -58,45 +58,45 @@ def extract_title(url):
 	if 1 == code:
 		return (3, 'failed: %s for %s' % (html_text, url))
 
-	if html_text:
-		charset = ''
-		if 'content-type' in headers:
-			log.debug('content-type: ' + headers['content-type'])
+	if not html_text:
+		return (-1, 'error')
 
-			if 'text/' != headers['content-type'][:len('text/')]:
-				return (1, headers['content-type'])
+	charset = ''
+	if 'content-type' in headers:
+		log.debug('content-type: ' + headers['content-type'])
 
-			charset = re.sub(
-				'.*charset=(?P<charset>\S+).*',
-				'\g<charset>', headers['content-type'], re.IGNORECASE
-			)
+		if 'text/' != headers['content-type'][:len('text/')]:
+			return (1, headers['content-type'])
 
-		if '' != charset:
-			try:
-				html_text = html_text.decode(charset)
-			except LookupError:
-				log.warn("invalid charset in '%s': '%s'" % (headers['content-type'], charset))
+		charset = re.sub(
+			'.*charset=(?P<charset>\S+).*',
+			'\g<charset>', headers['content-type'], re.IGNORECASE
+		)
 
-		if str != type(html_text):
-			html_text = str(html_text)
+	if '' != charset:
+		try:
+			html_text = html_text.decode(charset)
+		except LookupError:
+			log.warn("invalid charset in '%s': '%s'" % (headers['content-type'], charset))
 
-		result = re.match(r'.*?<title.*?>(.*?)</title>.*?', html_text, re.S | re.M | re.IGNORECASE)
-		if result:
-			match = result.groups()[0]
+	if str != type(html_text):
+		html_text = str(html_text)
 
-			if None == parser:
-				parser = html.parser.HTMLParser()
+	result = re.match(r'.*?<title.*?>(.*?)</title>.*?', html_text, re.S | re.M | re.IGNORECASE)
+	if result:
+		match = result.groups()[0]
 
-			try:
-				expanded_html = parser.unescape(match)
-			except UnicodeDecodeError as e:  # idk why this can happen, but it does
-				log.warn('parser.unescape() expoded here: ' + str(e))
-				expanded_html = match
-			return (0, expanded_html)
-		else:
-			return (2, 'no title')
+		if None == parser:
+			parser = html.parser.HTMLParser()
 
-	return (-1, 'error')
+		try:
+			expanded_html = parser.unescape(match)
+		except UnicodeDecodeError as e:  # idk why this can happen, but it does
+			log.warn('parser.unescape() expoded here: ' + str(e))
+			expanded_html = match
+		return (0, expanded_html)
+	else:
+		return (2, 'no title')
 
 def send_reply(message, msg_obj=None):
 	set_conf('request_counter', conf('request_counter') + 1)
