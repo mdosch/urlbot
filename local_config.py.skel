@@ -50,7 +50,8 @@ config = {
 
 	'tea_steep_time': (3*60 + 40),
 
-	'image_preview': True
+	'image_preview': True,
+	'dsa_watcher_interval': 15 * 60
 }
 
 def conf(val):

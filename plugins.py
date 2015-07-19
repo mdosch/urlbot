@@ -926,7 +926,7 @@ def command_dsa_watcher(argv, **args):
 		else:
 			log.plugin('unknown status %d' % status)
 
-		crawl_at = time.time() + 15*60
+		crawl_at = time.time() + conf('dsa_watcher_interval')
 		register_event(crawl_at, command_dsa_watcher, (['dsa-watcher', 'crawl']))
 
 		msg = 'dsa_watcher: next crawl set to %s' % time.strftime('%F.%T', time.localtime(crawl_at))
