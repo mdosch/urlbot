@@ -115,7 +115,7 @@ def parse_debbug(**args):
 		elif 3 == status:
 			out.append('error for #%s: %s' % (b, title))
 		else:
-			log.plugin('parse_debbug(): unknown status %d' % status)
+			log.plugin('unknown status %d' % status)
 
 	return {
 		'msg': out
@@ -895,7 +895,7 @@ def command_dsa_watcher(argv, **args):
 
 		if 0 == status:
 			if conf('persistent_locked'):
-				msg = "command_dsa_watcher(): couldn't get exclusive lock"
+				msg = "couldn't get exclusive lock"
 				log.warn(msg)
 #				return { 'msg': msg }
 			else:
@@ -924,7 +924,7 @@ def command_dsa_watcher(argv, **args):
 
 			# that's good, no error, just 404 -> DSA not released yet
 		else:
-			log.plugin('command_dsa_watcher(): unknown status %d' % status)
+			log.plugin('unknown status %d' % status)
 
 		crawl_at = time.time() + 15*60
 		register_event(crawl_at, command_dsa_watcher, (['dsa-watcher', 'crawl']))
