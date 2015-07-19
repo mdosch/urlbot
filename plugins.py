@@ -11,7 +11,7 @@ import traceback
 import urllib.parse
 from local_config import conf, set_conf
 from common import *
-from string_constants import excuses, moin_strings_hi, moin_strings_bye
+from string_constants import excuses, moin_strings_hi, moin_strings_bye, cakes
 from urlbot import extract_title
 from functools import wraps
 
@@ -591,21 +591,6 @@ def command_usersetting(argv, **args):
 def command_cake(argv, **args):
 	if 'cake' != argv[0]:
 		return
-
-	cakes = [ "No cake for you!",
-			("The Enrichment Center is required to remind you "
-			"that you will be baked, and then there will be cake."),
-			"The cake is a lie!",
-			("This is your fault. I'm going to kill you. "
-			"And all the cake is gone. You don't even care, do you?"),
-			"Quit now and cake will be served immediately.",
-			("Enrichment Center regulations require both hands to be "
-			"empty before any cake..."),
-			("Uh oh. Somebody cut the cake. I told them to wait for "
-			"you, but they did it anyway. There is still some left, "
-			"though, if you hurry back."),
-			"I'm going to kill you, and all the cake is gone.",
-			"Who's gonna make the cake when I'm gone? You?"	]
 
 	return {
 		'msg': args['reply_user'] + ': %s' % (random.sample(cakes, 1)[0])
