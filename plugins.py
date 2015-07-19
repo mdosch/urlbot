@@ -877,10 +877,28 @@ def command_dsa_watcher(argv, **args):
 		dsa = conf_load().get('plugin_conf', {}).get('last_dsa', 1000)
 
 		url = 'https://security-tracker.debian.org/tracker/DSA-%d-1' % dsa
-		status, title = extract_title(url)
+		err = None
 
-		if 0 == status:
-			send_reply('new Debian Security Announce found: %s' % url)
+		try:
+			request = urllib.request.Request(url)
+			request.add_header('User-Agent', '''Mozilla/5.0 (X11; Linux x86_64; rv:31.0) Gecko/20100101 Firefox/31.0 Iceweasel/31.0''')
+			response = urllib.request.urlopen(request)
+			html_text = response.read(BUFSIZ)  # ignore more than BUFSIZ
+		except Exception as e:
+			log.warn('failed: %s' % e)
+			err = e
+
+		if not err:
+			if str != type(html_text):
+				html_text = str(html_text)
+
+			result = re.match(r'.*?Description</b></td><td>(.*?)</td>.*?', html_text, re.S | re.M | re.IGNORECASE)
+
+			package = 'error extracting package name'
+			if result:
+				package = result.groups()[0]
+
+			send_reply('new Debian Security Announce found (%s): %s' % (package, url))
 
 			if conf('persistent_locked'):
 				msg = "couldn't get exclusive lock"
@@ -889,7 +907,7 @@ def command_dsa_watcher(argv, **args):
 			else:
 				set_conf('persistent_locked', True)
 				blob = conf_load()
-				
+
 				if 'plugin_conf' not in blob:
 					blob['plugin_conf'] = {}
 
@@ -901,19 +919,17 @@ def command_dsa_watcher(argv, **args):
 				conf_save(blob)
 				set_conf('persistent_locked', False)
 
-			msg = 'new Debian Security Announce found: %s' % url
+			msg = 'new Debian Security Announce found (%s): %s' % (package, url)
 			log.plugin(msg)
 			out.append(msg)
-		elif 3 == status:
-			if not '404' in title:
-				msg = 'error for #%s: %s' % (url, title)
+		else:
+			if not '404' in err:
+				msg = 'error for %s: %s' % (url, err)
 				log.warn(msg)
 				out.append(msg)
 
 			log.plugin('no dsa for %d, trying again...' % dsa)
 			# that's good, no error, just 404 -> DSA not released yet
-		else:
-			log.plugin('unknown status %d' % status)
 
 		crawl_at = time.time() + conf('dsa_watcher_interval')
 		register_event(crawl_at, command_dsa_watcher, (['dsa-watcher', 'crawl'],))
