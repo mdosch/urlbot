@@ -675,7 +675,7 @@ def command_wp(argv, lang='de', **args):
 	if 'wp' != argv[0]:
 		return
 
-	log.plugin('wp plugin called')
+	log.plugin('plugin called')
 
 	query = ' '.join(argv[1:])
 
@@ -698,7 +698,7 @@ def command_wp(argv, lang='de', **args):
 		lang, urllib.parse.urlencode(api)
 	)
 
-	log.plugin('wp: fetching %s' % apiurl)
+	log.plugin('fetching %s' % apiurl)
 
 	try:
 		response = urllib.request.urlopen(apiurl)
