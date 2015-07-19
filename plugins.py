@@ -888,6 +888,7 @@ def command_dsa_watcher(argv, **args):
 		return { 'msg': msg }
 
 	if 'crawl' == argv[1]:
+		out = []
 		dsa = conf_load().get('plugin_conf', {}).get('last_dsa', 1000)
 
 		url = 'https://security-tracker.debian.org/tracker/DSA-%d-1' % dsa
@@ -897,7 +898,7 @@ def command_dsa_watcher(argv, **args):
 			if conf('persistent_locked'):
 				msg = "couldn't get exclusive lock"
 				log.warn(msg)
-#				return { 'msg': msg }
+				out.append(msg)
 			else:
 				set_conf('persistent_locked', True)
 				blob = conf_load()
@@ -915,23 +916,25 @@ def command_dsa_watcher(argv, **args):
 
 			msg = 'new Debian Security Announce found: %s' % url
 			log.plugin(msg)
-			return { 'msg': msg }
+			out.append(msg)
 		elif 3 == status:
 			if not '404' in title:
 				msg = 'error for #%s: %s' % (url, title)
 				log.warn(msg)
-				return { 'msg': msg }
+				out.append(msg)
 
+			log.plugin('no dsa for %d, trying again...' % dsa)
 			# that's good, no error, just 404 -> DSA not released yet
 		else:
 			log.plugin('unknown status %d' % status)
 
 		crawl_at = time.time() + conf('dsa_watcher_interval')
-		register_event(crawl_at, command_dsa_watcher, (['dsa-watcher', 'crawl']))
+		register_event(crawl_at, command_dsa_watcher, (['dsa-watcher', 'crawl'],))
 
 		msg = 'dsa_watcher: next crawl set to %s' % time.strftime('%F.%T', time.localtime(crawl_at))
 		log.plugin(msg)
-		return { 'msg': msg }
+		out.append(msg)
+		return { 'msg': out }
 	else:
 		msg = 'wrong argument'
 		log.warn(msg)
