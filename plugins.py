@@ -922,7 +922,7 @@ def command_dsa_watcher(argv, **args):
 			log.plugin(msg)
 			out.append(msg)
 		else:
-			if not '404' in err:
+			if not '404' in str(err):
 				msg = 'error for %s: %s' % (url, err)
 				log.warn(msg)
 				out.append(msg)
