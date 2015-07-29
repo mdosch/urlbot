@@ -38,7 +38,8 @@ config = {
 		r'^.*ibash\.de/zitat.*$',
 		r'^.*golem\.de/news/.*$'
 		r'^.*paste\.debian\.net/((hidden|plainh?)/)?[0-9a-f]+/?$',
-		r'^.*example\.(org|net|com).*$'
+		r'^.*example\.(org|net|com).*$',
+		r'^.*ftp\...\.debian\.org.*$'
 	],
 
 	# the "dice" feature will use more efficient random data (0) for given users
