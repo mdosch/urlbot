@@ -15,7 +15,8 @@ RATE_CHAT = 0x08
 RATE_URL = 0x10
 
 BUFSIZ = 8192
-delay = 0.100  # seconds
+EVENTLOOP_DELAY = 0.100  # seconds
+USER_AGENT = '''Mozilla/5.0 (X11; Linux x86_64; rv:31.0) Gecko/20100101 Firefox/31.0 Iceweasel/31.0'''
 
 basedir = '.'
 if 2 == len(sys.argv):

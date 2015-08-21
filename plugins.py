@@ -881,7 +881,7 @@ def command_dsa_watcher(argv, **args):
 
 		try:
 			request = urllib.request.Request(url)
-			request.add_header('User-Agent', '''Mozilla/5.0 (X11; Linux x86_64; rv:31.0) Gecko/20100101 Firefox/31.0 Iceweasel/31.0''')
+			request.add_header('User-Agent', USER_AGENT)
 			response = urllib.request.urlopen(request)
 			html_text = response.read(BUFSIZ)  # ignore more than BUFSIZ
 		except Exception as e:
