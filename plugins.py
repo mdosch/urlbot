@@ -804,7 +804,7 @@ def command_list(argv, **args):
 		msg.append('parsers: %s' % ', '.join([p.plugin_name for p in out_parser]))
 	return {'msg': msg}
 
-@pluginfunction('record', 'record a message for a now offline user', ptypes_COMMAND)
+@pluginfunction('record', 'record a message for a now offline user (usage: record {user} {some message})', ptypes_COMMAND)
 def command_record(argv, **args):
 	if 'record' != argv[0]:
 		return
