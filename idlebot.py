@@ -82,7 +82,7 @@ if '__main__' == __name__:
 				xmpp.disconnect()
 				sys.exit(1)
 
-			time.sleep(delay)
+			time.sleep(EVENTLOOP_DELAY)
 		except KeyboardInterrupt:
 			print('')
 			exit(130)
