@@ -69,8 +69,8 @@ def extract_title(url):
 			return (1, headers['content-type'])
 
 		charset = re.sub(
-			'.*charset=(?P<charset>\S+).*',
-			'\g<charset>', headers['content-type'], re.IGNORECASE
+			r'.*charset=(?P<charset>\S+).*',
+			r'\g<charset>', headers['content-type'], re.IGNORECASE
 		)
 
 	if '' != charset:
@@ -109,16 +109,16 @@ def send_reply(message, msg_obj=None):
 	else:
 		if msg_obj:
 			xmpp.send_message(
-				mto = msg_obj['from'].bare,
-				mbody = message,
-				mtype = 'groupchat'
+				mto=msg_obj['from'].bare,
+				mbody=message,
+				mtype='groupchat'
 			)
 		else:  # unset msg_obj == broadcast
 			for room in xmpp.rooms:
 				xmpp.send_message(
-					mto = room,
-					mbody = message,
-					mtype = 'groupchat'
+					mto=room,
+					mbody=message,
+					mtype='groupchat'
 				)
 
 def ratelimit_touch(ignored=None):  # FIXME: separate counters
@@ -145,7 +145,7 @@ def ratelimit_exceeded(ignored=None):  # FIXME: separate counters
 	return False
 
 def extract_url(data, msg_obj):
-	result = re.findall("(https?://[^\s>]+)", data)
+	result = re.findall(r'(https?://[^\s>]+)', data)
 	if not result:
 		return
 
@@ -189,7 +189,7 @@ def extract_url(data, msg_obj):
 		elif 1 == status:
 			if conf('image_preview'):
 				# of course it's fake, but it looks interesting at least
-				char = """,._-+=\|/*`~"'"""
+				char = r""",._-+=\|/*`~"'"""
 				message = 'No text but %s, 1-bit ASCII art preview: [%c]' % (
 					title, random.choice(char)
 				)

@@ -57,7 +57,7 @@ def plugin_enabled_set(plugin, enabled):
 
 	return True
 
-def pluginfunction(name, desc, plugin_type, ratelimit_class = RATE_GLOBAL, enabled = True):
+def pluginfunction(name, desc, plugin_type, ratelimit_class=RATE_GLOBAL, enabled=True):
 	''' A decorator to make a plugin out of a function '''
 	if plugin_type not in ptypes:
 		raise TypeError('Illegal plugin_type: %s' % plugin_type)
@@ -75,7 +75,7 @@ def pluginfunction(name, desc, plugin_type, ratelimit_class = RATE_GLOBAL, enabl
 def register_event(t, callback, args):
 	joblist.append((t, callback, args))
 
-@pluginfunction('mental_ill', 'parse mental illness', ptypes_PARSE, ratelimit_class = RATE_NO_SILENCE | RATE_GLOBAL)
+@pluginfunction('mental_ill', 'parse mental illness', ptypes_PARSE, ratelimit_class=RATE_NO_SILENCE | RATE_GLOBAL)
 def parse_mental_ill(**args):
 	min_ill = 3
 	c = 0
@@ -87,7 +87,7 @@ def parse_mental_ill(**args):
 			c += 1
 		else:
 			c = 0
-		if (min_ill <= c):
+		if min_ill <= c:
 			flag = True
 			break
 
@@ -97,7 +97,7 @@ def parse_mental_ill(**args):
 			'msg': '''Multiple exclamation/question marks are a sure sign of mental disease, with %s as a living example.''' % args['reply_user']
 		}
 
-@pluginfunction('debbug', 'parse Debian bug numbers', ptypes_PARSE, ratelimit_class = RATE_NO_SILENCE | RATE_GLOBAL)
+@pluginfunction('debbug', 'parse Debian bug numbers', ptypes_PARSE, ratelimit_class=RATE_NO_SILENCE | RATE_GLOBAL)
 def parse_debbug(**args):
 	bugs = re.findall(r'#(\d{4,})', args['data'])
 	if not bugs:
@@ -121,7 +121,7 @@ def parse_debbug(**args):
 		'msg': out
 	}
 
-@pluginfunction('cve', 'parse a CVE handle', ptypes_PARSE, ratelimit_class = RATE_NO_SILENCE | RATE_GLOBAL)
+@pluginfunction('cve', 'parse a CVE handle', ptypes_PARSE, ratelimit_class=RATE_NO_SILENCE | RATE_GLOBAL)
 def parse_cve(**args):
 	cves = re.findall(r'(CVE-\d\d\d\d-\d+)', args['data'].upper())
 	if not cves:
@@ -129,10 +129,10 @@ def parse_cve(**args):
 
 	log.plugin('detected CVE handle')
 	return {
-		'msg': ['https://security-tracker.debian.org/tracker/%s' % c for c in cves] 
+		'msg': ['https://security-tracker.debian.org/tracker/%s' % c for c in cves]
 	}
 
-@pluginfunction('dsa', 'parse a DSA handle', ptypes_PARSE, ratelimit_class = RATE_NO_SILENCE | RATE_GLOBAL)
+@pluginfunction('dsa', 'parse a DSA handle', ptypes_PARSE, ratelimit_class=RATE_NO_SILENCE | RATE_GLOBAL)
 def parse_dsa(**args):
 	dsas = re.findall(r'(DSA-\d\d\d\d-\d+)', args['data'].upper())
 	if not dsas:
@@ -140,7 +140,7 @@ def parse_dsa(**args):
 
 	log.plugin('detected DSA handle')
 	return {
-		'msg': ['https://security-tracker.debian.org/tracker/%s' % d for d in dsas] 
+		'msg': ['https://security-tracker.debian.org/tracker/%s' % d for d in dsas]
 	}
 
 @pluginfunction('skynet', 'parse skynet', ptypes_PARSE)
@@ -333,7 +333,7 @@ def command_source(argv, **args):
 		'msg': 'My source code can be found at %s' % conf('src-url')
 	}
 
-@pluginfunction('dice', 'rolls a dice, optional N times', ptypes_COMMAND, ratelimit_class = RATE_INTERACTIVE)
+@pluginfunction('dice', 'rolls a dice, optional N times', ptypes_COMMAND, ratelimit_class=RATE_INTERACTIVE)
 def command_dice(argv, **args):
 	if 'dice' != argv[0]:
 		return
@@ -396,7 +396,7 @@ def command_uptime(argv, **args):
 		'msg': args['reply_user'] + (''': happily serving for %d second%s, %d request%s so far.''' % (u, plural_uptime, conf('request_counter'), plural_request))
 	}
 
-@pluginfunction('ping', 'sends pong', ptypes_COMMAND, ratelimit_class = RATE_INTERACTIVE)
+@pluginfunction('ping', 'sends pong', ptypes_COMMAND, ratelimit_class=RATE_INTERACTIVE)
 def command_ping(argv, **args):
 	if 'ping' != argv[0]:
 		return
@@ -572,7 +572,7 @@ def command_usersetting(argv, **args):
 
 	set_conf('persistent_locked', True)
 	blob = conf_load()
-	
+
 	if 'user_pref' not in blob:
 		blob['user_pref'] = {}
 
@@ -755,7 +755,7 @@ def command_show_moinlist(argv, **args):
 	argv1 = None if len(argv) < 2 else argv[1]
 
 	return {
-		'msg': 
+		'msg':
 			'%s: moin reply list%s: %s' % (
 				args['reply_user'],
 				'' if not argv1 else ' (limited to %s)' % argv1,
@@ -825,7 +825,7 @@ def command_record(argv, **args):
 
 	set_conf('persistent_locked', True)
 	blob = conf_load()
-	
+
 	if 'user_records' not in blob:
 		blob['user_records'] = {}
 
@@ -851,7 +851,7 @@ def command_show_recordlist(argv, **args):
 	argv1 = None if len(argv) < 2 else argv[1]
 
 	return {
-		'msg': 
+		'msg':
 			'%s: offline records%s: %s' % (
 				args['reply_user'],
 				'' if not argv1 else ' (limited to %s)' % argv1,
@@ -870,7 +870,7 @@ def command_dsa_watcher(argv, **args):
 	if 2 != len(argv):
 		msg = 'wrong number of arguments'
 		log.warn(msg)
-		return { 'msg': msg }
+		return {'msg': msg}
 
 	if 'crawl' == argv[1]:
 		out = []
@@ -936,11 +936,11 @@ def command_dsa_watcher(argv, **args):
 		msg = 'next crawl set to %s' % time.strftime('%F.%T', time.localtime(crawl_at))
 		log.plugin(msg)
 		out.append(msg)
-		return { 'msg': out }
+		return {'msg': out}
 	else:
 		msg = 'wrong argument'
 		log.warn(msg)
-		return { 'msg': msg }
+		return {'msg': msg}
 
 #@pluginfunction('dummy', 'dummy description', ptypes_COMMAND)
 #def command_dummy(argv, **args):
@@ -988,12 +988,12 @@ def data_parse_commands(msg_obj):
 			continue
 
 		ret = p(
-			data = data,
-			cmd_list = [pl.plugin_name for pl in plugins[ptypes_COMMAND]],
-			parser_list = [pl.plugin_name for pl in plugins[ptypes_PARSE]],
-			reply_user = reply_user,
-			msg_obj = msg_obj,
-			argv = words[1:]
+			data=data,
+			cmd_list=[pl.plugin_name for pl in plugins[ptypes_COMMAND]],
+			parser_list=[pl.plugin_name for pl in plugins[ptypes_PARSE]],
+			reply_user=reply_user,
+			msg_obj=msg_obj,
+			argv=words[1:]
 		)
 
 		if None != ret:
