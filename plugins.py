@@ -897,7 +897,7 @@ def command_dsa_watcher(argv, **args):
 			if result:
 				package = result.groups()[0]
 
-			send_reply('new Debian Security Announce found (%s): %s' % (package, url))
+			send_reply('new Debian Security Announce found (%s): %s' % (str(package).replace(' - security update', ''), url))
 
 			if conf('persistent_locked'):
 				msg = "couldn't get exclusive lock"
