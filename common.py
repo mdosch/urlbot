@@ -5,7 +5,7 @@ if '__main__' == __name__:
 	print('''this is a library file, which is not meant to be executed''')
 	exit(-1)
 
-import sys, time, pickle, os, logging, random
+import sys, time, pickle, os, logging
 from local_config import conf
 
 RATE_GLOBAL = 0x01
@@ -28,8 +28,6 @@ logging.basicConfig(
 )
 log = logging.getLogger()
 log.plugin = log.info  # ... probably fix this sometime (FIXME)
-
-random.seed(os.urandom(8))
 
 def debug_enabled():
 #	return True
