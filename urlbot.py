@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import sys, re, time, pickle, random
+import sys, re, time, pickle
 import urllib.request, urllib.parse, urllib.error, html.parser
 from common import *
 

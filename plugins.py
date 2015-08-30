@@ -5,7 +5,7 @@ if '__main__' == __name__:
 	print('''this is a plugin file, which is not meant to be executed''')
 	exit(-1)
 
-import time, random, unicodedata, re, sys, urllib.request, json
+import time, unicodedata, re, sys, urllib.request, json
 import types
 import traceback
 import urllib.parse
