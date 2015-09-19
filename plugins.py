@@ -447,7 +447,7 @@ def command_teatimer(argv, **args):
 
 	try:
 		log.plugin('tea timer set to %s' % time.strftime('%F.%T', time.localtime(ready)))
-	except ValueError as e:
+	except (ValueError, OverflowError) as e:
 		return {
 			'msg': args['reply_user'] + ': time format error: ' + str(e)
 		}
