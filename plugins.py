@@ -377,6 +377,25 @@ def command_dice(argv, **args):
 		'msg': msg
 	}
 
+@pluginfunction('choose', 'chooses randomly between arguments', ptypes_COMMAND, ratelimit_class=RATE_INTERACTIVE)
+def command_choose(argv, **args):
+	if 'choose' != argv[0]:
+		return
+
+	alternatives = argv[1:]
+
+	if 2 > len(alternatives):
+		return {
+			'msg': '%s: choosing between one or less things is pointless' % args['reply_user']
+		}
+
+	choice = random.choice(alternatives)
+
+	log.plugin('sent random choice')
+	return {
+		'msg': '%s: I prefer %s!' % (args['reply_user'], choice)
+	}
+
 @pluginfunction('uptime', 'prints uptime', ptypes_COMMAND)
 def command_uptime(argv, **args):
 	if 'uptime' != argv[0]:
