@@ -615,36 +615,6 @@ def command_cake(argv, **args):
 		'msg': args['reply_user'] + ': %s' % (random.sample(cakes, 1)[0])
 	}
 
-@pluginfunction('remember', 'remembers something', ptypes_COMMAND)
-def command_remember(argv, **args):
-	if 'remember' != argv[0]:
-		return
-
-	log.plugin('remember plugin called')
-
-	if not len(argv) > 1:
-		return {
-			'msg': args['reply_user'] + ': invalid message'
-		}
-
-	to_remember = ' '.join(args['data'].split()[2:])  # this is a little dirty. A little lot
-	set_conf('data_remember', to_remember)
-
-	return {
-		'msg': args['reply_user'] + ': remembering ' + to_remember
-	}
-
-@pluginfunction('recall', "recalls something previously 'remember'ed", ptypes_COMMAND)
-def command_recall(argv, **args):
-	if 'recall' != argv[0]:
-		return
-
-	log.plugin('recall plugin called')
-
-	return {
-		'msg': args['reply_user'] + ': recalling %s' % conf('data_remember')
-	}
-
 #TODO: send a hint if someone types plugin as command
 @pluginfunction('plugin', "'disable' or 'enable' plugins", ptypes_COMMAND)
 def command_plugin_activation(argv, **args):
