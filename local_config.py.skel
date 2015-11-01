@@ -39,6 +39,7 @@ config = {
 		r'^.*golem\.de/news/.*$'
 		r'^.*paste\.debian\.net/((hidden|plainh?)/)?[0-9a-f]+/?$',
 		r'^.*example\.(org|net|com).*$',
+		r'^.*sprunge\.us/.*$',
 		r'^.*ftp\...\.debian\.org.*$'
 	],
 
