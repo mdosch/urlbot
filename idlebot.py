@@ -36,12 +36,13 @@ class bot(ClientXMPP):
 		self.send_presence()
 
 		for room in self.rooms:
-			log.info('joining %s' % room)
-			self.plugin['xep_0045'].joinMUC(
+			log.info('%s: joining' % room)
+			ret = self.plugin['xep_0045'].joinMUC(
 				room,
 				self.nick,
 				wait=True
 			)
+			log.info('%s: joined with code %s' % (room, ret))
 
 	def muc_message(self, msg_obj):
 		global got_hangup
