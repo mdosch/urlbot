@@ -13,10 +13,10 @@ import urllib.request
 # from common import *
 
 from common import conf_load, conf_save, RATE_GLOBAL, RATE_NO_SILENCE, VERSION, RATE_INTERACTIVE, BUFSIZ, \
-	USER_AGENT
+	USER_AGENT, extract_title
 from local_config import set_conf, conf
 from string_constants import excuses, moin_strings_hi, moin_strings_bye, cakes
-from urlbot import extract_title
+
 
 ptypes_PARSE = 'parser'
 ptypes_COMMAND = 'command'
