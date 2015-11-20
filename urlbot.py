@@ -9,7 +9,15 @@ import time
 from common import conf_load, conf_save, \
 	extract_title, RATE_GLOBAL, RATE_CHAT
 from idlebot import IdleBot, start
-from plugins import ptypes as plugin_ptypes, ptypes_COMMAND, plugin_enabled_get, ptypes_PARSE, register_event, else_command
+from plugins import (
+	ptypes as plugin_ptypes,
+	plugins as plugin_storage,
+	ptypes_COMMAND,
+	plugin_enabled_get,
+	ptypes_PARSE,
+	register_event,
+	else_command
+)
 
 try:
 	from local_config import conf, set_conf
@@ -292,7 +300,7 @@ class UrlBot(IdleBot):
 		reply_user = msg_obj['mucnick']
 
 		# TODO: check how several commands/plugins in a single message behave (also with rate limiting)
-		for p in plugins[ptypes_COMMAND]:
+		for p in plugin_storage[ptypes_COMMAND]:
 			if self.check_ratelimit(p.ratelimit_class):
 				continue
 
@@ -301,8 +309,8 @@ class UrlBot(IdleBot):
 
 			ret = p(
 				data=data,
-				cmd_list=[pl.plugin_name for pl in plugins[ptypes_COMMAND]],
-				parser_list=[pl.plugin_name for pl in plugins[ptypes_PARSE]],
+				cmd_list=[pl.plugin_name for pl in plugin_storage[ptypes_COMMAND]],
+				parser_list=[pl.plugin_name for pl in plugin_storage[ptypes_PARSE]],
 				reply_user=reply_user,
 				msg_obj=msg_obj,
 				argv=words[1:]
@@ -343,7 +351,7 @@ class UrlBot(IdleBot):
 		data = msg_obj['body']
 		reply_user = msg_obj['mucnick']
 
-		for p in plugins[ptypes_PARSE]:
+		for p in plugin_storage[ptypes_PARSE]:
 			if self.check_ratelimit(p.ratelimit_class):
 				continue
 
