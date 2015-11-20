@@ -979,7 +979,7 @@ def register(func_type):
 		isinstance(f, types.FunctionType) and
 		all([
 			f.__dict__.get('is_plugin', False),
-			getattr(f, 'plugin_type') == func_type
+			getattr(f, 'plugin_type', None) == func_type
 		])
 	]
 
