@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
+import logging
 import random
 import re
 import time
@@ -11,7 +12,7 @@ import urllib.request
 
 # from common import *
 
-from common import conf_load, conf_save, log, RATE_GLOBAL, RATE_NO_SILENCE, VERSION, RATE_INTERACTIVE, BUFSIZ, \
+from common import conf_load, conf_save, RATE_GLOBAL, RATE_NO_SILENCE, VERSION, RATE_INTERACTIVE, BUFSIZ, \
 	USER_AGENT
 from local_config import set_conf, conf
 from string_constants import excuses, moin_strings_hi, moin_strings_bye, cakes
@@ -26,6 +27,7 @@ joblist = []
 plugins = {p: [] for p in ptypes}
 
 got_hangup = False
+log = logging.getLogger(__name__)
 
 
 def plugin_enabled_get(urlbot_plugin):
