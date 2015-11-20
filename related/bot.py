@@ -19,12 +19,13 @@ except ImportError:
 	)
 	)
 
-	sys.exit(-1)
+	sys.exit(10)
 
 import time
 t = -time.time()
 
-class bot(ClientXMPP):
+
+class Bot(ClientXMPP):
 	def __init__(self, jid, password, room, nick):
 		ClientXMPP.__init__(self, jid, password)
 
@@ -67,7 +68,7 @@ if '__main__' == __name__:
 		format='%(levelname)-8s %(message)s'
 	)
 
-	xmpp = bot(
+	xmpp = Bot(
 		jid=conf('jid'),
 		password=conf('password'),
 		room=conf('room'),

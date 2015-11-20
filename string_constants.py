@@ -1,11 +1,6 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-if '__main__' == __name__:
-	print('''this file just contains a bunch of strings and is not meant to be executed''')
-	exit(-1)
-
-# retrived from http://pages.cs.wisc.edu/~ballard/bofh/excuses
+# retrieved from http://pages.cs.wisc.edu/~ballard/bofh/excuses
 excuses = '''
 clock speed
 solar flares
@@ -487,18 +482,19 @@ moin_strings_bye = [
 	'bye',
 ]
 
-cakes = [ "No cake for you!",
+cakes = [
+	"No cake for you!",
 	("The Enrichment Center is required to remind you "
-	"that you will be baked, and then there will be cake."),
+		"that you will be baked, and then there will be cake."),
 	"The cake is a lie!",
 	("This is your fault. I'm going to kill you. "
-	"And all the cake is gone. You don't even care, do you?"),
+		"And all the cake is gone. You don't even care, do you?"),
 	"Quit now and cake will be served immediately.",
 	("Enrichment Center regulations require both hands to be "
-	"empty before any cake..."),
+		"empty before any cake..."),
 	("Uh oh. Somebody cut the cake. I told them to wait for "
-	"you, but they did it anyway. There is still some left, "
-	"though, if you hurry back."),
+		"you, but they did it anyway. There is still some left, "
+		"though, if you hurry back."),
 	"I'm going to kill you, and all the cake is gone.",
 	"Who's gonna make the cake when I'm gone? You?"
 ]

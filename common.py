@@ -1,11 +1,12 @@
-#!/usr/bin/python3
 # -*- coding: utf-8 -*-
+import html.parser
+import logging
+import os
+import pickle
+import re
+import sys
+import urllib.request
 
-if '__main__' == __name__:
-	print('''this is a library file, which is not meant to be executed''')
-	exit(-1)
-
-import sys, time, pickle, os, logging
 from local_config import conf
 
 RATE_GLOBAL = 0x01
@@ -22,20 +23,11 @@ basedir = '.'
 if 2 == len(sys.argv):
 	basedir = sys.argv[1]
 
-logging.basicConfig(
-	level=logging.INFO,
-	format=sys.argv[0]+' %(asctime)s %(levelname).1s %(funcName)-15s %(message)s'
-)
-log = logging.getLogger()
-log.plugin = log.info  # ... probably fix this sometime (FIXME)
-
-def debug_enabled():
-#	return True
-	return False
 
 def conf_save(obj):
 	with open(conf('persistent_storage'), 'wb') as fd:
 		return pickle.dump(obj, fd)
+
 
 def conf_load():
 	path = conf('persistent_storage')
@@ -45,6 +37,7 @@ def conf_load():
 			return pickle.load(fd)
 	else:
 		return {}
+
 
 def get_version_git():
 	import subprocess
@@ -63,4 +56,75 @@ def get_version_git():
 	else:
 		return "(unknown version)"
 
+
 VERSION = get_version_git()
+
+
+def fetch_page(url):
+	log = logging.getLogger(__name__)
+	log.info('fetching page ' + url)
+	try:
+		request = urllib.request.Request(url)
+		request.add_header('User-Agent', USER_AGENT)
+		response = urllib.request.urlopen(request)
+		html_text = response.read(BUFSIZ)  # ignore more than BUFSIZ
+		response.close()
+		return 0, html_text, response.headers
+	except Exception as e:
+		log.warn('failed: %s' % e)
+		return 1, str(e), 'dummy'
+
+
+def extract_title(url):
+	log = logging.getLogger(__name__)
+	global parser
+
+	if 'repo/urlbot.git' in url:
+		log.info('repo URL found: ' + url)
+		return 3, 'wee, that looks like my home repo!'
+
+	log.info('extracting title from ' + url)
+
+	(code, html_text, headers) = fetch_page(url)
+
+	if 1 == code:
+		return 3, 'failed: %s for %s' % (html_text, url)
+
+	if not html_text:
+		return -1, 'error'
+
+	charset = ''
+	if 'content-type' in headers:
+		log.debug('content-type: ' + headers['content-type'])
+
+		if 'text/' != headers['content-type'][:len('text/')]:
+			return 1, headers['content-type']
+
+		charset = re.sub(
+			r'.*charset=(?P<charset>\S+).*',
+			r'\g<charset>', headers['content-type'], re.IGNORECASE
+		)
+
+	if '' != charset:
+		try:
+			html_text = html_text.decode(charset)
+		except LookupError:
+			log.warn("invalid charset in '%s': '%s'" % (headers['content-type'], charset))
+
+	if str != type(html_text):
+		html_text = str(html_text)
+
+	result = re.match(r'.*?<title.*?>(.*?)</title>.*?', html_text, re.S | re.M | re.IGNORECASE)
+	if result:
+		match = result.groups()[0]
+
+		if not parser:
+			parser = html.parser.HTMLParser()
+		try:
+			expanded_html = parser.unescape(match)
+		except UnicodeDecodeError as e:  # idk why this can happen, but it does
+			log.warn('parser.unescape() expoded here: ' + str(e))
+			expanded_html = match
+		return 0, expanded_html
+	else:
+		return 2, 'no title'

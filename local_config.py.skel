@@ -1,12 +1,6 @@
 #!/usr/bin/python3
 
-import time, sys
-
-try:
-	log
-except NameError:
-	import logging
-	log = logging.getLogger()
+import time
 
 if '__main__' == __name__:
 	print('''this is a config file, which is not meant to be executed''')
@@ -17,7 +11,7 @@ config = {
 	'password': 'FIXME',
 	'rooms': ['FIXME'],
 
-	'src-url': 'FIXME',
+	'src-url': 'http://aero2k.de/t/repos/urlbot.git',
 
 	'bot_user': 'native-urlbot',
 	'bot_owner': 'FIXME',
@@ -56,11 +50,15 @@ config = {
 	'dsa_watcher_interval': 15 * 60
 }
 
+
 def conf(val):
+	import logging
+	logger = logging.getLogger(__name__)
 	if val in list(config.keys()):
 		return config[val]
-	log.warn('conf(): unknown key ' + str(val))
+	logger.warn('conf(): unknown key ' + str(val))
 	return None
+
 
 def set_conf(key, val):
 	config[key] = val
