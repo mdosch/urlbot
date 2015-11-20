@@ -935,7 +935,6 @@ def command_dsa_watcher(argv, **_):
 				set_conf('persistent_locked', False)
 
 			msg = 'new Debian Security Announce found (%s): %s' % (package, url)
-			log.plugin(msg)
 			out.append(msg)
 
 			log.plugin('no dsa for %d, trying again...' % dsa)
@@ -945,7 +944,6 @@ def command_dsa_watcher(argv, **_):
 		# register_event(crawl_at, command_dsa_watcher, (['dsa-watcher', 'crawl'],))
 
 		msg = 'next crawl set to %s' % time.strftime('%F.%T', time.localtime(crawl_at))
-		log.plugin(msg)
 		out.append(msg)
 		return {
 			'msg': out,
