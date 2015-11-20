@@ -937,7 +937,7 @@ def command_dsa_watcher(argv, **_):
 			msg = 'new Debian Security Announce found (%s): %s' % (package, url)
 			out.append(msg)
 
-			log.plugin('no dsa for %d, trying again...' % dsa)
+			log.info('no dsa for %d, trying again...' % dsa)
 		# that's good, no error, just 404 -> DSA not released yet
 
 		crawl_at = time.time() + conf('dsa_watcher_interval')
