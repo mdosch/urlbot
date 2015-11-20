@@ -11,7 +11,7 @@ config = {
 	'password': 'FIXME',
 	'rooms': ['FIXME'],
 
-	'src-url': 'http://aero2k.de/t/repos/urlbot.git',
+	'src-url': 'http://aero2k.de/t/repos/urlbot-native.git',
 
 	'bot_user': 'native-urlbot',
 	'bot_owner': 'FIXME',
