@@ -99,10 +99,11 @@ def start(botclass, active=False):
 	bot.connect()
 	bot.register_plugin('xep_0045')
 	bot.process()
+	global got_hangup
 
 	while 1:
 		try:
-			if not plugins.event_trigger():
+			if got_hangup or not plugins.event_trigger():
 				bot.disconnect()
 				sys.exit(1)
 
