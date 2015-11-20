@@ -9,7 +9,7 @@ import time
 from common import conf_load, conf_save, \
 	extract_title, RATE_GLOBAL, RATE_CHAT
 from idlebot import IdleBot, start
-from plugins import plugins, ptypes_COMMAND, plugin_enabled_get, ptypes_PARSE, register_event, else_command
+from plugins import ptypes as plugin_ptypes, ptypes_COMMAND, plugin_enabled_get, ptypes_PARSE, register_event, else_command
 
 try:
 	from local_config import conf, set_conf
@@ -30,8 +30,8 @@ class UrlBot(IdleBot):
 	def __init__(self, jid, password, rooms, nick):
 		super(UrlBot, self).__init__(jid, password, rooms, nick)
 
-		self.hist_ts = {p: [] for p in plugins.ptypes}
-		self.hist_flag = {p: True for p in plugins.ptypes}
+		self.hist_ts = {p: [] for p in plugin_ptypes}
+		self.hist_flag = {p: True for p in plugin_ptypes}
 
 		self.add_event_handler('message', self.message)
 
