@@ -978,7 +978,7 @@ def register(func_type):
 		f for ignored, f in globals().items() if all([
 			isinstance(f, types.FunctionType),
 			f.__dict__.get('is_plugin', False),
-			f.plugin_type == func_type
+			getattr(f, 'plugin_type') == func_type
 		])
 	]
 
