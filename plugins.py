@@ -953,9 +953,9 @@ def command_dsa_watcher(argv, **_):
 		return {'msg': msg}
 
 
-@pluginfunction("provoke_bots", "search for other bots", ptypes_COMMAND)
+@pluginfunction("provoke-bots", "search for other bots", ptypes_COMMAND)
 def provoke_bots(argv, **args):
-	if 'provoke_bots' == argv[0]:
+	if 'provoke-bots' == argv[0]:
 		return {
 			'msg': 'Searching for other less intelligent lifeforms... skynet? You here?'
 		}
