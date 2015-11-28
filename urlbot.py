@@ -118,6 +118,10 @@ class UrlBot(IdleBot):
 		"""
 		Send a reply to a message
 		"""
+		if self.status is not None:
+			self.logger.warn("I'm muted!")
+			return
+
 		set_conf('request_counter', conf('request_counter') + 1)
 
 		if str is not type(message):
@@ -352,10 +356,10 @@ class UrlBot(IdleBot):
 			presence = action['presence']
 			conf_set('presence', presence)
 
-			self.status = presence['msg']
-			self.show = presence['status']
+			self.status = presence.get('msg')
+			self.show = presence.get('status')
 
-			self.send_presence(pstatus=presence['msg'], pshow=presence['status'])
+			self.send_presence(pstatus=self.status, pshow=self.show)
 			# self.reconnect(wait=True)
 
 if '__main__' == __name__:

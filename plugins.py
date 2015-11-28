@@ -1022,14 +1022,14 @@ def set_status(argv, **args):
 		return {
 			'presence': {
 				'status': 'xa',
-				'message': 'I\'m muted now. You can unmute me with "%s: set_status unmute"' % conf("bot_user")
+				'msg': 'I\'m muted now. You can unmute me with "%s: set_status unmute"' % conf("bot_user")
 			}
 		}
 	elif argv[1] == 'unmute' and args['reply_user'] == conf('bot_owner'):
 		return {
 			'presence': {
 				'status': None,
-				'message': ''
+				'msg': ''
 			}
 		}
 
