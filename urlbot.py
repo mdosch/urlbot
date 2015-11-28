@@ -155,77 +155,6 @@ class UrlBot(IdleBot):
 						mtype='groupchat'
 					)
 
-	# TODO: plugin?
-	def extract_url(self, data, msg_obj):
-		result = re.findall(r'(https?://[^\s>]+)', data)
-		if not result:
-			return
-
-		ret = None
-		out = []
-		for url in result:
-			# if rate_limit(RATE_NO_SILENCE | RATE_GLOBAL):
-			# 	return False
-
-			flag = False
-			for b in conf('url_blacklist'):
-				if re.match(b, url):
-					flag = True
-					self.logger.info('url blacklist match for ' + url)
-					break
-
-			if flag:
-				# an URL has matched the blacklist, continue to the next URL
-				continue
-
-			# urllib.request is broken:
-			# >>> '.'.encode('idna')
-			# ....
-			# UnicodeError: label empty or too long
-			# >>> '.a.'.encode('idna')
-			# ....
-			# UnicodeError: label empty or too long
-			# >>> 'a.a.'.encode('idna')
-			# b'a.a.'
-
-			try:
-				(status, title) = extract_title(url)
-			except UnicodeError as e:
-				(status, title) = (4, str(e))
-
-			if 0 == status:
-				title = title.strip()
-				message = 'Title: %s' % title
-			elif 1 == status:
-				if conf('image_preview'):
-					# of course it's fake, but it looks interesting at least
-					char = r""",._-+=\|/*`~"'"""
-					message = 'No text but %s, 1-bit ASCII art preview: [%c]' % (
-						title, random.choice(char)
-					)
-				else:
-					self.logger.info('no message sent for non-text %s (%s)' % (url, title))
-					continue
-			elif 2 == status:
-				message = '(No title)'
-			elif 3 == status:
-				message = title
-			elif 4 == status:
-				message = 'Bug triggered (%s), invalid URL/domain part: %s' % (title, url)
-				self.logger.warn(message)
-			else:
-				message = 'some error occurred when fetching %s' % url
-
-			message = message.replace('\n', '\\n')
-
-			self.logger.info('adding to out buf: ' + message)
-			out.append(message)
-			ret = True
-
-		if ret and rate_limit(RATE_URL | RATE_GLOBAL):
-			self.send_reply(out, msg_obj)
-		return ret
-
 	def handle_msg(self, msg_obj):
 		"""
 		called for incoming messages
@@ -244,20 +173,6 @@ class UrlBot(IdleBot):
 		if 'nospoiler' in content:
 			self.logger.info('no spoiler for: ' + content)
 			return
-
-		arg_user = msg_obj['mucnick']
-		blob_userpref = conf_load().get('user_pref', [])
-		nospoiler = False
-
-		if arg_user in blob_userpref:
-			if 'spoiler' in blob_userpref[arg_user]:
-				if not blob_userpref[arg_user]['spoiler']:
-					self.logger.info('nospoiler from conf')
-					nospoiler = True
-
-		if not nospoiler:
-			# TODO: why not make this a plugin?
-			self.extract_url(content, msg_obj)
 
 		self.data_parse_commands(msg_obj)
 		self.data_parse_other(msg_obj)

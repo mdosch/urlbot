@@ -9,10 +9,9 @@ import types
 import unicodedata
 import urllib.parse
 import urllib.request
-# from common import *
 
 from common import conf_load, conf_save, RATE_GLOBAL, RATE_NO_SILENCE, VERSION, RATE_INTERACTIVE, BUFSIZ, \
-	USER_AGENT, extract_title, RATE_FUN, RATE_NO_LIMIT
+	USER_AGENT, extract_title, RATE_FUN, RATE_NO_LIMIT, conf_get, RATE_URL
 from local_config import set_conf, conf
 from string_constants import excuses, moin_strings_hi, moin_strings_bye, cakes
 
@@ -1041,6 +1040,72 @@ def reset_jobs(argv, **args):
 	else:
 		joblist.clear()
 		return {'msg': 'done.'}
+
+
+@pluginfunction('resolve-url-title', 'extract titles from urls', ptypes_PARSE, ratelimit_class=RATE_URL)
+def resolve_url_title(**args):
+	user = args['reply_user']
+	user_pref_nospoiler = conf_get('user_pref', {}).get(user, {}).get('spoiler', False)
+	if user_pref_nospoiler:
+		log.info('nospoiler in userconf')
+		return
+
+	result = re.findall(r'(https?://[^\s>]+)', args['data'])
+	if not result:
+		return
+
+	out = []
+	for url in result:
+		if any([re.match(b, url) for b in conf('url_blacklist')]):
+			log.info('url blacklist match for ' + url)
+			break
+
+		# urllib.request is broken:
+		# >>> '.'.encode('idna')
+		# ....
+		# UnicodeError: label empty or too long
+		# >>> '.a.'.encode('idna')
+		# ....
+		# UnicodeError: label empty or too long
+		# >>> 'a.a.'.encode('idna')
+		# b'a.a.'
+
+		try:
+			(status, title) = extract_title(url)
+		except UnicodeError as e:
+			(status, title) = (4, str(e))
+
+		if 0 == status:
+			title = title.strip()
+			message = 'Title: %s' % title
+		elif 1 == status:
+			if conf('image_preview'):
+				# of course it's fake, but it looks interesting at least
+				char = r""",._-+=\|/*`~"'"""
+				message = 'No text but %s, 1-bit ASCII art preview: [%c]' % (
+					title, random.choice(char)
+				)
+			else:
+				log.info('no message sent for non-text %s (%s)' % (url, title))
+				continue
+		elif 2 == status:
+			message = '(No title)'
+		elif 3 == status:
+			message = title
+		elif 4 == status:
+			message = 'Bug triggered (%s), invalid URL/domain part: %s' % (title, url)
+			log.warn(message)
+		else:
+			message = 'some error occurred when fetching %s' % url
+
+		message = message.replace('\n', '\\n')
+
+		log.info('adding to out buf: ' + message)
+		out.append(message)
+
+	return {
+		'msg': out
+	}
 
 
 def else_command(args):

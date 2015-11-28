@@ -50,9 +50,9 @@ def conf_set(key, value):
 	conf_save(blob)
 
 
-def conf_get(key):
+def conf_get(key, default=None):
 	blob = conf_load()
-	return blob.get(key)
+	return blob.get(key, default)
 
 Bucket = namedtuple("BucketConfig", ["history", "period", "max_hist_len"])
 
@@ -170,7 +170,7 @@ def extract_title(url):
 	log = logging.getLogger(__name__)
 	global parser
 
-	if 'repo/urlbot.git' in url:
+	if 'repo/urlbot-native.git' in url:
 		log.info('repo URL found: ' + url)
 		return 3, 'wee, that looks like my home repo!'
 
