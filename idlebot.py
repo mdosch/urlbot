@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 import logging
 import time
-
 import sys
-
 from common import VERSION, EVENTLOOP_DELAY, conf_load
 
 try:
@@ -18,8 +16,7 @@ except ImportError:
 		sys.argv[0],
 		' ' * len(sys.argv[0]),
 		' ' * len(sys.argv[0])
-	)
-	)
+	))
 	sys.exit(1)
 
 from sleekxmpp import ClientXMPP
@@ -36,12 +33,15 @@ class IdleBot(ClientXMPP):
 
 		self.add_event_handler('session_start', self.session_start)
 		self.add_event_handler('groupchat_message', self.muc_message)
+		self.priority = 0
+		self.status = None
+		self.show = None
 
 		self.logger = logging.getLogger(__name__)
 
 	def session_start(self, _):
 		self.get_roster()
-		self.send_presence()
+		self.send_presence(ppriority=self.priority, pstatus=self.status, pshow=self.show)
 
 		for room in self.rooms:
 			self.logger.info('%s: joining' % room)
@@ -83,8 +83,11 @@ def start(botclass, active=False):
 	logger = logging.getLogger(__name__)
 	logger.info(VERSION)
 
+	jid = conf('jid')
+	if '/' not in jid:
+		jid = '%s/%s' % (jid, botclass.__name__)
 	bot = botclass(
-		jid=conf('jid'),
+		jid=jid,
 		password=conf('password'),
 		rooms=conf('rooms'),
 		nick=conf('bot_user')

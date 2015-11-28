@@ -15,7 +15,7 @@ from common import (
 	RATE_EVENT,
 	# rate_limited,
 	rate_limit,
-	RATE_URL)
+	RATE_URL, conf_set)
 from idlebot import IdleBot, start
 from plugins import (
 	plugins as plugin_storage,
@@ -49,6 +49,7 @@ class UrlBot(IdleBot):
 		self.hist_flag = {p: True for p in rate_limit_classes}
 
 		self.add_event_handler('message', self.message)
+		self.priority = 100
 
 		for r in self.rooms:
 			self.add_event_handler('muc::%s::got_online' % r, self.muc_online)
@@ -317,15 +318,15 @@ class UrlBot(IdleBot):
 			if ret:
 				self._run_action(ret, plugin, msg_obj)
 
-	def _run_action(self, plugin_action, plugin, msg_obj):
+	def _run_action(self, action, plugin, msg_obj):
 		"""
 		Execute the plugin's execution plan
-		:param plugin_action: dict with event and/or msg
+		:param action: dict with event and/or msg
 		:param plugin: plugin obj
 		:param msg_obj: xmpp message obj
 		"""
-		if 'event' in plugin_action:
-			event = plugin_action["event"]
+		if 'event' in action:
+			event = action["event"]
 			if 'msg' in event:
 				register_event(event["time"], self.send_reply, [event['msg']])
 			elif 'command' in event:
@@ -333,8 +334,18 @@ class UrlBot(IdleBot):
 				if rate_limit(RATE_EVENT):
 					register_event(event["time"], command[0], command[1])
 
-		if 'msg' in plugin_action and rate_limit(RATE_CHAT | plugin.ratelimit_class):
-			self.send_reply(plugin_action['msg'], msg_obj)
+		if 'msg' in action and rate_limit(RATE_CHAT | plugin.ratelimit_class):
+			self.send_reply(action['msg'], msg_obj)
+
+		if 'presence' in action:
+			presence = action['presence']
+			conf_set('presence', presence)
+
+			self.status = presence['msg']
+			self.show = presence['status']
+
+			self.send_presence(pstatus=presence['msg'], pshow=presence['status'])
+			# self.reconnect(wait=True)
 
 if '__main__' == __name__:
 	start(UrlBot, True)

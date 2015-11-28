@@ -44,6 +44,16 @@ def conf_load():
 		return {}
 
 
+def conf_set(key, value):
+	blob = conf_load()
+	blob[key] = value
+	conf_save(blob)
+
+
+def conf_get(key):
+	blob = conf_load()
+	return blob.get(key)
+
 Bucket = namedtuple("BucketConfig", ["history", "period", "max_hist_len"])
 
 buckets = {

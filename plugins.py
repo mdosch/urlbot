@@ -983,21 +983,21 @@ def recognize_bots(**args):
 		}
 
 
-@pluginfunction("set_status", "", ptypes_COMMAND)
+@pluginfunction("set_status", "set bot status", ptypes_COMMAND)
 def set_status(argv, **args):
 	if 'set_status' != argv[0]:
 		return
 	if argv[1] == 'mute' and args['reply_user'] == conf('bot_owner'):
 		return {
 			'presence': {
-				'status': 'AWAY',
+				'status': 'xa',
 				'message': 'I\'m muted now. You can unmute me with "%s: set_status unmute"' % conf("bot_user")
 			}
 		}
 	elif argv[1] == 'unmute' and args['reply_user'] == conf('bot_owner'):
 		return {
 			'presence': {
-				'status': 'ONLINE',
+				'status': None,
 				'message': ''
 			}
 		}
