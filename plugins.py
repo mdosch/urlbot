@@ -930,7 +930,7 @@ def command_dsa_watcher(argv, **_):
 				set_conf('persistent_locked', False)
 
 			msg = (
-			'new Debian Security Announce found (%s): %s' % (str(package).replace(' - security update', ''), url))
+				'new Debian Security Announce found (%s): %s' % (str(package).replace(' - security update', ''), url))
 			out.append(msg)
 
 			log.info('no dsa for %d, trying again...' % dsa)
@@ -969,36 +969,26 @@ def recognize_bots(**args):
 		'new Debian Security Announce',
 		'I\'m a bot (highlight me',
 	)
-	if any([phrase in args['data'] for phrase in unique_standard_phrases]):
 
+	def _add_to_list(username, message):
 		blob = conf_load()
 
 		if 'other_bots' not in blob:
 			blob['other_bots'] = []
-		if args['reply_user'] not in blob['other_bots']:
-			blob['other_bots'].append(args['reply_user'])
+		if username not in blob['other_bots']:
+			blob['other_bots'].append(username)
 			conf_save(blob)
 			return {
 				'event': {
 					'time': time.time() + 3,
-					'msg': 'Making notes...'
+					'msg': message
 				}
 			}
-	elif 'I\'ll be back' in args['data']:
-		# a buddy!
-		blob = conf_load()
 
-		if 'other_bots' not in blob:
-			blob['other_bots'] = []
-		if args['reply_user'] not in blob['other_bots']:
-			blob['other_bots'].append(args['reply_user'])
-		conf_save(blob)
-		return {
-			'event': {
-				'time': time.time() + 3,
-				'msg': 'Hey there, buddy!'
-			}
-		}
+	if any([phrase in args['data'] for phrase in unique_standard_phrases]):
+		_add_to_list(args['reply_user'], 'Making notes...')
+	elif 'I\'ll be back' in args['data']:
+		_add_to_list(args['reply_user'], 'Hey there, buddy!')
 
 
 @pluginfunction("remove-from-botlist", "remove a user from the botlist", ptypes_COMMAND)
