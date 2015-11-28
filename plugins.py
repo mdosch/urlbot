@@ -929,7 +929,8 @@ def command_dsa_watcher(argv, **_):
 				conf_save(blob)
 				set_conf('persistent_locked', False)
 
-			msg = ('new Debian Security Announce found (%s): %s' % (str(package).replace(' - security update', ''), url))
+			msg = (
+			'new Debian Security Announce found (%s): %s' % (str(package).replace(' - security update', ''), url))
 			out.append(msg)
 
 			log.info('no dsa for %d, trying again...' % dsa)
@@ -966,6 +967,7 @@ def recognize_bots(**args):
 	unique_standard_phrases = (
 		'independent bot and have nothing to do with other artificial intelligence systems',
 		'new Debian Security Announce',
+		'I\'m a bot (highlight me',
 	)
 	if any([phrase in args['data'] for phrase in unique_standard_phrases]):
 
@@ -999,11 +1001,33 @@ def recognize_bots(**args):
 		}
 
 
+@pluginfunction("remove-from-botlist", "remove a user from the botlist", ptypes_COMMAND)
+def remove_from_botlist(argv, **args):
+	if 'remove-from-botlist' != argv[0]:
+		return
+
+	if len(argv) != 2:
+		return {'msg': "wrong number of arguments!"}
+
+	blob = conf_load()
+
+	if args['reply_user'] != conf('bot_owner'):
+		return {'msg': "only %s may do this!" % conf('bot_owner')}
+
+	if argv[1] in blob.get('other_bots', ()):
+		blob['other_bots'].pop(blob['other_bots'].index(argv[1]))
+
+		conf_save(blob)
+		return {'msg': '%s was removed from the botlist.' % argv[1]}
+	else:
+		return False
+
 
 @pluginfunction("set_status", "set bot status", ptypes_COMMAND)
 def set_status(argv, **args):
-	if 'set_status' != argv[0]:
+	if 'set_status' != argv[0] or len(argv) != 2:
 		return
+
 	if argv[1] == 'mute' and args['reply_user'] == conf('bot_owner'):
 		return {
 			'presence': {
