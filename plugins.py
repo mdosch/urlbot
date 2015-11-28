@@ -441,10 +441,10 @@ def command_info(argv, **args):
 	return {
 		'msg': args['reply_user'] + (
 			''': I'm a bot, my job is to extract <title> tags from posted URLs. In case I'm annoying or for further
-			questions, please talk to my master %s. I'm rate limited and shouldn't post more
-			than %d messages per %d seconds. To make me exit immediately, highlight me with 'hangup' in the message
+			questions, please talk to my master %s. I'm rate limited.
+			To make me exit immediately, highlight me with 'hangup' in the message
 			(emergency only, please). For other commands, highlight me with 'help'.''' % (
-				conf('bot_owner'), int(conf('hist_max_count')), int(conf('hist_max_time'))))
+				conf('bot_owner')))
 	}
 
 
@@ -734,7 +734,7 @@ def command_wp(argv, lang='de', **args):
 
 
 @pluginfunction('excuse', 'prints BOFH style excuses', ptypes_COMMAND)
-def command_dummy(argv, **args):
+def command_excuse(argv, **args):
 	if 'excuse' != argv[0]:
 		return
 
@@ -910,9 +910,6 @@ def command_dsa_watcher(argv, **_):
 			if result:
 				package = result.groups()[0]
 
-			out.append(
-				'new Debian Security Announce found (%s): %s' % (str(package).replace(' - security update', ''), url))
-
 			if conf('persistent_locked'):
 				msg = "couldn't get exclusive lock"
 				log.warn(msg)
@@ -932,7 +929,7 @@ def command_dsa_watcher(argv, **_):
 				conf_save(blob)
 				set_conf('persistent_locked', False)
 
-			msg = 'new Debian Security Announce found (%s): %s' % (package, url)
+			msg = ('new Debian Security Announce found (%s): %s' % (str(package).replace(' - security update', ''), url))
 			out.append(msg)
 
 			log.info('no dsa for %d, trying again...' % dsa)
