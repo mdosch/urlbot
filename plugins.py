@@ -1034,6 +1034,15 @@ def set_status(argv, **args):
 		}
 
 
+@pluginfunction('reset-jobs', "reset joblist", ptypes_COMMAND, ratelimit_class=RATE_NO_LIMIT)
+def reset_jobs(argv, **args):
+	if 'reset-jobs' != argv[0] or args['reply_user'] != conf('bot_owner'):
+		return
+	else:
+		joblist.clear()
+		return {'msg': 'done.'}
+
+
 def else_command(args):
 	log.info('sent short info')
 	return {
