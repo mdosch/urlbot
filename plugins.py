@@ -480,7 +480,7 @@ def command_teatimer(argv, **args):
 		),
 		'event': {
 			'time': ready,
-			'msg': (args['reply_user'] + ': Your tea is ready!', args['msg_obj'])
+			'msg': (args['reply_user'] + ': Your tea is ready!')
 		}
 	}
 
