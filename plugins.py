@@ -963,7 +963,11 @@ def provoke_bots(argv, **args):
 
 @pluginfunction("recognize_bots", "got ya", ptypes_PARSE)
 def recognize_bots(**args):
-	if 'independent bot and have nothing to do with other artificial intelligence systems' in args['data']:
+	unique_standard_phrases = (
+		'independent bot and have nothing to do with other artificial intelligence systems',
+		'new Debian Security Announce',
+	)
+	if any([phrase in args['data'] for phrase in unique_standard_phrases]):
 
 		blob = conf_load()
 
