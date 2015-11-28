@@ -13,7 +13,7 @@ import urllib.request
 # from common import *
 
 from common import conf_load, conf_save, RATE_GLOBAL, RATE_NO_SILENCE, VERSION, RATE_INTERACTIVE, BUFSIZ, \
-	USER_AGENT, extract_title
+	USER_AGENT, extract_title, RATE_FUN, RATE_NO_LIMIT
 from local_config import set_conf, conf
 from string_constants import excuses, moin_strings_hi, moin_strings_bye, cakes
 
@@ -163,7 +163,7 @@ def parse_dsa(**args):
 	}
 
 
-@pluginfunction('skynet', 'parse skynet', ptypes_PARSE)
+@pluginfunction('skynet', 'parse skynet', ptypes_PARSE, ratelimit_class=RATE_FUN | RATE_GLOBAL)
 def parse_skynet(**args):
 	if 'skynet' in args['data'].lower():
 		log.info('sent skynet reply')
@@ -209,7 +209,7 @@ def parse_moin(**args):
 					}
 
 
-@pluginfunction('latex', r'reacts on \LaTeX', ptypes_PARSE)
+@pluginfunction('latex', r'reacts on \LaTeX', ptypes_PARSE, ratelimit_class=RATE_FUN | RATE_GLOBAL)
 def parse_latex(**args):
 	if r'\LaTeX' in args['data']:
 		return {
@@ -217,7 +217,7 @@ def parse_latex(**args):
 		}
 
 
-@pluginfunction('me-action', 'reacts to /me.*%{bot_user}', ptypes_PARSE)
+@pluginfunction('me-action', 'reacts to /me.*%{bot_user}', ptypes_PARSE, ratelimit_class=RATE_FUN | RATE_GLOBAL)
 def parse_slash_me(**args):
 	if args['data'].lower().startswith('/me') and (conf('bot_user') in args['data'].lower()):
 		log.info('sent /me reply')
@@ -285,7 +285,7 @@ def command_version(argv, **args):
 	}
 
 
-@pluginfunction('klammer', 'prints an anoying paper clip aka. Karl Klammer', ptypes_COMMAND)
+@pluginfunction('klammer', 'prints an anoying paper clip aka. Karl Klammer', ptypes_COMMAND, ratelimit_class=RATE_FUN | RATE_GLOBAL)
 def command_klammer(argv, **args):
 	if 'klammer' != argv[0]:
 		return
@@ -304,7 +304,7 @@ def command_klammer(argv, **args):
 	}
 
 
-@pluginfunction('unikot', 'prints an unicode string', ptypes_COMMAND)
+@pluginfunction('unikot', 'prints an unicode string', ptypes_COMMAND, ratelimit_class=RATE_FUN | RATE_GLOBAL)
 def command_unicode(argv, **args):
 	if 'unikot' != argv[0]:
 		return
@@ -487,7 +487,7 @@ def command_teatimer(argv, **args):
 	}
 
 
-@pluginfunction('decode', 'prints the long description of an unicode character', ptypes_COMMAND)
+@pluginfunction('decode', 'prints the long description of an unicode character', ptypes_COMMAND, ratelimit_class=RATE_INTERACTIVE)
 def command_decode(argv, **args):
 	if 'decode' != argv[0]:
 		return
@@ -570,7 +570,7 @@ def usersetting_get(argv, args):
 	}
 
 
-@pluginfunction('set', 'modify a user setting', ptypes_COMMAND)
+@pluginfunction('set', 'modify a user setting', ptypes_COMMAND, ratelimit_class=RATE_NO_LIMIT)
 def command_usersetting(argv, **args):
 	if 'set' != argv[0]:
 		return
@@ -617,7 +617,7 @@ def command_usersetting(argv, **args):
 	return usersetting_get(argv, args)
 
 
-@pluginfunction('cake', 'displays a cake ASCII art', ptypes_COMMAND)
+@pluginfunction('cake', 'displays a cake ASCII art', ptypes_COMMAND, ratelimit_class=RATE_FUN | RATE_GLOBAL)
 def command_cake(argv, **args):
 	if 'cake' != argv[0]:
 		return
@@ -677,8 +677,6 @@ def command_wp_en(argv, **args):
 def command_wp(argv, lang='de', **args):
 	if 'wp' != argv[0]:
 		return
-
-	log.info('plugin called')
 
 	query = ' '.join(argv[1:])
 
@@ -872,7 +870,7 @@ def command_show_recordlist(argv, **args):
 	}
 
 
-@pluginfunction('dsa-watcher', 'automatically crawls for newly published Debian Security Announces', ptypes_COMMAND)
+@pluginfunction('dsa-watcher', 'automatically crawls for newly published Debian Security Announces', ptypes_COMMAND, ratelimit_class=RATE_NO_SILENCE)
 def command_dsa_watcher(argv, **_):
 	"""
 	TODO: rewrite so that a last_dsa_date is used instead, then all DSAs since then printed and the date set to now()

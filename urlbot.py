@@ -4,10 +4,18 @@
 import random
 import re
 import sys
-import time
 
-from common import conf_load, conf_save, \
-	extract_title, RATE_GLOBAL, RATE_CHAT, rate_limit_classes
+from common import (
+	conf_load, conf_save,
+	extract_title,
+	rate_limit_classes,
+	RATE_GLOBAL,
+	RATE_CHAT,
+	RATE_NO_SILENCE,
+	RATE_EVENT,
+	# rate_limited,
+	rate_limit,
+	RATE_URL)
 from idlebot import IdleBot, start
 from plugins import (
 	plugins as plugin_storage,
@@ -105,6 +113,7 @@ class UrlBot(IdleBot):
 			conf_save(blob)
 			set_conf('persistent_locked', False)
 
+	# @rate_limited(10)
 	def send_reply(self, message, msg_obj=None):
 		"""
 		Send a reply to a message
@@ -114,7 +123,7 @@ class UrlBot(IdleBot):
 		if str is not type(message):
 			message = '\n'.join(message)
 
-		if conf('debug_mode'):
+		if conf('debug_mode', False):
 			print(message)
 		else:
 			if msg_obj:
@@ -140,9 +149,8 @@ class UrlBot(IdleBot):
 		ret = None
 		out = []
 		for url in result:
-			self.push_ratelimit()
-			if self.check_ratelimit(msg_obj):
-				return False
+			# if rate_limit(RATE_NO_SILENCE | RATE_GLOBAL):
+			# 	return False
 
 			flag = False
 			for b in conf('url_blacklist'):
@@ -199,7 +207,7 @@ class UrlBot(IdleBot):
 			out.append(message)
 			ret = True
 
-		if ret:
+		if ret and rate_limit(RATE_URL | RATE_GLOBAL):
 			self.send_reply(out, msg_obj)
 		return ret
 
@@ -239,39 +247,6 @@ class UrlBot(IdleBot):
 		self.data_parse_commands(msg_obj)
 		self.data_parse_other(msg_obj)
 
-	def push_ratelimit(self, ratelimit_class=RATE_GLOBAL):  # FIXME: separate counters
-		local_history = self.hist_ts[ratelimit_class]
-		local_history.append(time.time())
-
-		if conf('hist_max_count') < len(local_history):
-			local_history.pop(0)
-		self.hist_ts[ratelimit_class] = local_history
-
-	def check_ratelimit(self, ratelimit_class=RATE_GLOBAL):  # FIXME: separate counters
-
-		local_history = self.hist_ts[ratelimit_class]
-
-		if conf('hist_max_count') < len(local_history):
-			first = local_history.pop(0)
-			self.hist_ts[ratelimit_class] = local_history
-
-			if (time.time() - first) < conf('hist_max_time'):
-				if self.hist_flag[ratelimit_class]:
-					self.hist_flag[ratelimit_class] = False
-					# FIXME: this is very likely broken now
-					self.send_reply('(rate limited to %d messages in %d seconds, try again at %s)' % (
-							conf('hist_max_count'),
-							conf('hist_max_time'),
-							time.strftime('%T %Z', time.localtime(local_history[0] + conf('hist_max_time')))
-						)
-					)
-
-				self.logger.warn('rate limiting exceeded: ' + local_history)
-				return True
-
-		self.hist_flag[ratelimit_class] = True
-		return False
-
 	def data_parse_commands(self, msg_obj):
 		"""
 		react to a message with the bots nick
@@ -299,14 +274,13 @@ class UrlBot(IdleBot):
 		reply_user = msg_obj['mucnick']
 
 		# TODO: check how several commands/plugins in a single message behave (also with rate limiting)
-		for p in plugin_storage[ptypes_COMMAND]:
-			if self.check_ratelimit(p.ratelimit_class):
+		reacted = False
+		for plugin in plugin_storage[ptypes_COMMAND]:
+
+			if not plugin_enabled_get(plugin):
 				continue
 
-			if not plugin_enabled_get(p):
-				continue
-
-			ret = p(
+			ret = plugin(
 				data=data,
 				cmd_list=[pl.plugin_name for pl in plugin_storage[ptypes_COMMAND]],
 				parser_list=[pl.plugin_name for pl in plugin_storage[ptypes_PARSE]],
@@ -316,29 +290,14 @@ class UrlBot(IdleBot):
 			)
 
 			if ret:
-				if 'event' in ret:
-					event = ret["event"]
-					if 'msg' in event:
-						register_event(event["time"], self.send_reply, event['msg'])
-					elif 'command' in event:
-						command = event["command"]
-						register_event(event["time"], command[0], command[1])
-				if 'msg' in list(ret.keys()):
-					self.push_ratelimit(RATE_CHAT)
-					if self.check_ratelimit(RATE_CHAT):
-						return False
+				self._run_action(ret, plugin, msg_obj)
+				reacted = True
 
+		if not reacted and rate_limit(RATE_GLOBAL):
+			ret = else_command({'reply_user': reply_user})
+			if ret:
+				if 'msg' in ret:
 					self.send_reply(ret['msg'], msg_obj)
-
-				return None
-
-		ret = else_command({'reply_user': reply_user})
-		if ret:
-			if self.check_ratelimit(RATE_GLOBAL):
-				return False
-
-			if 'msg' in list(ret.keys()):
-				self.send_reply(ret['msg'], msg_obj)
 
 	def data_parse_other(self, msg_obj):
 		"""
@@ -350,21 +309,33 @@ class UrlBot(IdleBot):
 		data = msg_obj['body']
 		reply_user = msg_obj['mucnick']
 
-		for p in plugin_storage[ptypes_PARSE]:
-			if self.check_ratelimit(p.ratelimit_class):
+		for plugin in plugin_storage[ptypes_PARSE]:
+			if not plugin_enabled_get(plugin):
 				continue
 
-			if not plugin_enabled_get(p):
-				continue
-
-			ret = p(reply_user=reply_user, data=data)
+			ret = plugin(reply_user=reply_user, data=data)
 
 			if ret:
-				if 'msg' in list(ret.keys()):
-					self.push_ratelimit(RATE_CHAT)
-					self.send_reply(ret['msg'], msg_obj)
+				self._run_action(ret, plugin, msg_obj)
 
+	def _run_action(self, plugin_action, plugin, msg_obj):
+		"""
+		Execute the plugin's execution plan
+		:param plugin_action: dict with event and/or msg
+		:param plugin: plugin obj
+		:param msg_obj: xmpp message obj
+		"""
+		if 'event' in plugin_action:
+			event = plugin_action["event"]
+			if 'msg' in event:
+				register_event(event["time"], self.send_reply, event['msg'])
+			elif 'command' in event:
+				command = event["command"]
+				if rate_limit(RATE_EVENT):
+					register_event(event["time"], command[0], command[1])
+
+		if 'msg' in plugin_action and rate_limit(RATE_CHAT | plugin.ratelimit_class):
+			self.send_reply(plugin_action['msg'], msg_obj)
 
 if '__main__' == __name__:
 	start(UrlBot, True)
-
