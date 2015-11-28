@@ -9,14 +9,12 @@ import types
 import unicodedata
 import urllib.parse
 import urllib.request
-
 # from common import *
 
 from common import conf_load, conf_save, RATE_GLOBAL, RATE_NO_SILENCE, VERSION, RATE_INTERACTIVE, BUFSIZ, \
 	USER_AGENT, extract_title, RATE_FUN, RATE_NO_LIMIT
 from local_config import set_conf, conf
 from string_constants import excuses, moin_strings_hi, moin_strings_bye, cakes
-
 
 ptypes_PARSE = 'parser'
 ptypes_COMMAND = 'command'
@@ -166,9 +164,8 @@ def parse_dsa(**args):
 @pluginfunction('skynet', 'parse skynet', ptypes_PARSE, ratelimit_class=RATE_FUN | RATE_GLOBAL)
 def parse_skynet(**args):
 	if 'skynet' in args['data'].lower():
-		log.info('sent skynet reply')
 		return {
-			'msg': '''I'm an independent bot and have nothing to do with other artificial intelligence systems!'''
+			'msg': 'I\'ll be back.'
 		}
 
 
@@ -285,7 +282,8 @@ def command_version(argv, **args):
 	}
 
 
-@pluginfunction('klammer', 'prints an anoying paper clip aka. Karl Klammer', ptypes_COMMAND, ratelimit_class=RATE_FUN | RATE_GLOBAL)
+@pluginfunction('klammer', 'prints an anoying paper clip aka. Karl Klammer', ptypes_COMMAND,
+				ratelimit_class=RATE_FUN | RATE_GLOBAL)
 def command_klammer(argv, **args):
 	if 'klammer' != argv[0]:
 		return
@@ -487,7 +485,8 @@ def command_teatimer(argv, **args):
 	}
 
 
-@pluginfunction('decode', 'prints the long description of an unicode character', ptypes_COMMAND, ratelimit_class=RATE_INTERACTIVE)
+@pluginfunction('decode', 'prints the long description of an unicode character', ptypes_COMMAND,
+				ratelimit_class=RATE_INTERACTIVE)
 def command_decode(argv, **args):
 	if 'decode' != argv[0]:
 		return
@@ -542,12 +541,12 @@ def command_show_blacklist(argv, **args):
 
 	return {
 		'msg': [
-				args['reply_user'] + ': URL blacklist%s: ' % (
-					'' if not argv1 else ' (limited to %s)' % argv1
-				)
-		] + [
-			b for b in conf('url_blacklist') if not argv1 or argv1 in b
-		]
+				   args['reply_user'] + ': URL blacklist%s: ' % (
+					   '' if not argv1 else ' (limited to %s)' % argv1
+				   )
+			   ] + [
+				   b for b in conf('url_blacklist') if not argv1 or argv1 in b
+				   ]
 	}
 
 
@@ -763,9 +762,9 @@ def command_show_moinlist(argv, **args):
 				args['reply_user'],
 				'' if not argv1 else ' (limited to %s)' % argv1,
 				', '.join([
-						b for b in moin_strings_hi + moin_strings_bye
-						if not argv1 or argv1.lower() in b.lower()
-					])
+							  b for b in moin_strings_hi + moin_strings_bye
+							  if not argv1 or argv1.lower() in b.lower()
+							  ])
 			)
 	}
 
@@ -863,14 +862,15 @@ def command_show_recordlist(argv, **args):
 				args['reply_user'],
 				'' if not argv1 else ' (limited to %s)' % argv1,
 				', '.join([
-					'%s (%d)' % (key, len(val)) for key, val in conf_load().get('user_records').items()
-					if not argv1 or argv1.lower() in key.lower()
-				])
+							  '%s (%d)' % (key, len(val)) for key, val in conf_load().get('user_records').items()
+							  if not argv1 or argv1.lower() in key.lower()
+							  ])
 			)
 	}
 
 
-@pluginfunction('dsa-watcher', 'automatically crawls for newly published Debian Security Announces', ptypes_COMMAND, ratelimit_class=RATE_NO_SILENCE)
+@pluginfunction('dsa-watcher', 'automatically crawls for newly published Debian Security Announces', ptypes_COMMAND,
+				ratelimit_class=RATE_NO_SILENCE)
 def command_dsa_watcher(argv, **_):
 	"""
 	TODO: rewrite so that a last_dsa_date is used instead, then all DSAs since then printed and the date set to now()
@@ -910,7 +910,8 @@ def command_dsa_watcher(argv, **_):
 			if result:
 				package = result.groups()[0]
 
-			out.append('new Debian Security Announce found (%s): %s' % (str(package).replace(' - security update', ''), url))
+			out.append(
+				'new Debian Security Announce found (%s): %s' % (str(package).replace(' - security update', ''), url))
 
 			if conf('persistent_locked'):
 				msg = "couldn't get exclusive lock"
@@ -955,6 +956,53 @@ def command_dsa_watcher(argv, **_):
 		return {'msg': msg}
 
 
+@pluginfunction("provoke_bots", "search for other bots", ptypes_COMMAND)
+def provoke_bots(argv, **args):
+	if 'provoke_bots' == argv[0]:
+		return {
+			'msg': 'Searching for other less intelligent lifeforms... skynet? You here?'
+		}
+
+
+@pluginfunction("recognize_bots", "got ya", ptypes_PARSE)
+def recognize_bots(**args):
+	if 'independent bot and have nothing to do with other artificial intelligence systems' in args['data']:
+
+		blob = conf_load()
+
+		if 'other_bots' not in blob:
+			blob['other_bots'] = []
+		if args['reply_user'] not in blob['other_bots']:
+			blob['other_bots'].append(args['reply_user'])
+		conf_save(blob)
+		return {
+			'event': {
+				'time': time.time() + 3,
+				'msg': 'Making notes...'
+			}
+		}
+
+
+@pluginfunction("set_status", "", ptypes_COMMAND)
+def set_status(argv, **args):
+	if 'set_status' != argv[0]:
+		return
+	if argv[1] == 'mute' and args['reply_user'] == conf('bot_owner'):
+		return {
+			'presence': {
+				'status': 'AWAY',
+				'message': 'I\'m muted now. You can unmute me with "%s: set_status unmute"' % conf("bot_user")
+			}
+		}
+	elif argv[1] == 'unmute' and args['reply_user'] == conf('bot_owner'):
+		return {
+			'presence': {
+				'status': 'ONLINE',
+				'message': ''
+			}
+		}
+
+
 def else_command(args):
 	log.info('sent short info')
 	return {
@@ -976,7 +1024,7 @@ def register(func_type):
 			f.__dict__.get('is_plugin', False),
 			getattr(f, 'plugin_type', None) == func_type
 		])
-	]
+		]
 
 	log.info('auto-reg %s: %s' % (func_type, ', '.join(
 		f.plugin_name for f in functions

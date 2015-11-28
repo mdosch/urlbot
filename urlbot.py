@@ -54,8 +54,7 @@ class UrlBot(IdleBot):
 			self.add_event_handler('muc::%s::got_online' % r, self.muc_online)
 
 	def muc_message(self, msg_obj):
-		super(UrlBot, self).muc_message(msg_obj)
-		return self.handle_msg(msg_obj)
+		return super(UrlBot, self).muc_message(msg_obj) and self.handle_msg(msg_obj)
 
 	def message(self, msg_obj):
 		if 'groupchat' == msg_obj['type']:
@@ -328,7 +327,7 @@ class UrlBot(IdleBot):
 		if 'event' in plugin_action:
 			event = plugin_action["event"]
 			if 'msg' in event:
-				register_event(event["time"], self.send_reply, event['msg'])
+				register_event(event["time"], self.send_reply, [event['msg']])
 			elif 'command' in event:
 				command = event["command"]
 				if rate_limit(RATE_EVENT):

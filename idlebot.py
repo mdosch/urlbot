@@ -5,7 +5,7 @@ import time
 
 import sys
 
-from common import VERSION, EVENTLOOP_DELAY
+from common import VERSION, EVENTLOOP_DELAY, conf_load
 
 try:
 	from local_config import conf, set_conf
@@ -59,19 +59,20 @@ class IdleBot(ClientXMPP):
 		:return:
 		"""
 		# don't talk to yourself
-		if msg_obj['mucnick'] == self.nick:
-			return
-
-		if 'groupchat' != msg_obj['type']:
-			return
-
-		if msg_obj['body'].startswith(conf('bot_user')) and 'hangup' in msg_obj['body']:
+		if msg_obj['mucnick'] == self.nick or 'groupchat' != msg_obj['type']:
+			return False
+		elif msg_obj['body'].startswith(conf('bot_user')) and 'hangup' in msg_obj['body']:
 			self.logger.warn("got 'hangup' from '%s': '%s'" % (
 				msg_obj['mucnick'], msg_obj['body']
 			))
 			global got_hangup
 			got_hangup = True
-			return
+			return False
+		elif msg_obj['mucnick'] in conf_load().get("other_bots", ()):
+			# not talking to the other bot.
+			return False
+		else:
+			return True
 
 
 def start(botclass, active=False):
@@ -103,6 +104,7 @@ def start(botclass, active=False):
 
 	while 1:
 		try:
+			# print("hangup: %s" % got_hangup)
 			if got_hangup or not plugins.event_trigger():
 				bot.disconnect()
 				sys.exit(1)
