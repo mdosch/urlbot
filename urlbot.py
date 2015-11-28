@@ -123,10 +123,20 @@ class UrlBot(IdleBot):
 		if str is not type(message):
 			message = '\n'.join(message)
 
+		# check other bots, add nospoiler with urls
+		def _prevent_panic(message, room):
+			if 'http' in message:
+				other_bots = conf_load().get("other_bots", ())
+				users = self.plugin['xep_0045'].getRoster(room)
+				if set(users).intersection(set(other_bots)):
+					message = '(nospoiler) %s' % message
+			return message
+
 		if conf('debug_mode', False):
 			print(message)
 		else:
 			if msg_obj:
+				message = _prevent_panic(message, msg_obj['from'].bare)
 				self.send_message(
 					mto=msg_obj['from'].bare,
 					mbody=message,
@@ -134,6 +144,7 @@ class UrlBot(IdleBot):
 				)
 			else:  # unset msg_obj == broadcast
 				for room in self.rooms:
+					message = _prevent_panic(message, room)
 					self.send_message(
 						mto=room,
 						mbody=message,
