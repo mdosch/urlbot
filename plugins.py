@@ -975,13 +975,13 @@ def recognize_bots(**args):
 			blob['other_bots'] = []
 		if args['reply_user'] not in blob['other_bots']:
 			blob['other_bots'].append(args['reply_user'])
-		conf_save(blob)
-		return {
-			'event': {
-				'time': time.time() + 3,
-				'msg': 'Making notes...'
+			conf_save(blob)
+			return {
+				'event': {
+					'time': time.time() + 3,
+					'msg': 'Making notes...'
+				}
 			}
-		}
 	elif 'I\'ll be back' in args['data']:
 		# a buddy!
 		blob = conf_load()
