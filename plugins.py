@@ -1013,9 +1013,9 @@ def remove_from_botlist(argv, **args):
 		return False
 
 
-@pluginfunction("set_status", "set bot status", ptypes_COMMAND)
+@pluginfunction("set-status", "set bot status", ptypes_COMMAND)
 def set_status(argv, **args):
-	if 'set_status' != argv[0] or len(argv) != 2:
+	if 'set-status' != argv[0] or len(argv) != 2:
 		return
 
 	if argv[1] == 'mute' and args['reply_user'] == conf('bot_owner'):
