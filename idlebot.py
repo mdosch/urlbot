@@ -76,7 +76,7 @@ class IdleBot(ClientXMPP):
 
 def start(botclass, active=False):
 	logging.basicConfig(
-		level=logging.INFO,
+		level=conf('loglevel', logging.INFO),
 		format=sys.argv[0] + ' %(asctime)s %(levelname).1s %(funcName)-15s %(message)s'
 	)
 	logger = logging.getLogger(__name__)
