@@ -118,8 +118,8 @@ class UrlBot(IdleBot):
 		"""
 		Send a reply to a message
 		"""
-		if self.status is not None:
-			self.logger.warn("I'm muted!")
+		if self.show:
+			self.logger.warn("I'm muted! (status: %s)" % self.show)
 			return
 
 		set_conf('request_counter', conf('request_counter') + 1)
