@@ -470,31 +470,31 @@ DNS server drank too much and had a hiccup
 '''.split('\n')[1:-1]
 
 moin_strings_hi = [
-	'Hi',
-	'Guten Morgen', 'Morgen',
-	'Moin',
-	'Tag', 'Tach',
-	'NAbend', 'Abend',
-	'Hallo', 'Hello'
+    'Hi',
+    'Guten Morgen', 'Morgen',
+    'Moin',
+    'Tag', 'Tach',
+    'NAbend', 'Abend',
+    'Hallo', 'Hello'
 ]
 moin_strings_bye = [
-	'Nacht', 'gN8', 'N8',
-	'bye',
+    'Nacht', 'gN8', 'N8',
+    'bye',
 ]
 
 cakes = [
-	"No cake for you!",
-	("The Enrichment Center is required to remind you "
-		"that you will be baked, and then there will be cake."),
-	"The cake is a lie!",
-	("This is your fault. I'm going to kill you. "
-		"And all the cake is gone. You don't even care, do you?"),
-	"Quit now and cake will be served immediately.",
-	("Enrichment Center regulations require both hands to be "
-		"empty before any cake..."),
-	("Uh oh. Somebody cut the cake. I told them to wait for "
-		"you, but they did it anyway. There is still some left, "
-		"though, if you hurry back."),
-	"I'm going to kill you, and all the cake is gone.",
-	"Who's gonna make the cake when I'm gone? You?"
+    "No cake for you!",
+    ("The Enrichment Center is required to remind you "
+     "that you will be baked, and then there will be cake."),
+    "The cake is a lie!",
+    ("This is your fault. I'm going to kill you. "
+     "And all the cake is gone. You don't even care, do you?"),
+    "Quit now and cake will be served immediately.",
+    ("Enrichment Center regulations require both hands to be "
+     "empty before any cake..."),
+    ("Uh oh. Somebody cut the cake. I told them to wait for "
+     "you, but they did it anyway. There is still some left, "
+     "though, if you hurry back."),
+    "I'm going to kill you, and all the cake is gone.",
+    "Who's gonna make the cake when I'm gone? You?"
 ]

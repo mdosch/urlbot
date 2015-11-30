@@ -3,63 +3,63 @@
 import time
 
 if '__main__' == __name__:
-	print('''this is a config file, which is not meant to be executed''')
-	exit(-1)
+    print('''this is a config file, which is not meant to be executed''')
+    exit(-1)
 
 config = {
-	'jid': 'FIXME',
-	'password': 'FIXME',
-	'rooms': ['FIXME'],
+    'jid': 'FIXME',
+    'password': 'FIXME',
+    'rooms': ['FIXME'],
 
-	'src-url': 'http://aero2k.de/t/repos/urlbot-native.git',
+    'src-url': 'http://aero2k.de/t/repos/urlbot-native.git',
 
-	'bot_user': 'native-urlbot',
-	'bot_owner': 'FIXME',
+    'bot_user': 'native-urlbot',
+    'bot_owner': 'FIXME',
 
-	'hist_max_count': 5,
-	'hist_max_time': 10 * 60,
+    'hist_max_count': 5,
+    'hist_max_time': 10 * 60,
 
-	'uptime': -time.time(),
-	'request_counter': 0,
+    'uptime': -time.time(),
+    'request_counter': 0,
 
-	'persistent_storage': 'urlbot.persistent',
-	'persistent_locked': False,
+    'persistent_storage': 'urlbot.persistent',
+    'persistent_locked': False,
 
-	'url_blacklist': [
-		r'^.*heise\.de/.*-[0-9]+\.html$',
-		r'^.*wikipedia\.org/wiki/.*$',
-		r'^.*blog\.fefe\.de/\?ts=[0-9a-f]+$',
-		r'^.*ibash\.de/zitat.*$',
-		r'^.*golem\.de/news/.*$'
-		r'^.*paste\.debian\.net/((hidden|plainh?)/)?[0-9a-f]+/?$',
-		r'^.*example\.(org|net|com).*$',
-		r'^.*sprunge\.us/.*$',
-		r'^.*ftp\...\.debian\.org.*$'
-	],
+    'url_blacklist': [
+        r'^.*heise\.de/.*-[0-9]+\.html$',
+        r'^.*wikipedia\.org/wiki/.*$',
+        r'^.*blog\.fefe\.de/\?ts=[0-9a-f]+$',
+        r'^.*ibash\.de/zitat.*$',
+        r'^.*golem\.de/news/.*$'
+        r'^.*paste\.debian\.net/((hidden|plainh?)/)?[0-9a-f]+/?$',
+        r'^.*example\.(org|net|com).*$',
+        r'^.*sprunge\.us/.*$',
+        r'^.*ftp\...\.debian\.org.*$'
+    ],
 
-	# the "dice" feature will use more efficient random data (0) for given users
-	'enhanced-random-user': ('FIXME', 'FIXME'),
+    # the "dice" feature will use more efficient random data (0) for given users
+    'enhanced-random-user': ('FIXME', 'FIXME'),
 
-	# the "moin" feature will be "disabled" for given users
-	'moin-modified-user': (),
-	'moin-disabled-user': (),
+    # the "moin" feature will be "disabled" for given users
+    'moin-modified-user': (),
+    'moin-disabled-user': (),
 
-	'tea_steep_time': (3*60 + 40),
+    'tea_steep_time': (3 * 60 + 40),
 
-	'image_preview': True,
-	'dsa_watcher_interval': 15 * 60
+    'image_preview': True,
+    'dsa_watcher_interval': 15 * 60
 }
 
 
 def conf(val):
-	import logging
-	logger = logging.getLogger(__name__)
-	if val in list(config.keys()):
-		return config[val]
-	logger.warn('conf(): unknown key ' + str(val))
-	return None
+    import logging
+    logger = logging.getLogger(__name__)
+    if val in list(config.keys()):
+        return config[val]
+    logger.warn('conf(): unknown key ' + str(val))
+    return None
 
 
 def set_conf(key, val):
-	config[key] = val
-	return None
+    config[key] = val
+    return None
