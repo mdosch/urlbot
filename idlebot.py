@@ -21,7 +21,7 @@ except ImportError:
 
 from sleekxmpp import ClientXMPP
 
-got_hangup = False
+# got_hangup = False
 
 
 class IdleBot(ClientXMPP):
@@ -65,14 +65,20 @@ class IdleBot(ClientXMPP):
             self.logger.warn("got 'hangup' from '%s': '%s'" % (
                 msg_obj['mucnick'], msg_obj['body']
             ))
-            global got_hangup
-            got_hangup = True
+            self.hangup()
             return False
         elif msg_obj['mucnick'] in conf_load().get("other_bots", ()):
             # not talking to the other bot.
             return False
         else:
             return True
+
+    def hangup(self):
+        """
+        disconnect and exit
+        """
+        self.disconnect()
+        sys.exit(1)
 
 
 def start(botclass, active=False):
@@ -103,14 +109,12 @@ def start(botclass, active=False):
     bot.connect()
     bot.register_plugin('xep_0045')
     bot.process()
-    global got_hangup
 
     while 1:
         try:
             # print("hangup: %s" % got_hangup)
-            if got_hangup or not plugins.event_trigger():
-                bot.disconnect()
-                sys.exit(1)
+            if not plugins.event_trigger():
+                bot.hangup()
 
             time.sleep(EVENTLOOP_DELAY)
         except KeyboardInterrupt:

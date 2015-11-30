@@ -1,21 +1,19 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-
-import random
-import re
+"""
+The URLBot - ready to strive for desaster in YOUR jabber MUC
+"""
 import sys
 
 from common import (
     conf_load, conf_save,
-    extract_title,
     rate_limit_classes,
     RATE_GLOBAL,
     RATE_CHAT,
-    RATE_NO_SILENCE,
     RATE_EVENT,
-    # rate_limited,
     rate_limit,
-    RATE_URL, conf_set)
+    conf_set
+)
 from idlebot import IdleBot, start
 from plugins import (
     plugins as plugin_storage,
@@ -34,14 +32,17 @@ except ImportError:
 %s     site specific configurations. Rename local_config.py.skel and
 %s     adjust to your needs.
 '''[1:] % (
-        sys.argv[0],
-        ' ' * len(sys.argv[0]),
-        ' ' * len(sys.argv[0])
-    ))
+    sys.argv[0],
+    ' ' * len(sys.argv[0]),
+    ' ' * len(sys.argv[0])
+))
     sys.exit(1)
 
 
 class UrlBot(IdleBot):
+    """
+    The URLBot, doing things the IdleBot wouldn't dare to.
+    """
     def __init__(self, jid, password, rooms, nick):
         super(UrlBot, self).__init__(jid, password, rooms, nick)
 
@@ -51,17 +52,26 @@ class UrlBot(IdleBot):
         self.add_event_handler('message', self.message)
         self.priority = 100
 
-        for r in self.rooms:
-            self.add_event_handler('muc::%s::got_online' % r, self.muc_online)
+        for room in self.rooms:
+            self.add_event_handler('muc::%s::got_online' % room, self.muc_online)
 
     def muc_message(self, msg_obj):
+        """
+        Handle muc messages, return if irrelevant content or die by hangup.
+        :param msg_obj:
+        :return:
+        """
         return super(UrlBot, self).muc_message(msg_obj) and self.handle_msg(msg_obj)
 
     def message(self, msg_obj):
-        if 'groupchat' == msg_obj['type']:
+        """
+        General message hook
+        :param msg_obj:
+        """
+        if msg_obj['type'] == 'groupchat':
             return
         else:
-            self.logger.info("Got the following PM: %s" % str(msg_obj))
+            self.logger.info("Got the following PM: %s", str(msg_obj))
 
     def muc_online(self, msg_obj):
         """
@@ -86,19 +96,18 @@ class UrlBot(IdleBot):
                 mto=msg_obj['from'].bare,
                 mbody='%s, there %s %d message%s for you:\n%s' % (
                     arg_user,
-                    'is' if 1 == len(records) else 'are',
+                    'is' if len(records) == 1 else 'are',
                     len(records),
-                    '' if 1 == len(records) else 's',
+                    '' if len(records) == 1 else 's',
                     '\n'.join(records)
                 ),
                 mtype='groupchat'
             )
-            self.logger.info('sent %d offline records to room %s' % (
-                len(records), msg_obj['from'].bare
-            ))
+            self.logger.info('sent %d offline records to room %s',
+                             len(records), msg_obj['from'].bare)
 
             if conf('persistent_locked'):
-                self.logger.warn("couldn't get exclusive lock")
+                self.logger.warning("couldn't get exclusive lock")
                 return False
 
             set_conf('persistent_locked', True)
@@ -119,7 +128,7 @@ class UrlBot(IdleBot):
         Send a reply to a message
         """
         if self.show:
-            self.logger.warn("I'm muted! (status: %s)" % self.show)
+            self.logger.warning("I'm muted! (status: %s)", self.show)
             return
 
         set_conf('request_counter', conf('request_counter') + 1)
@@ -184,12 +193,10 @@ class UrlBot(IdleBot):
 
         :returns: nothing
         """
-        global got_hangup
-
         data = msg_obj['body']
         words = data.split()
 
-        if 2 > len(words):  # need at least two words
+        if len(words) < 2:  # need at least two words
             return None
 
         # don't reply if beginning of the text matches bot_user
@@ -197,13 +204,14 @@ class UrlBot(IdleBot):
             return None
 
         if 'hangup' in data:
-            self.logger.warn('received hangup: ' + data)
-            got_hangup = True
+            self.logger.warning('received hangup: ' + data)
+            self.hangup()
             sys.exit(1)
 
         reply_user = msg_obj['mucnick']
 
-        # TODO: check how several commands/plugins in a single message behave (also with rate limiting)
+        # TODO: check how several commands/plugins
+        # in a single message behave (also with rate limiting)
         reacted = False
         for plugin in plugin_storage[ptypes_COMMAND]:
 
@@ -278,5 +286,5 @@ class UrlBot(IdleBot):
         # self.reconnect(wait=True)
 
 
-if '__main__' == __name__:
+if __name__ == '__main__':
     start(UrlBot, True)

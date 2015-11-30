@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+""" Common functions for urlbot """
 import html.parser
 import logging
 import os
@@ -8,7 +9,6 @@ import sys
 import time
 import urllib.request
 from collections import namedtuple
-from threading import Lock
 from local_config import conf
 
 RATE_NO_LIMIT = 0x00
@@ -22,16 +22,13 @@ RATE_FUN = 0x40
 
 BUFSIZ = 8192
 EVENTLOOP_DELAY = 0.100  # seconds
-USER_AGENT = '''Mozilla/5.0 (X11; Linux x86_64; rv:31.0) Gecko/20100101 Firefox/31.0 Iceweasel/31.0'''
-
-basedir = '.'
-if 2 == len(sys.argv):
-    basedir = sys.argv[1]
+USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64; rv:31.0) ' \
+             'Gecko/20100101 Firefox/31.0 Iceweasel/31.0'
 
 
 def conf_save(obj):
-    with open(conf('persistent_storage'), 'wb') as fd:
-        return pickle.dump(obj, fd)
+    with open(conf('persistent_storage'), 'wb') as config_file:
+        return pickle.dump(obj, config_file)
 
 
 def conf_load():
@@ -90,7 +87,10 @@ def rate_limit(rate_class=RATE_GLOBAL):
 
     now = time.time()
     bucket = buckets[rate_class]
-    logging.getLogger(__name__).debug("[ratelimit][bucket=%x][time=%s]%s" % (rate_class, now, bucket.history))
+    logging.getLogger(__name__).debug(
+        "[ratelimit][bucket=%x][time=%s]%s",
+        rate_class, now, bucket.history
+    )
 
     if len(bucket.history) >= bucket.max_hist_len and bucket.history[0] > (now - bucket.period):
         # print("blocked")
