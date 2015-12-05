@@ -5,6 +5,8 @@ The URLBot - ready to strive for desaster in YOUR jabber MUC
 """
 import sys
 
+import time
+
 from common import (
     conf_load, conf_save,
     rate_limit_classes,
@@ -136,8 +138,34 @@ class UrlBot(IdleBot):
         if str is not type(message):
             message = '\n'.join(message)
 
-        # check other bots, add nospoiler with urls
+        def cached(function, ttl=60):
+            cache = {}
+            ttl = 60
+            now = time.time()
+
+            def wrapper(*args):
+                hash_ = hash(args)
+                if hash_ in cache and cache[args]['time'] < now - ttl:
+                    return cache[hash_]['result']
+                else:
+                    result = function(*args)
+                    cache[hash_] = {}
+                    cache[hash_]['time'] = now
+                    cache[hash_]['result'] = result
+                    return result
+
+            return wrapper
+
+        @cached
+        def get_bots_present(room):
+            print("test!")
+            other_bots = conf_load().get("other_bots", ())
+            users = self.plugin['xep_0045'].getRoster(room)
+            return set(users).intersection(set(other_bots))
+
+
         def _prevent_panic(message, room):
+            """check other bots, add nospoiler with urls"""
             if 'http' in message:
                 other_bots = conf_load().get("other_bots", ())
                 users = self.plugin['xep_0045'].getRoster(room)
@@ -149,15 +177,20 @@ class UrlBot(IdleBot):
             print(message)
         else:
             if msg_obj:
-                message = _prevent_panic(message, msg_obj['from'].bare)
+                # TODO: bot modes off/on/auto... this should be active for "on".
+                # message = _prevent_panic(message, msg_obj['from'].bare)
+                if get_bots_present(msg_obj['from'].bare):
+                    return
                 self.send_message(
                     mto=msg_obj['from'].bare,
                     mbody=message,
                     mtype='groupchat'
                 )
-            else:  # unset msg_obj == broadcast
+            else:
                 for room in self.rooms:
-                    message = _prevent_panic(message, room)
+                    # message = _prevent_panic(message, room)
+                    if get_bots_present(room):
+                        continue
                     self.send_message(
                         mto=room,
                         mbody=message,
@@ -266,7 +299,7 @@ class UrlBot(IdleBot):
         if 'event' in action:
             event = action["event"]
             if 'msg' in event:
-                register_event(event["time"], self.send_reply, [event['msg']])
+                register_event(event["time"], self.send_reply, [event['msg'], msg_obj])
             elif 'command' in event:
                 command = event["command"]
                 if rate_limit(RATE_EVENT):
