@@ -628,8 +628,11 @@ def command_cake(argv, **args):
 # TODO: send a hint if someone types plugin as command
 @pluginfunction('plugin', "'disable' or 'enable' plugins", ptypes_COMMAND)
 def command_plugin_activation(argv, **args):
-    command = argv[0]
-    plugin = argv[1] if len(argv) > 1 else None
+    if argv[0] != 'plugin' or len(argv) == 1:
+        return
+
+    command = argv[1]
+    plugin = argv[2] if len(argv) > 2 else None
 
     if command not in ('enable', 'disable'):
         return
