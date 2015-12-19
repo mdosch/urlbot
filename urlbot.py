@@ -158,11 +158,9 @@ class UrlBot(IdleBot):
 
         @cached
         def get_bots_present(room):
-            print("test!")
             other_bots = conf_load().get("other_bots", ())
             users = self.plugin['xep_0045'].getRoster(room)
             return set(users).intersection(set(other_bots))
-
 
         def _prevent_panic(message, room):
             """check other bots, add nospoiler with urls"""
