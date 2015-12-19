@@ -159,6 +159,14 @@ def fetch_page(url):
         request.add_header('User-Agent', USER_AGENT)
         response = urllib.request.urlopen(request)
         html_text = response.read(BUFSIZ)  # ignore more than BUFSIZ
+        if html_text[0] == 0x1f and html_text[1] == 0x8b:
+            import zlib
+            try:
+                gzip_data = zlib.decompress(html_text, zlib.MAX_WBITS | 16)
+            except:
+                pass
+            else:
+                html_text = gzip_data
         response.close()
         return 0, html_text, response.headers
     except Exception as e:
