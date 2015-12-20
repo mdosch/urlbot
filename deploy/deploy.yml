@@ -1,0 +1,86 @@
+- hosts: bots
+  remote_user: root
+  tasks:
+  - name: create user for bot
+    user: name=jabberbot comment="Account for the urlbot" shell=/bin/bash
+  - name: local user can log in with ssh key
+    authorized_key: user=jabberbot key="{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
+  - name: git, python3, virtualenv have to be installed
+    apt: name="{{item}}" state=installed
+    with_items:
+    - git
+    - python3
+    - virtualenv
+    - python3-virtualenv
+
+- hosts: bots
+  remote_user: jabberbot
+  vars:
+  - botrepo: http://aero2k.de/t/repos/urlbot-native.git
+  - pypi_mirror: http://pypi.fcio.net/simple/
+  tasks:
+  - include_vars: credentials.yml
+    tags: [render_config]
+  - name: virtualenv for the bot
+    shell: virtualenv -p python3 ~/botenv creates=~/botenv/bin/activate
+  - name: virtualenv for supervisord
+    shell: virtualenv -p python2 ~/svenv creates=~/svenv/bin/activate
+  - name: clone repository
+    git: repo="{{botrepo}}" dest=~/urlbot force=yes update=yes
+    register: source_code
+  - name: install bot dependencies into virtualenv
+    pip: name="{{item}}" virtualenv=~/botenv extra_args="-i {{pypi_mirror}}"
+    with_items:
+    - sleekxmpp
+    - configobj
+  - name: install supervisor
+    pip: name=supervisor virtualenv=~/svenv extra_args="-i {{pypi_mirror}}"
+
+  - name: set configuration
+    lineinfile: dest=~/urlbot/local_config.ini create=yes line="{{item.key}} = {{item.value}}" regexp="^{{item.key}}.="
+    with_items:
+      - key: "jid"
+        value: "{{jid}}"
+      - key: "password"
+        value: "{{password}}"
+      - key: "rooms"
+        value: "{{rooms | join(', ')}}"
+      - key: "src-url"
+        value: "{{botrepo}}"
+      - key: "bot_nickname"
+        value: "{{bot_nickname}}"
+      - key: "bot_owner"
+        value: "{{bot_owner}}"
+    tags: [render_config]
+    register: urlbot_config
+
+  - name: create supervisor config
+    copy: src=supervisord.conf dest=~/supervisord.conf
+    register: supervisord
+
+  - name: verify supervisor running
+    shell: nc -z 127.0.0.1 9004; echo $? executable=/bin/bash
+    register: supervisor_running
+    changed_when: false
+
+  - name: start supervisord
+    shell: source ~/svenv/bin/activate && supervisord executable=/bin/bash
+    register: start_supervisor
+    when: supervisord.changed or supervisor_running.stdout == "1"
+    #changed_when: "'already listening' not in start_supervisor.stdout"
+
+  - name: activate supervisord changes
+    when: supervisord.changed
+    shell: source ~/svenv/bin/activate && supervisorctl reload executable=/bin/bash
+
+  - name: idlebot started
+    supervisorctl: name=idlebot state=restarted supervisorctl_path=~/svenv/bin/supervisorctl
+    when: (source_code.changed or urlbot_config.changed) and not supervisord.changed
+
+  - pause: seconds=30
+    when: (source_code.changed or urlbot_config.changed) and not supervisord.changed
+
+  - name: urlbot started
+    supervisorctl: name=bot state=restarted supervisorctl_path=~/svenv/bin/supervisorctl
+    when: (source_code.changed or urlbot_config.changed) and not supervisord.changed

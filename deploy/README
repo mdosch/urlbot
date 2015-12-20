@@ -1,0 +1,23 @@
+To use the playbook, create a yaml file credentials.yml
+with the following content (you can use vault to encrypt):
+
+jid: yourjabber@id.to.use
+password: yourpasswordforthisjabber
+rooms:
+   - debianforum.de@chat.debianforum.de # your channel
+   - spielwiese@chat.debianforum.de # bot playground
+bot_nickname: T800 # your bots nickname
+bot_owner: MASTER # your nickname (for info and admin stuff)
+
+
+Further, you need a hosts-file with the following content:
+
+[bots]
+yourserverip
+# or alternatively,
+derpy_name ansible_host=yourserverip
+
+
+There is deploy.sh which I created so I have a single file to
+deploy my stuff - it uses a virtualenv (py2!) with ansible and
+ some vault file declaration.

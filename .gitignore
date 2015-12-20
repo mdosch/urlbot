@@ -6,3 +6,5 @@ persistent_config.ini
 # legacy
 local_config.py
 urlbot.persistent
+
+deploy/credentials.yml
