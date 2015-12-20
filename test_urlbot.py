@@ -173,17 +173,20 @@ class TestPlugins(unittest.TestCase):
         they don't return immidiately
         """
 
-        import plugins
+        import plugins, config
         plugin_functions = filter(
-            lambda x: x[0].startswith("command") and x[1].plugin_type == 'command',
+            lambda x: hasattr(x[1], 'plugin_type') and x[1].plugin_type == 'command',
             plugins.__dict__.items()
         )
+
+        # fixture
+        config.runtime_config_store['other_bots'].append('pork')
 
         for p in plugin_functions:
             func = p[1]
             msg_obj = {
                 'body': '{}: {}'.format(self.bot_nickname, func.plugin_name),
-                'mucnick': 'hans'
+                'mucnick': config.conf_get('bot_owner')
             }
 
             plugin_arguments = {
@@ -201,7 +204,9 @@ class TestPlugins(unittest.TestCase):
                 'choose': ['A', 'B'],
                 'decode': ['@'],
                 'record': ['urlbug', 'this', 'is', 'sparta'],
-                # 'teatimer' invalid format string
+                'flausch': ['hans'],
+                'set-status': ['unmute'],
+                'remove-from-botlist': ['pork'],
 
             }
 
