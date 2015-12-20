@@ -26,19 +26,7 @@ from plugins import (
     else_command
 )
 
-try:
-    from local_config import conf, set_conf
-except ImportError:
-    sys.stderr.write('''
-%s: E: local_config.py isn't tracked because of included secrets and
-%s     site specific configurations. Rename local_config.py.skel and
-%s     adjust to your needs.
-'''[1:] % (
-    sys.argv[0],
-    ' ' * len(sys.argv[0]),
-    ' ' * len(sys.argv[0])
-))
-    sys.exit(1)
+import config
 
 
 class UrlBot(IdleBot):
@@ -108,11 +96,11 @@ class UrlBot(IdleBot):
             self.logger.info('sent %d offline records to room %s',
                              len(records), msg_obj['from'].bare)
 
-            if conf('persistent_locked'):
+            if config.get('persistent_locked'):
                 self.logger.warning("couldn't get exclusive lock")
                 return False
 
-            set_conf('persistent_locked', True)
+            config.set('persistent_locked', True)
             blob = conf_load()
 
             if 'user_records' not in blob:
@@ -122,7 +110,7 @@ class UrlBot(IdleBot):
                 blob['user_records'].pop(arg_user_key)
 
             conf_save(blob)
-            set_conf('persistent_locked', False)
+            config.set('persistent_locked', False)
 
     # @rate_limited(10)
     def send_reply(self, message, msg_obj=None):
@@ -133,7 +121,7 @@ class UrlBot(IdleBot):
             self.logger.warning("I'm muted! (status: %s)", self.show)
             return
 
-        set_conf('request_counter', conf('request_counter') + 1)
+        config.set('request_counter', config.get('request_counter') + 1)
 
         if str is not type(message):
             message = '\n'.join(message)
@@ -171,7 +159,7 @@ class UrlBot(IdleBot):
                     message = '(nospoiler) %s' % message
             return message
 
-        if conf('debug_mode', False):
+        if config.get('debug_mode'):
             print(message)
         else:
             if msg_obj:
@@ -230,8 +218,8 @@ class UrlBot(IdleBot):
         if len(words) < 2:  # need at least two words
             return None
 
-        # don't reply if beginning of the text matches bot_user
-        if not data.startswith(conf('bot_user')):
+        # don't reply if beginning of the text matches bot_nickname
+        if not data.startswith(config.get('bot_nickname')):
             return None
 
         if 'hangup' in data:

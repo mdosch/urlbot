@@ -9,7 +9,7 @@ import sys
 import time
 import urllib.request
 from collections import namedtuple
-from local_config import conf
+import config
 
 RATE_NO_LIMIT = 0x00
 RATE_GLOBAL = 0x01
@@ -27,12 +27,12 @@ USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64; rv:31.0) ' \
 
 
 def conf_save(obj):
-    with open(conf('persistent_storage'), 'wb') as config_file:
+    with open(config.get('persistent_storage'), 'wb') as config_file:
         return pickle.dump(obj, config_file)
 
 
 def conf_load():
-    path = conf('persistent_storage')
+    path = config.get('persistent_storage')
     if os.path.isfile(path):
         with open(path, 'rb') as fd:
             fd.seek(0)

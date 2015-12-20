@@ -5,19 +5,7 @@ import time
 import sys
 from common import VERSION, EVENTLOOP_DELAY, conf_load
 
-try:
-    from local_config import conf, set_conf
-except ImportError:
-    sys.stderr.write('''
-%s: E: local_config.py isn't tracked because of included secrets and
-%s     site specific configurations. Rename local_config.py.skel and
-%s     adjust to you needs.
-'''[1:] % (
-        sys.argv[0],
-        ' ' * len(sys.argv[0]),
-        ' ' * len(sys.argv[0])
-    ))
-    sys.exit(1)
+import config
 
 from sleekxmpp import ClientXMPP
 
@@ -61,7 +49,7 @@ class IdleBot(ClientXMPP):
         # don't talk to yourself
         if msg_obj['mucnick'] == self.nick or 'groupchat' != msg_obj['type']:
             return False
-        elif msg_obj['body'].startswith(conf('bot_user')) and 'hangup' in msg_obj['body']:
+        elif msg_obj['body'].startswith(config.get('bot_nickname')) and 'hangup' in msg_obj['body']:
             self.logger.warn("got 'hangup' from '%s': '%s'" % (
                 msg_obj['mucnick'], msg_obj['body']
             ))
@@ -83,20 +71,20 @@ class IdleBot(ClientXMPP):
 
 def start(botclass, active=False):
     logging.basicConfig(
-        level=conf('loglevel', logging.INFO),
+        level=config.get('loglevel'),
         format=sys.argv[0] + ' %(asctime)s %(levelname).1s %(funcName)-15s %(message)s'
     )
     logger = logging.getLogger(__name__)
     logger.info(VERSION)
 
-    jid = conf('jid')
+    jid = config.get('jid')
     if '/' not in jid:
         jid = '%s/%s' % (jid, botclass.__name__)
     bot = botclass(
         jid=jid,
-        password=conf('password'),
-        rooms=conf('rooms'),
-        nick=conf('bot_user')
+        password=config.get('password'),
+        rooms=config.get('rooms'),
+        nick=config.get('bot_nickname')
     )
     import plugins
 

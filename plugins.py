@@ -12,7 +12,7 @@ import urllib.request
 
 from common import conf_load, conf_save, RATE_GLOBAL, RATE_NO_SILENCE, VERSION, RATE_INTERACTIVE, BUFSIZ, \
     USER_AGENT, extract_title, RATE_FUN, RATE_NO_LIMIT, conf_get, RATE_URL
-from local_config import set_conf, conf
+import config
 from string_constants import excuses, moin_strings_hi, moin_strings_bye, cakes
 
 ptypes_PARSE = 'parser'
@@ -37,11 +37,11 @@ def plugin_enabled_get(urlbot_plugin):
 
 
 def plugin_enabled_set(plugin, enabled):
-    if conf('persistent_locked'):
+    if config.get('persistent_locked'):
         log.warn("couldn't get exclusive lock")
         return False
 
-    set_conf('persistent_locked', True)
+    config.set('persistent_locked', True)
     blob = conf_load()
 
     if 'plugin_conf' not in blob:
@@ -53,7 +53,7 @@ def plugin_enabled_set(plugin, enabled):
     blob['plugin_conf'][plugin.plugin_name]['enabled'] = enabled
 
     conf_save(blob)
-    set_conf('persistent_locked', False)
+    config.set('persistent_locked', False)
 
     return True
 
@@ -180,11 +180,11 @@ def parse_moin(**args):
 
             for w in words:
                 if d.lower() == w.lower():
-                    if args['reply_user'] in conf('moin-disabled-user'):
+                    if args['reply_user'] in config.get('moin-disabled-user'):
                         log.info('moin blacklist match')
                         return
 
-                    if args['reply_user'] in conf('moin-modified-user'):
+                    if args['reply_user'] in config.get('moin-modified-user'):
                         log.info('being "quiet" for %s' % w)
                         return {
                             'msg': '/me %s' % random.choice([
@@ -213,9 +213,9 @@ def parse_latex(**args):
         }
 
 
-@pluginfunction('me-action', 'reacts to /me.*%{bot_user}', ptypes_PARSE, ratelimit_class=RATE_FUN | RATE_GLOBAL)
+@pluginfunction('me-action', 'reacts to /me.*%{bot_nickname}', ptypes_PARSE, ratelimit_class=RATE_FUN | RATE_GLOBAL)
 def parse_slash_me(**args):
-    if args['data'].lower().startswith('/me') and (conf('bot_user') in args['data'].lower()):
+    if args['data'].lower().startswith('/me') and (config.get('bot_nickname') in args['data'].lower()):
         log.info('sent /me reply')
 
         me_replys = [
@@ -324,7 +324,7 @@ def command_source(argv, **_):
 
     log.info('sent source URL')
     return {
-        'msg': 'My source code can be found at %s' % conf('src-url')
+        'msg': 'My source code can be found at %s' % config.get('src-url')
     }
 
 
@@ -353,7 +353,7 @@ def command_dice(argv, **args):
     )
 
     for i in range(count):
-        if args['reply_user'] in conf('enhanced-random-user'):
+        if args['reply_user'] in config.get('enhanced-random-user'):
             rnd = 0  # this might confuse users. good.
             log.info('sent random (enhanced)')
         else:
@@ -394,19 +394,19 @@ def command_uptime(argv, **args):
     if 'uptime' != argv[0]:
         return
 
-    u = int(conf('uptime') + time.time())
+    u = int(config.get('uptime') + time.time())
     plural_uptime = 's'
     plural_request = 's'
 
     if 1 == u:
         plural_uptime = ''
-    if 1 == conf('request_counter'):
+    if 1 == config.get('request_counter'):
         plural_request = ''
 
     log.info('sent statistics')
     return {
         'msg': args['reply_user'] + (''': happily serving for %d second%s, %d request%s so far.''' % (
-            u, plural_uptime, int(conf('request_counter')), plural_request))
+            u, plural_uptime, int(config.get('request_counter')), plural_request))
     }
 
 
@@ -443,16 +443,16 @@ def command_info(argv, **args):
             questions, please talk to my master %s. I'm rate limited.
             To make me exit immediately, highlight me with 'hangup' in the message
             (emergency only, please). For other commands, highlight me with 'help'.''' % (
-                conf('bot_owner')))
+                config.get('bot_owner')))
     }
 
 
-@pluginfunction('teatimer', 'sets a tea timer to $1 or currently %d seconds' % conf('tea_steep_time'), ptypes_COMMAND)
+@pluginfunction('teatimer', 'sets a tea timer to $1 or currently %d seconds' % config.get('tea_steep_time'), ptypes_COMMAND)
 def command_teatimer(argv, **args):
     if 'teatimer' != argv[0]:
         return
 
-    steep = conf('tea_steep_time')
+    steep = config.get('tea_steep_time')
 
     if len(argv) > 1:
         try:
@@ -544,7 +544,7 @@ def command_show_blacklist(argv, **args):
                        '' if not argv1 else ' (limited to %s)' % argv1
                    )
                ] + [
-                   b for b in conf('url_blacklist') if not argv1 or argv1 in b
+                   b for b in config.get('url_blacklist') if not argv1 or argv1 in b
                    ]
     }
 
@@ -592,12 +592,12 @@ def command_usersetting(argv, **args):
         # display current value
         return usersetting_get(argv, args)
 
-    if conf('persistent_locked'):
+    if config.get('persistent_locked'):
         return {
             'msg': args['reply_user'] + ''': couldn't get exclusive lock'''
         }
 
-    set_conf('persistent_locked', True)
+    config.set('persistent_locked', True)
     blob = conf_load()
 
     if 'user_pref' not in blob:
@@ -609,7 +609,7 @@ def command_usersetting(argv, **args):
     blob['user_pref'][arg_user][arg_key] = 'on' == arg_val
 
     conf_save(blob)
-    set_conf('persistent_locked', False)
+    config.set('persistent_locked', False)
 
     # display value written to db
     return usersetting_get(argv, args)
@@ -824,12 +824,12 @@ def command_record(argv, **args):
     message = '%s (%s): ' % (args['reply_user'], time.strftime('%F.%T'))
     message += ' '.join(argv[2:])
 
-    if conf('persistent_locked'):
+    if config.get('persistent_locked'):
         return {
             'msg': "%s: couldn't get exclusive lock" % args['reply_user']
         }
 
-    set_conf('persistent_locked', True)
+    config.set('persistent_locked', True)
     blob = conf_load()
 
     if 'user_records' not in blob:
@@ -841,7 +841,7 @@ def command_record(argv, **args):
     blob['user_records'][target_user].append(message)
 
     conf_save(blob)
-    set_conf('persistent_locked', False)
+    config.set('persistent_locked', False)
 
     return {
         'msg': '%s: message saved for %s' % (args['reply_user'], target_user)
@@ -911,12 +911,12 @@ def command_dsa_watcher(argv, **_):
             if result:
                 package = result.groups()[0]
 
-            if conf('persistent_locked'):
+            if config.get('persistent_locked'):
                 msg = "couldn't get exclusive lock"
                 log.warn(msg)
                 out.append(msg)
             else:
-                set_conf('persistent_locked', True)
+                config.set('persistent_locked', True)
                 blob = conf_load()
 
                 if 'plugin_conf' not in blob:
@@ -928,7 +928,7 @@ def command_dsa_watcher(argv, **_):
                 blob['plugin_conf']['last_dsa'] += 1
 
                 conf_save(blob)
-                set_conf('persistent_locked', False)
+                config.set('persistent_locked', False)
 
             msg = (
                 'new Debian Security Announce found (%s): %s' % (str(package).replace(' - security update', ''), url))
@@ -937,7 +937,7 @@ def command_dsa_watcher(argv, **_):
             log.info('no dsa for %d, trying again...' % dsa)
         # that's good, no error, just 404 -> DSA not released yet
 
-        crawl_at = time.time() + conf('dsa_watcher_interval')
+        crawl_at = time.time() + config.get('dsa_watcher_interval')
         # register_event(crawl_at, command_dsa_watcher, (['dsa-watcher', 'crawl'],))
 
         msg = 'next crawl set to %s' % time.strftime('%F.%T', time.localtime(crawl_at))
@@ -1002,8 +1002,8 @@ def remove_from_botlist(argv, **args):
 
     blob = conf_load()
 
-    if args['reply_user'] != conf('bot_owner'):
-        return {'msg': "only %s may do this!" % conf('bot_owner')}
+    if args['reply_user'] != config.get('bot_owner'):
+        return {'msg': "only %s may do this!" % config.get('bot_owner')}
 
     if argv[1] in blob.get('other_bots', ()):
         blob['other_bots'].pop(blob['other_bots'].index(argv[1]))
@@ -1019,14 +1019,14 @@ def set_status(argv, **args):
     if 'set-status' != argv[0] or len(argv) != 2:
         return
 
-    if argv[1] == 'mute' and args['reply_user'] == conf('bot_owner'):
+    if argv[1] == 'mute' and args['reply_user'] == config.get('bot_owner'):
         return {
             'presence': {
                 'status': 'xa',
-                'msg': 'I\'m muted now. You can unmute me with "%s: set_status unmute"' % conf("bot_user")
+                'msg': 'I\'m muted now. You can unmute me with "%s: set_status unmute"' % config.get("bot_nickname")
             }
         }
-    elif argv[1] == 'unmute' and args['reply_user'] == conf('bot_owner'):
+    elif argv[1] == 'unmute' and args['reply_user'] == config.get('bot_owner'):
         return {
             'presence': {
                 'status': None,
@@ -1037,7 +1037,7 @@ def set_status(argv, **args):
 
 @pluginfunction('reset-jobs', "reset joblist", ptypes_COMMAND, ratelimit_class=RATE_NO_LIMIT)
 def reset_jobs(argv, **args):
-    if 'reset-jobs' != argv[0] or args['reply_user'] != conf('bot_owner'):
+    if 'reset-jobs' != argv[0] or args['reply_user'] != config.get('bot_owner'):
         return
     else:
         joblist.clear()
@@ -1056,9 +1056,21 @@ def resolve_url_title(**args):
     if not result:
         return
 
+    url_blacklist = [
+        r'^.*heise\.de/.*-[0-9]+\.html$',
+        r'^.*wikipedia\.org/wiki/.*$',
+        r'^.*blog\.fefe\.de/\?ts=[0-9a-f]+$',
+        r'^.*ibash\.de/zitat.*$',
+        r'^.*golem\.de/news/.*$'
+        r'^.*paste\.debian\.net/((hidden|plainh?)/)?[0-9a-f]+/?$',
+        r'^.*example\.(org|net|com).*$',
+        r'^.*sprunge\.us/.*$',
+        r'^.*ftp\...\.debian\.org.*$'
+    ]
+
     out = []
     for url in result:
-        if any([re.match(b, url) for b in conf('url_blacklist')]):
+        if any([re.match(b, url) for b in url_blacklist]):
             log.info('url blacklist match for ' + url)
             break
 
@@ -1081,7 +1093,7 @@ def resolve_url_title(**args):
             title = title.strip()
             message = 'Title: %s' % title
         elif 1 == status:
-            if conf('image_preview'):
+            if config.get('image_preview'):
                 # of course it's fake, but it looks interesting at least
                 char = r""",._-+=\|/*`~"'"""
                 message = 'No text but %s, 1-bit ASCII art preview: [%c]' % (
