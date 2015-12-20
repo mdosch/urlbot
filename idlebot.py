@@ -95,6 +95,8 @@ def start(botclass, active=False):
     bot.register_plugin('xep_0045')
     bot.process()
 
+    config.runtimeconf_set('start_time', -time.time())
+
     while 1:
         try:
             # print("hangup: %s" % got_hangup)

@@ -11,9 +11,6 @@ bot_owner = string
 hist_max_count = integer(default=5)
 hist_max_time = integer(default=10*60)
 
-# statistics
-uptime = integer(default=0)
-
 persistent_storage = string(default='urlbot.persistent')
 persistent_locked = boolean(default=false)
 
