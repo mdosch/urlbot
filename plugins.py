@@ -459,7 +459,7 @@ def command_teatimer(argv, **args):
     ready = time.time() + steep
 
     try:
-        log.info('tea timer set to %s' % time.strftime('%F.%T', time.localtime(ready)))
+        log.info('tea timer set to %s' % time.strftime('%Y-%m-%d %H:%M', time.localtime(ready)))
     except (ValueError, OverflowError) as e:
         return {
             'msg': args['reply_user'] + ': time format error: ' + str(e)
@@ -467,7 +467,7 @@ def command_teatimer(argv, **args):
 
     return {
         'msg': args['reply_user'] + ': Tea timer set to %s' % time.strftime(
-            '%F.%T', time.localtime(ready)
+            '%Y-%m-%d %H:%M', time.localtime(ready)
         ),
         'event': {
             'time': ready,
@@ -536,7 +536,7 @@ def command_show_blacklist(argv, **args):
                        '' if not argv1 else ' (limited to %s)' % argv1
                    )
                ] + [
-                   b for b in config.conf_get('url_blacklist') if not argv1 or argv1 in b
+                   b for b in config.runtime_config_store['url_blacklist'].values() if not argv1 or argv1 in b
                    ]
     }
 
@@ -807,7 +807,7 @@ def command_record(argv, **args):
         }
 
     target_user = argv[1].lower()
-    message = '%s (%s): ' % (args['reply_user'], time.strftime('%F.%T'))
+    message = '{} ({}): '.format(args['reply_user'], time.strftime('%Y-%m-%d %H:%M'))
     message += ' '.join(argv[2:])
 
     if config.conf_get('persistent_locked'):
@@ -927,7 +927,7 @@ def command_show_recordlist(argv, **args):
 #         crawl_at = time.time() + config.get('dsa_watcher_interval')
 #         # register_event(crawl_at, command_dsa_watcher, (['dsa-watcher', 'crawl'],))
 #
-#         msg = 'next crawl set to %s' % time.strftime('%F.%T', time.localtime(crawl_at))
+#         msg = 'next crawl set to %s' % time.strftime('%Y-%m-%d %H:%M', time.localtime(crawl_at))
 #         out.append(msg)
 #         return {
 #             'msg': out,
@@ -1024,6 +1024,14 @@ def reset_jobs(argv, **args):
         return {'msg': 'done.'}
 
 
+@pluginfunction('flausch', "make people flauschig", ptypes_COMMAND, ratelimit_class=RATE_FUN)
+def flausch(argv, **args):
+    if len(argv) != 2:
+        return
+    return {
+        'msg': '{}: *flausch*'.format(argv[1])
+    }
+
 @pluginfunction('resolve-url-title', 'extract titles from urls', ptypes_PARSE, ratelimit_class=RATE_URL)
 def resolve_url_title(**args):
     user = args['reply_user']
@@ -1036,17 +1044,7 @@ def resolve_url_title(**args):
     if not result:
         return
 
-    url_blacklist = [
-        r'^.*heise\.de/.*-[0-9]+\.html$',
-        r'^.*wikipedia\.org/wiki/.*$',
-        r'^.*blog\.fefe\.de/\?ts=[0-9a-f]+$',
-        r'^.*ibash\.de/zitat.*$',
-        r'^.*golem\.de/news/.*$'
-        r'^.*paste\.debian\.net/((hidden|plainh?)/)?[0-9a-f]+/?$',
-        r'^.*example\.(org|net|com).*$',
-        r'^.*sprunge\.us/.*$',
-        r'^.*ftp\...\.debian\.org.*$'
-    ]
+    url_blacklist = config.runtime_config_store['url_blacklist'].values()
 
     out = []
     for url in result:

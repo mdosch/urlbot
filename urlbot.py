@@ -228,7 +228,7 @@ class UrlBot(IdleBot):
         # TODO: check how several commands/plugins
         # in a single message behave (also with rate limiting)
         reacted = False
-        for plugin in plugin_storage[ptypes_COMMAND]:
+        for plugin in filter(lambda p: p.plugin_name == words[1], plugin_storage[ptypes_COMMAND]):
 
             if not plugin_enabled_get(plugin):
                 continue
