@@ -1,5 +1,7 @@
 """
 To be executed with nose
+
+TODO: test all plugins, maybe declare their sample input somewhere near the code
 """
 import unittest
 import time

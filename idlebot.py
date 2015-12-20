@@ -3,13 +3,10 @@
 import logging
 import time
 import sys
-from common import VERSION, EVENTLOOP_DELAY, conf_load
-
+from common import VERSION, EVENTLOOP_DELAY
 import config
 
 from sleekxmpp import ClientXMPP
-
-# got_hangup = False
 
 
 class IdleBot(ClientXMPP):
@@ -49,13 +46,13 @@ class IdleBot(ClientXMPP):
         # don't talk to yourself
         if msg_obj['mucnick'] == self.nick or 'groupchat' != msg_obj['type']:
             return False
-        elif msg_obj['body'].startswith(config.get('bot_nickname')) and 'hangup' in msg_obj['body']:
+        elif msg_obj['body'].startswith(config.conf_get('bot_nickname')) and 'hangup' in msg_obj['body']:
             self.logger.warn("got 'hangup' from '%s': '%s'" % (
                 msg_obj['mucnick'], msg_obj['body']
             ))
             self.hangup()
             return False
-        elif msg_obj['mucnick'] in conf_load().get("other_bots", ()):
+        elif msg_obj['mucnick'] in config.runtime_config_store["other_bots"]:
             # not talking to the other bot.
             return False
         else:
@@ -71,28 +68,28 @@ class IdleBot(ClientXMPP):
 
 def start(botclass, active=False):
     logging.basicConfig(
-        level=config.get('loglevel'),
+        level=config.conf_get('loglevel'),
         format=sys.argv[0] + ' %(asctime)s %(levelname).1s %(funcName)-15s %(message)s'
     )
     logger = logging.getLogger(__name__)
     logger.info(VERSION)
 
-    jid = config.get('jid')
+    jid = config.conf_get('jid')
     if '/' not in jid:
         jid = '%s/%s' % (jid, botclass.__name__)
     bot = botclass(
         jid=jid,
-        password=config.get('password'),
-        rooms=config.get('rooms'),
-        nick=config.get('bot_nickname')
+        password=config.conf_get('password'),
+        rooms=config.conf_get('rooms'),
+        nick=config.conf_get('bot_nickname')
     )
     import plugins
 
     if active:
         plugins.register_all()
-        if plugins.plugin_enabled_get(plugins.command_dsa_watcher):
+        # if plugins.plugin_enabled_get(plugins.command_dsa_watcher):
             # first result is lost.
-            plugins.command_dsa_watcher(['dsa-watcher', 'crawl'])
+            # plugins.command_dsa_watcher(['dsa-watcher', 'crawl'])
 
     bot.connect()
     bot.register_plugin('xep_0045')

@@ -10,8 +10,9 @@ import unicodedata
 import urllib.parse
 import urllib.request
 
-from common import conf_load, conf_save, RATE_GLOBAL, RATE_NO_SILENCE, VERSION, RATE_INTERACTIVE, BUFSIZ, \
-    USER_AGENT, extract_title, RATE_FUN, RATE_NO_LIMIT, conf_get, RATE_URL
+from common import RATE_GLOBAL, RATE_NO_SILENCE, VERSION, RATE_INTERACTIVE, BUFSIZ, \
+    USER_AGENT, extract_title, RATE_FUN, RATE_NO_LIMIT, RATE_URL
+from config import runtimeconf_get
 import config
 from string_constants import excuses, moin_strings_hi, moin_strings_bye, cakes
 
@@ -27,35 +28,26 @@ log = logging.getLogger(__name__)
 
 
 def plugin_enabled_get(urlbot_plugin):
-    blob = conf_load()
-
-    if 'plugin_conf' in blob:
-        if urlbot_plugin.plugin_name in blob['plugin_conf']:
-            return blob['plugin_conf'][urlbot_plugin.plugin_name].get('enabled', urlbot_plugin.is_enabled)
-
-    return urlbot_plugin.is_enabled
+    is_enabled = config.runtimeconf_deepget('plugins.{}.enabled'.format(urlbot_plugin.plugin_name), None)
+    if is_enabled is None:
+        return urlbot_plugin.is_enabled
+    else:
+        return is_enabled
 
 
 def plugin_enabled_set(plugin, enabled):
-    if config.get('persistent_locked'):
+    if config.conf_get('persistent_locked'):
         log.warn("couldn't get exclusive lock")
-        return False
 
-    config.set('persistent_locked', True)
-    blob = conf_load()
+    config.conf_set('persistent_locked', True)
+    # blob = conf_load()
 
-    if 'plugin_conf' not in blob:
-        blob['plugin_conf'] = {}
+    if plugin.plugin_name not in config.runtime_config_store['plugins']:
+        config.runtime_config_store['plugins'][plugin.plugin_name] = {}
 
-    if plugin.plugin_name not in blob['plugin_conf']:
-        blob['plugin_conf'][plugin.plugin_name] = {}
-
-    blob['plugin_conf'][plugin.plugin_name]['enabled'] = enabled
-
-    conf_save(blob)
-    config.set('persistent_locked', False)
-
-    return True
+    config.runtime_config_store['plugins'][plugin.plugin_name]['enabled'] = enabled
+    config.runtime_config_store.write()
+    config.conf_set('persistent_locked', False)
 
 
 def pluginfunction(name, desc, plugin_type, ratelimit_class=RATE_GLOBAL, enabled=True):
@@ -105,7 +97,7 @@ def parse_mental_ill(**args):
         log.info('sent mental illness reply')
         return {
             'msg': (
-                '''Multiple exclamation/question marks are a sure sign of mental disease, with %s as a living example.''' %
+                'Multiple exclamation/question marks are a sure sign of mental disease, with %s as a living example.' %
                 args['reply_user']
             )
         }
@@ -180,11 +172,11 @@ def parse_moin(**args):
 
             for w in words:
                 if d.lower() == w.lower():
-                    if args['reply_user'] in config.get('moin-disabled-user'):
+                    if args['reply_user'] in config.conf_get('moin-disabled-user'):
                         log.info('moin blacklist match')
                         return
 
-                    if args['reply_user'] in config.get('moin-modified-user'):
+                    if args['reply_user'] in config.conf_get('moin-modified-user'):
                         log.info('being "quiet" for %s' % w)
                         return {
                             'msg': '/me %s' % random.choice([
@@ -215,7 +207,7 @@ def parse_latex(**args):
 
 @pluginfunction('me-action', 'reacts to /me.*%{bot_nickname}', ptypes_PARSE, ratelimit_class=RATE_FUN | RATE_GLOBAL)
 def parse_slash_me(**args):
-    if args['data'].lower().startswith('/me') and (config.get('bot_nickname') in args['data'].lower()):
+    if args['data'].lower().startswith('/me') and (config.conf_get('bot_nickname') in args['data'].lower()):
         log.info('sent /me reply')
 
         me_replys = [
@@ -324,7 +316,7 @@ def command_source(argv, **_):
 
     log.info('sent source URL')
     return {
-        'msg': 'My source code can be found at %s' % config.get('src-url')
+        'msg': 'My source code can be found at %s' % config.conf_get('src-url')
     }
 
 
@@ -353,7 +345,7 @@ def command_dice(argv, **args):
     )
 
     for i in range(count):
-        if args['reply_user'] in config.get('enhanced-random-user'):
+        if args['reply_user'] in config.conf_get('enhanced-random-user'):
             rnd = 0  # this might confuse users. good.
             log.info('sent random (enhanced)')
         else:
@@ -394,19 +386,19 @@ def command_uptime(argv, **args):
     if 'uptime' != argv[0]:
         return
 
-    u = int(config.get('uptime') + time.time())
+    u = int(config.conf_get('uptime') + time.time())
     plural_uptime = 's'
     plural_request = 's'
 
     if 1 == u:
         plural_uptime = ''
-    if 1 == config.get('request_counter'):
+    if 1 == config.conf_get('request_counter'):
         plural_request = ''
 
     log.info('sent statistics')
     return {
         'msg': args['reply_user'] + (''': happily serving for %d second%s, %d request%s so far.''' % (
-            u, plural_uptime, int(config.get('request_counter')), plural_request))
+            u, plural_uptime, int(config.conf_get('request_counter')), plural_request))
     }
 
 
@@ -443,16 +435,16 @@ def command_info(argv, **args):
             questions, please talk to my master %s. I'm rate limited.
             To make me exit immediately, highlight me with 'hangup' in the message
             (emergency only, please). For other commands, highlight me with 'help'.''' % (
-                config.get('bot_owner')))
+                config.conf_get('bot_owner')))
     }
 
 
-@pluginfunction('teatimer', 'sets a tea timer to $1 or currently %d seconds' % config.get('tea_steep_time'), ptypes_COMMAND)
+@pluginfunction('teatimer', 'sets a tea timer to $1 or currently %d seconds' % config.conf_get('tea_steep_time'), ptypes_COMMAND)
 def command_teatimer(argv, **args):
     if 'teatimer' != argv[0]:
         return
 
-    steep = config.get('tea_steep_time')
+    steep = config.conf_get('tea_steep_time')
 
     if len(argv) > 1:
         try:
@@ -544,18 +536,16 @@ def command_show_blacklist(argv, **args):
                        '' if not argv1 else ' (limited to %s)' % argv1
                    )
                ] + [
-                   b for b in config.get('url_blacklist') if not argv1 or argv1 in b
+                   b for b in config.conf_get('url_blacklist') if not argv1 or argv1 in b
                    ]
     }
 
 
 def usersetting_get(argv, args):
-    blob = conf_load()
-
     arg_user = args['reply_user']
     arg_key = argv[1]
 
-    if arg_user not in blob['user_pref']:
+    if arg_user not in config.runtime_config_store['user_pref']:
         return {
             'msg': args['reply_user'] + ': user key not found'
         }
@@ -563,7 +553,7 @@ def usersetting_get(argv, args):
     return {
         'msg': args['reply_user'] + ': %s == %s' % (
             arg_key,
-            'on' if blob['user_pref'][arg_user][arg_key] else 'off'
+            'on' if config.runtime_config_store['user_pref'][arg_user][arg_key] else 'off'
         )
     }
 
@@ -592,24 +582,20 @@ def command_usersetting(argv, **args):
         # display current value
         return usersetting_get(argv, args)
 
-    if config.get('persistent_locked'):
+    if config.conf_get('persistent_locked'):
         return {
             'msg': args['reply_user'] + ''': couldn't get exclusive lock'''
         }
 
-    config.set('persistent_locked', True)
-    blob = conf_load()
+    config.conf_set('persistent_locked', True)
 
-    if 'user_pref' not in blob:
-        blob['user_pref'] = {}
+    if arg_user not in config.runtime_config_store['user_pref']:
+        config.runtime_config_store['user_pref'][arg_user] = {}
 
-    if arg_user not in blob['user_pref']:
-        blob['user_pref'][arg_user] = {}
+    config.runtime_config_store['user_pref'][arg_user][arg_key] = 'on' == arg_val
 
-    blob['user_pref'][arg_user][arg_key] = 'on' == arg_val
-
-    conf_save(blob)
-    config.set('persistent_locked', False)
+    config.runtime_config_store.write()
+    config.conf_set('persistent_locked', False)
 
     # display value written to db
     return usersetting_get(argv, args)
@@ -824,24 +810,20 @@ def command_record(argv, **args):
     message = '%s (%s): ' % (args['reply_user'], time.strftime('%F.%T'))
     message += ' '.join(argv[2:])
 
-    if config.get('persistent_locked'):
+    if config.conf_get('persistent_locked'):
         return {
             'msg': "%s: couldn't get exclusive lock" % args['reply_user']
         }
 
-    config.set('persistent_locked', True)
-    blob = conf_load()
+    config.conf_set('persistent_locked', True)
 
-    if 'user_records' not in blob:
-        blob['user_records'] = {}
+    if target_user not in config.runtime_config_store['user_records']:
+        config.runtime_config_store['user_records'][target_user] = []
 
-    if target_user not in blob['user_records']:
-        blob['user_records'][target_user] = []
+    config.runtime_config_store['user_records'][target_user].append(message)
 
-    blob['user_records'][target_user].append(message)
-
-    conf_save(blob)
-    config.set('persistent_locked', False)
+    config.runtime_config_store.write()
+    config.conf_set('persistent_locked', False)
 
     return {
         'msg': '%s: message saved for %s' % (args['reply_user'], target_user)
@@ -862,97 +844,102 @@ def command_show_recordlist(argv, **args):
             '%s: offline records%s: %s' % (
                 args['reply_user'],
                 '' if not argv1 else ' (limited to %s)' % argv1,
-                ', '.join([
-                              '%s (%d)' % (key, len(val)) for key, val in conf_load().get('user_records').items()
-                              if not argv1 or argv1.lower() in key.lower()
-                              ])
+                ', '.join(
+                    [
+                        '%s (%d)' % (key, len(val)) for key, val in config.runtime_config_store['user_records'].items()
+                        if not argv1 or argv1.lower() in key.lower()
+                    ]
+                )
             )
     }
 
 
-@pluginfunction('dsa-watcher', 'automatically crawls for newly published Debian Security Announces', ptypes_COMMAND,
-                ratelimit_class=RATE_NO_SILENCE)
-def command_dsa_watcher(argv, **_):
-    """
-    TODO: rewrite so that a last_dsa_date is used instead, then all DSAs since then printed and the date set to now()
-    """
-    if 'dsa-watcher' != argv[0]:
-        return
-
-    if 2 != len(argv):
-        msg = 'wrong number of arguments'
-        log.warn(msg)
-        return {'msg': msg}
-
-    if 'crawl' == argv[1]:
-        out = []
-        dsa = conf_load().get('plugin_conf', {}).get('last_dsa', 1000)
-
-        url = 'https://security-tracker.debian.org/tracker/DSA-%d-1' % dsa
-
-        try:
-            request = urllib.request.Request(url)
-            request.add_header('User-Agent', USER_AGENT)
-            response = urllib.request.urlopen(request)
-            html_text = response.read(BUFSIZ)  # ignore more than BUFSIZ
-        except Exception as e:
-            err = e
-            if '404' not in str(err):
-                msg = 'error for %s: %s' % (url, err)
-                log.warn(msg)
-                out.append(msg)
-        else:
-            if str != type(html_text):
-                html_text = str(html_text)
-
-            result = re.match(r'.*?Description</b></td><td>(.*?)</td>.*?', html_text, re.S | re.M | re.IGNORECASE)
-
-            package = 'error extracting package name'
-            if result:
-                package = result.groups()[0]
-
-            if config.get('persistent_locked'):
-                msg = "couldn't get exclusive lock"
-                log.warn(msg)
-                out.append(msg)
-            else:
-                config.set('persistent_locked', True)
-                blob = conf_load()
-
-                if 'plugin_conf' not in blob:
-                    blob['plugin_conf'] = {}
-
-                if 'last_dsa' not in blob['plugin_conf']:
-                    blob['plugin_conf']['last_dsa'] = 3308  # FIXME: fixed value
-
-                blob['plugin_conf']['last_dsa'] += 1
-
-                conf_save(blob)
-                config.set('persistent_locked', False)
-
-            msg = (
-                'new Debian Security Announce found (%s): %s' % (str(package).replace(' - security update', ''), url))
-            out.append(msg)
-
-            log.info('no dsa for %d, trying again...' % dsa)
-        # that's good, no error, just 404 -> DSA not released yet
-
-        crawl_at = time.time() + config.get('dsa_watcher_interval')
-        # register_event(crawl_at, command_dsa_watcher, (['dsa-watcher', 'crawl'],))
-
-        msg = 'next crawl set to %s' % time.strftime('%F.%T', time.localtime(crawl_at))
-        out.append(msg)
-        return {
-            'msg': out,
-            'event': {
-                'time': crawl_at,
-                'command': (command_dsa_watcher, (['dsa-watcher', 'crawl'],))
-            }
-        }
-    else:
-        msg = 'wrong argument'
-        log.warn(msg)
-        return {'msg': msg}
+# TODO: disabled until rewrite
+# @pluginfunction('dsa-watcher', 'automatically crawls for newly published Debian Security Announces', ptypes_COMMAND,
+#                 ratelimit_class=RATE_NO_SILENCE)
+# def command_dsa_watcher(argv, **_):
+#     """
+#     TODO: rewrite so that a last_dsa_date is used instead, then all DSAs since then printed and the date set to now()
+#     """
+#     if 'dsa-watcher' != argv[0]:
+#         return
+#
+#     if 2 != len(argv):
+#         msg = 'wrong number of arguments'
+#         log.warn(msg)
+#         return {'msg': msg}
+#
+#     if 'crawl' == argv[1]:
+#         out = []
+#         # TODO: this is broken... the default should neither be part of the code,
+#         # but rather be determined at runtime (like "latest" or similar)
+#         dsa = config.runtime_config_store.deepget('plugins.last_dsa', 1000)
+#
+#         url = 'https://security-tracker.debian.org/tracker/DSA-%d-1' % dsa
+#
+#         try:
+#             request = urllib.request.Request(url)
+#             request.add_header('User-Agent', USER_AGENT)
+#             response = urllib.request.urlopen(request)
+#             html_text = response.read(BUFSIZ)  # ignore more than BUFSIZ
+#         except Exception as e:
+#             err = e
+#             if '404' not in str(err):
+#                 msg = 'error for %s: %s' % (url, err)
+#                 log.warn(msg)
+#                 out.append(msg)
+#         else:
+#             if str != type(html_text):
+#                 html_text = str(html_text)
+#
+#             result = re.match(r'.*?Description</b></td><td>(.*?)</td>.*?', html_text, re.S | re.M | re.IGNORECASE)
+#
+#             package = 'error extracting package name'
+#             if result:
+#                 package = result.groups()[0]
+#
+#             if config.get('persistent_locked'):
+#                 msg = "couldn't get exclusive lock"
+#                 log.warn(msg)
+#                 out.append(msg)
+#             else:
+#                 config.set('persistent_locked', True)
+#                 blob = conf_load()
+#
+#                 if 'plugin_conf' not in blob:
+#                     blob['plugin_conf'] = {}
+#
+#                 if 'last_dsa' not in blob['plugin_conf']:
+#                     blob['plugin_conf']['last_dsa'] = 3308  # FIXME: fixed value
+#
+#                 blob['plugin_conf']['last_dsa'] += 1
+#
+#                 runtimeconf_save(blob)
+#                 config.set('persistent_locked', False)
+#
+#             msg = (
+#                 'new Debian Security Announce found (%s): %s' % (str(package).replace(' - security update', ''), url))
+#             out.append(msg)
+#
+#             log.info('no dsa for %d, trying again...' % dsa)
+#         # that's good, no error, just 404 -> DSA not released yet
+#
+#         crawl_at = time.time() + config.get('dsa_watcher_interval')
+#         # register_event(crawl_at, command_dsa_watcher, (['dsa-watcher', 'crawl'],))
+#
+#         msg = 'next crawl set to %s' % time.strftime('%F.%T', time.localtime(crawl_at))
+#         out.append(msg)
+#         return {
+#             'msg': out,
+#             'event': {
+#                 'time': crawl_at,
+#                 'command': (command_dsa_watcher, (['dsa-watcher', 'crawl'],))
+#             }
+#         }
+#     else:
+#         msg = 'wrong argument'
+#         log.warn(msg)
+#         return {'msg': msg}
 
 
 @pluginfunction("provoke-bots", "search for other bots", ptypes_COMMAND)
@@ -972,13 +959,9 @@ def recognize_bots(**args):
     )
 
     def _add_to_list(username, message):
-        blob = conf_load()
-
-        if 'other_bots' not in blob:
-            blob['other_bots'] = []
-        if username not in blob['other_bots']:
-            blob['other_bots'].append(username)
-            conf_save(blob)
+        if username not in config.runtime_config_store['other_bots']:
+            config.runtime_config_store['other_bots'].append(username)
+            config.runtime_config_store.write()
             return {
                 'event': {
                     'time': time.time() + 3,
@@ -1000,15 +983,12 @@ def remove_from_botlist(argv, **args):
     if len(argv) != 2:
         return {'msg': "wrong number of arguments!"}
 
-    blob = conf_load()
+    if args['reply_user'] != config.conf_get('bot_owner'):
+        return {'msg': "only %s may do this!" % config.conf_get('bot_owner')}
 
-    if args['reply_user'] != config.get('bot_owner'):
-        return {'msg': "only %s may do this!" % config.get('bot_owner')}
-
-    if argv[1] in blob.get('other_bots', ()):
-        blob['other_bots'].pop(blob['other_bots'].index(argv[1]))
-
-        conf_save(blob)
+    if argv[1] in config.runtime_config_store['other_bots']:
+        config.runtime_config_store['other_bots'].remove(argv[1])
+        config.runtime_config_store.write()
         return {'msg': '%s was removed from the botlist.' % argv[1]}
     else:
         return False
@@ -1019,14 +999,14 @@ def set_status(argv, **args):
     if 'set-status' != argv[0] or len(argv) != 2:
         return
 
-    if argv[1] == 'mute' and args['reply_user'] == config.get('bot_owner'):
+    if argv[1] == 'mute' and args['reply_user'] == config.conf_get('bot_owner'):
         return {
             'presence': {
                 'status': 'xa',
-                'msg': 'I\'m muted now. You can unmute me with "%s: set_status unmute"' % config.get("bot_nickname")
+                'msg': 'I\'m muted now. You can unmute me with "%s: set_status unmute"' % config.conf_get("bot_nickname")
             }
         }
-    elif argv[1] == 'unmute' and args['reply_user'] == config.get('bot_owner'):
+    elif argv[1] == 'unmute' and args['reply_user'] == config.conf_get('bot_owner'):
         return {
             'presence': {
                 'status': None,
@@ -1037,7 +1017,7 @@ def set_status(argv, **args):
 
 @pluginfunction('reset-jobs', "reset joblist", ptypes_COMMAND, ratelimit_class=RATE_NO_LIMIT)
 def reset_jobs(argv, **args):
-    if 'reset-jobs' != argv[0] or args['reply_user'] != config.get('bot_owner'):
+    if 'reset-jobs' != argv[0] or args['reply_user'] != config.conf_get('bot_owner'):
         return
     else:
         joblist.clear()
@@ -1047,7 +1027,7 @@ def reset_jobs(argv, **args):
 @pluginfunction('resolve-url-title', 'extract titles from urls', ptypes_PARSE, ratelimit_class=RATE_URL)
 def resolve_url_title(**args):
     user = args['reply_user']
-    user_pref_nospoiler = conf_get('user_pref', {}).get(user, {}).get('spoiler', False)
+    user_pref_nospoiler = runtimeconf_get('user_pref', {}).get(user, {}).get('spoiler', False)
     if user_pref_nospoiler:
         log.info('nospoiler in userconf')
         return
@@ -1093,7 +1073,7 @@ def resolve_url_title(**args):
             title = title.strip()
             message = 'Title: %s' % title
         elif 1 == status:
-            if config.get('image_preview'):
+            if config.conf_get('image_preview'):
                 # of course it's fake, but it looks interesting at least
                 char = r""",._-+=\|/*`~"'"""
                 message = 'No text but %s, 1-bit ASCII art preview: [%c]' % (

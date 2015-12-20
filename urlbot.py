@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 The URLBot - ready to strive for desaster in YOUR jabber MUC
@@ -8,14 +8,13 @@ import sys
 import time
 
 from common import (
-    conf_load, conf_save,
     rate_limit_classes,
     RATE_GLOBAL,
     RATE_CHAT,
     RATE_EVENT,
     rate_limit,
-    conf_set
 )
+from config import runtimeconf_set
 from idlebot import IdleBot, start
 from plugins import (
     plugins as plugin_storage,
@@ -74,10 +73,10 @@ class UrlBot(IdleBot):
         # TODO: move this to a undirected plugin, maybe new plugin type
         arg_user = msg_obj['muc']['nick']
         arg_user_key = arg_user.lower()
-        blob_userrecords = conf_load().get('user_records', {})
+        user_records = config.runtime_config_store['user_records']
 
-        if arg_user_key in blob_userrecords:
-            records = blob_userrecords[arg_user_key]
+        if arg_user_key in user_records:
+            records = user_records[arg_user_key]
 
             if not records:
                 return
@@ -96,21 +95,16 @@ class UrlBot(IdleBot):
             self.logger.info('sent %d offline records to room %s',
                              len(records), msg_obj['from'].bare)
 
-            if config.get('persistent_locked'):
+            if config.conf_get('persistent_locked'):
                 self.logger.warning("couldn't get exclusive lock")
                 return False
 
-            config.set('persistent_locked', True)
-            blob = conf_load()
+            config.conf_set('persistent_locked', True)
 
-            if 'user_records' not in blob:
-                blob['user_records'] = {}
+            user_records['user_records'].pop(arg_user_key)
+            config.runtime_config_store.write()
 
-            if arg_user_key in blob['user_records']:
-                blob['user_records'].pop(arg_user_key)
-
-            conf_save(blob)
-            config.set('persistent_locked', False)
+            config.conf_set('persistent_locked', False)
 
     # @rate_limited(10)
     def send_reply(self, message, msg_obj=None):
@@ -121,7 +115,7 @@ class UrlBot(IdleBot):
             self.logger.warning("I'm muted! (status: %s)", self.show)
             return
 
-        config.set('request_counter', config.get('request_counter') + 1)
+        config.conf_set('request_counter', config.conf_get('request_counter') + 1)
 
         if str is not type(message):
             message = '\n'.join(message)
@@ -146,20 +140,19 @@ class UrlBot(IdleBot):
 
         @cached
         def get_bots_present(room):
-            other_bots = conf_load().get("other_bots", ())
+            other_bots = config.runtime_config_store["other_bots"]
+            if not other_bots:
+                return False
             users = self.plugin['xep_0045'].getRoster(room)
             return set(users).intersection(set(other_bots))
 
         def _prevent_panic(message, room):
             """check other bots, add nospoiler with urls"""
-            if 'http' in message:
-                other_bots = conf_load().get("other_bots", ())
-                users = self.plugin['xep_0045'].getRoster(room)
-                if set(users).intersection(set(other_bots)):
-                    message = '(nospoiler) %s' % message
+            if 'http' in message and get_bots_present(room):
+                message = '(nospoiler) %s' % message
             return message
 
-        if config.get('debug_mode'):
+        if config.conf_get('debug_mode'):
             print(message)
         else:
             if msg_obj:
@@ -202,8 +195,11 @@ class UrlBot(IdleBot):
             self.logger.info('no spoiler for: ' + content)
             return
 
-        self.data_parse_commands(msg_obj)
-        self.data_parse_other(msg_obj)
+        try:
+            self.data_parse_commands(msg_obj)
+            self.data_parse_other(msg_obj)
+        except Exception as e:
+            self.logger.exception(e)
 
     def data_parse_commands(self, msg_obj):
         """
@@ -219,7 +215,7 @@ class UrlBot(IdleBot):
             return None
 
         # don't reply if beginning of the text matches bot_nickname
-        if not data.startswith(config.get('bot_nickname')):
+        if not data.startswith(config.conf_get('bot_nickname')):
             return None
 
         if 'hangup' in data:
@@ -296,7 +292,7 @@ class UrlBot(IdleBot):
 
         if 'presence' in action:
             presence = action['presence']
-            conf_set('presence', presence)
+            runtimeconf_set('presence', presence)
 
             self.status = presence.get('msg')
             self.show = presence.get('status')

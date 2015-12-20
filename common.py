@@ -2,14 +2,10 @@
 """ Common functions for urlbot """
 import html.parser
 import logging
-import os
-import pickle
 import re
-import sys
 import time
 import urllib.request
 from collections import namedtuple
-import config
 
 RATE_NO_LIMIT = 0x00
 RATE_GLOBAL = 0x01
@@ -24,32 +20,6 @@ BUFSIZ = 8192
 EVENTLOOP_DELAY = 0.100  # seconds
 USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64; rv:31.0) ' \
              'Gecko/20100101 Firefox/31.0 Iceweasel/31.0'
-
-
-def conf_save(obj):
-    with open(config.get('persistent_storage'), 'wb') as config_file:
-        return pickle.dump(obj, config_file)
-
-
-def conf_load():
-    path = config.get('persistent_storage')
-    if os.path.isfile(path):
-        with open(path, 'rb') as fd:
-            fd.seek(0)
-            return pickle.load(fd)
-    else:
-        return {}
-
-
-def conf_set(key, value):
-    blob = conf_load()
-    blob[key] = value
-    conf_save(blob)
-
-
-def conf_get(key, default=None):
-    blob = conf_load()
-    return blob.get(key, default)
 
 Bucket = namedtuple("BucketConfig", ["history", "period", "max_hist_len"])
 

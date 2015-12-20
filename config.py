@@ -18,9 +18,11 @@ from validate import Validator
 
 __initialized = False
 __config_store = ConfigObj('local_config.ini', configspec='local_config.ini.spec')
+runtime_config_store = ConfigObj('persistent_config.ini', configspec='persistent_config.ini.spec')
 
 validator = Validator()
 result = __config_store.validate(validator)
+runtime_config_store.validate(validator)
 
 if not result:
     print('Config file validation failed!')
@@ -30,7 +32,7 @@ else:
     __config_store.write()
 
 
-def get(key):
+def conf_get(key):
     if not __initialized:
         raise RuntimeError("not __initialized")
     try:
@@ -42,7 +44,32 @@ def get(key):
         raise
 
 
-def set(key, val):
+def conf_set(key, val):
     __config_store[key] = val
     __config_store.write()
     return None
+
+
+def runtimeconf_set(key, value):
+    runtime_config_store[key] = value
+    runtime_config_store.write()
+
+
+def runtimeconf_get(key, default=None):
+    if key is None:
+        return runtime_config_store
+    else:
+        return runtime_config_store.get(key, default=default)
+
+
+def runtimeconf_deepget(key, default=None):
+    if '.' not in key:
+        return runtimeconf_get(key, default)
+    else:
+        path = key.split('.')
+        value = runtimeconf_get(path.pop(0))
+        for p in path:
+            value = value.get(p)
+            if value is None:
+                return None
+        return value

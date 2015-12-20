@@ -29,7 +29,6 @@ tea_steep_time = integer(default=220)
 
 image_preview = boolean(default=true)
 dsa_watcher_interval = integer(default=900)
-last_dsa = integer  # TODO broken
 loglevel = option('ERROR', WARN', 'INFO', 'DEBUG', default='INFO')
 
 debug_mode = boolean(default=false)
