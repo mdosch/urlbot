@@ -1,5 +1,5 @@
-# [main]
 other_bots = string_list(default=list())
+request_counter = integer(default=0)
 
 [plugins]
   [[info]]

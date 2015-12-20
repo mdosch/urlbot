@@ -13,7 +13,6 @@ hist_max_time = integer(default=10*60)
 
 # statistics
 uptime = integer(default=0)
-request_counter = integer(default=0)
 
 persistent_storage = string(default='urlbot.persistent')
 persistent_locked = boolean(default=false)

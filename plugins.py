@@ -392,13 +392,13 @@ def command_uptime(argv, **args):
 
     if 1 == u:
         plural_uptime = ''
-    if 1 == config.conf_get('request_counter'):
+    if 1 == config.runtimeconf_get('request_counter'):
         plural_request = ''
 
     log.info('sent statistics')
     return {
         'msg': args['reply_user'] + (''': happily serving for %d second%s, %d request%s so far.''' % (
-            u, plural_uptime, int(config.conf_get('request_counter')), plural_request))
+            u, plural_uptime, int(config.runtimeconf_get('request_counter')), plural_request))
     }
 
 
