@@ -386,7 +386,7 @@ def command_uptime(argv, **args):
     if 'uptime' != argv[0]:
         return
 
-    u = int(config.conf_get('uptime') + time.time())
+    u = int(config.runtimeconf_get('start_time') + time.time())
     plural_uptime = 's'
     plural_request = 's'
 
