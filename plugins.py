@@ -1055,6 +1055,15 @@ def flausch(argv, **args):
         'msg': '{}: *flausch*'.format(argv[1])
     }
 
+
+@pluginfunction('whosyourdaddy', "special request", ptypes_PARSE, ratelimit_class=RATE_FUN)
+def whosyourdaddy(**args):
+    if 'who\'s your daddy?' in args['data']:
+        return {
+            'msg': '{}!'.format(args['reply_user'])
+        }
+
+
 @pluginfunction('resolve-url-title', 'extract titles from urls', ptypes_PARSE, ratelimit_class=RATE_URL)
 def resolve_url_title(**args):
     user = args['reply_user']
