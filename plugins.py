@@ -28,11 +28,11 @@ log = logging.getLogger(__name__)
 
 
 def plugin_enabled_get(urlbot_plugin):
-    is_enabled = config.runtimeconf_deepget('plugins.{}.enabled'.format(urlbot_plugin.plugin_name), None)
-    if is_enabled is None:
-        return urlbot_plugin.is_enabled
+    plugin_section = config.runtimeconf_deepget('plugins.{}'.format(urlbot_plugin.plugin_name))
+    if plugin_section and "enabled" in plugin_section:
+        return plugin_section.as_bool("enabled")
     else:
-        return is_enabled
+        return urlbot_plugin.is_enabled
 
 
 def plugin_enabled_set(plugin, enabled):
