@@ -6,6 +6,7 @@ import re
 import time
 import urllib.request
 from collections import namedtuple
+from urllib.error import URLError
 
 RATE_NO_LIMIT = 0x00
 RATE_GLOBAL = 0x01
@@ -124,24 +125,20 @@ VERSION = get_version_git()
 def fetch_page(url):
     log = logging.getLogger(__name__)
     log.info('fetching page ' + url)
-    try:
-        request = urllib.request.Request(url)
-        request.add_header('User-Agent', USER_AGENT)
-        response = urllib.request.urlopen(request)
-        html_text = response.read(BUFSIZ)  # ignore more than BUFSIZ
-        if html_text[0] == 0x1f and html_text[1] == 0x8b:
-            import zlib
-            try:
-                gzip_data = zlib.decompress(html_text, zlib.MAX_WBITS | 16)
-            except:
-                pass
-            else:
-                html_text = gzip_data
-        response.close()
-        return 0, html_text, response.headers
-    except Exception as e:
-        log.warn('failed: %s' % e)
-        return 1, str(e), 'dummy'
+    request = urllib.request.Request(url)
+    request.add_header('User-Agent', USER_AGENT)
+    response = urllib.request.urlopen(request)
+    html_text = response.read(BUFSIZ)  # ignore more than BUFSIZ
+    if html_text[0] == 0x1f and html_text[1] == 0x8b:
+        import zlib
+        try:
+            gzip_data = zlib.decompress(html_text, zlib.MAX_WBITS | 16)
+        except:
+            pass
+        else:
+            html_text = gzip_data
+    response.close()
+    return html_text, response.headers
 
 
 def extract_title(url):
@@ -150,19 +147,18 @@ def extract_title(url):
 
     if 'repo/urlbot-native.git' in url:
         log.info('repo URL found: ' + url)
-        return 3, 'wee, that looks like my home repo!'
+        return 'wee, that looks like my home repo!', []
 
     log.info('extracting title from ' + url)
 
-    (code, html_text, headers) = fetch_page(url)
+    try:
+        (html_text, headers) = fetch_page(url)
+    except URLError as e:
+        return None
+    except Exception as e:
+        return 'failed: %s for %s' % (str(e), url)
 
-    if 1 == code:
-        return 3, 'failed: %s for %s' % (html_text, url)
-
-    if not html_text:
-        return -1, 'error'
-
-    charset = ''
+    charset = None
     if 'content-type' in headers:
         log.debug('content-type: ' + headers['content-type'])
 
@@ -174,7 +170,7 @@ def extract_title(url):
             r'\g<charset>', headers['content-type'], re.IGNORECASE
         )
 
-    if '' != charset:
+    if charset:
         try:
             html_text = html_text.decode(charset)
         except LookupError:
@@ -193,6 +189,6 @@ def extract_title(url):
         except UnicodeDecodeError as e:  # idk why this can happen, but it does
             log.warn('parser.unescape() expoded here: ' + str(e))
             expanded_html = match
-        return 0, expanded_html
+        return expanded_html
     else:
-        return 2, 'no title'
+        return None

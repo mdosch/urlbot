@@ -1055,6 +1055,7 @@ def flausch(argv, **args):
         'msg': '{}: *flausch*'.format(argv[1])
     }
 
+
 @pluginfunction('resolve-url-title', 'extract titles from urls', ptypes_PARSE, ratelimit_class=RATE_URL)
 def resolve_url_title(**args):
     user = args['reply_user']
@@ -1086,37 +1087,17 @@ def resolve_url_title(**args):
         # b'a.a.'
 
         try:
-            (status, title) = extract_title(url)
+            title = extract_title(url)
         except UnicodeError as e:
-            (status, title) = (4, str(e))
+            message = 'Bug triggered (%s), invalid URL/domain part: %s' % (str(e), url)
+            log.warn(message)
+            return {'msg': message}
 
-        if 0 == status:
+        if title:
             title = title.strip()
             message = 'Title: %s' % title
-        elif 1 == status:
-            if config.conf_get('image_preview'):
-                # of course it's fake, but it looks interesting at least
-                char = r""",._-+=\|/*`~"'"""
-                message = 'No text but %s, 1-bit ASCII art preview: [%c]' % (
-                    title, random.choice(char)
-                )
-            else:
-                log.info('no message sent for non-text %s (%s)' % (url, title))
-                continue
-        elif 2 == status:
-            message = '(No title)'
-        elif 3 == status:
-            message = title
-        elif 4 == status:
-            message = 'Bug triggered (%s), invalid URL/domain part: %s' % (title, url)
-            log.warn(message)
-        else:
-            message = 'some error occurred when fetching %s' % url
-
-        message = message.replace('\n', '\\n')
-
-        log.info('adding to out buf: ' + message)
-        out.append(message)
+            message = message.replace('\n', '\\n')
+            out.append(message)
 
     return {
         'msg': out
