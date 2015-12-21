@@ -8,7 +8,6 @@ All configuration is stored in a single ini-file and
 persistent state is pickle-dumped into a binary file.
 
 TODO: check lock safety
-TODO: manage persistent state in configobj
 """
 import json
 import logging
