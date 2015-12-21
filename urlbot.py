@@ -101,7 +101,7 @@ class UrlBot(IdleBot):
 
             config.conf_set('persistent_locked', True)
 
-            user_records['user_records'].pop(arg_user_key)
+            user_records.pop(arg_user_key)
             config.runtime_config_store.write()
 
             config.conf_set('persistent_locked', False)
