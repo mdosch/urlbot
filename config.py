@@ -51,7 +51,7 @@ def conf_set(key, val):
 
 def runtimeconf_set(key, value):
     runtime_config_store[key] = value
-    runtime_config_store.write()
+    runtimeconf_persist()
 
 
 def runtimeconf_get(key, default=None):
@@ -59,6 +59,10 @@ def runtimeconf_get(key, default=None):
         return runtime_config_store
     else:
         return runtime_config_store.get(key, default=default)
+
+
+def runtimeconf_persist():
+    runtime_config_store.write()
 
 
 def runtimeconf_deepget(key, default=None):

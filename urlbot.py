@@ -73,7 +73,7 @@ class UrlBot(IdleBot):
         # TODO: move this to a undirected plugin, maybe new plugin type
         arg_user = msg_obj['muc']['nick']
         arg_user_key = arg_user.lower()
-        user_records = config.runtime_config_store['user_records']
+        user_records = config.runtimeconf_get('user_records')
 
         if arg_user_key in user_records:
             records = user_records[arg_user_key]
@@ -102,7 +102,7 @@ class UrlBot(IdleBot):
             config.conf_set('persistent_locked', True)
 
             user_records.pop(arg_user_key)
-            config.runtime_config_store.write()
+            config.runtimeconf_persist()
 
             config.conf_set('persistent_locked', False)
 
@@ -116,7 +116,6 @@ class UrlBot(IdleBot):
             return
 
         config.runtimeconf_set('request_counter', config.runtimeconf_get('request_counter') + 1)
-        config.runtime_config_store.write()
 
         if str is not type(message):
             message = '\n'.join(message)
@@ -141,7 +140,7 @@ class UrlBot(IdleBot):
 
         @cached
         def get_bots_present(room):
-            other_bots = config.runtime_config_store["other_bots"]
+            other_bots = config.runtimeconf_get("other_bots")
             if not other_bots:
                 return False
             users = self.plugin['xep_0045'].getRoster(room)

@@ -46,7 +46,7 @@ def plugin_enabled_set(plugin, enabled):
         config.runtime_config_store['plugins'][plugin.plugin_name] = {}
 
     config.runtime_config_store['plugins'][plugin.plugin_name]['enabled'] = enabled
-    config.runtime_config_store.write()
+    config.runtimeconf_persist()
     config.conf_set('persistent_locked', False)
 
 
@@ -594,7 +594,7 @@ def command_usersetting(argv, **args):
 
     config.runtime_config_store['user_pref'][arg_user][arg_key] = 'on' == arg_val
 
-    config.runtime_config_store.write()
+    config.runtimeconf_persist()
     config.conf_set('persistent_locked', False)
 
     # display value written to db
@@ -822,7 +822,7 @@ def command_record(argv, **args):
 
     config.runtime_config_store['user_records'][target_user].append(message)
 
-    config.runtime_config_store.write()
+    config.runtimeconf_persist()
     config.conf_set('persistent_locked', False)
 
     return {
@@ -961,7 +961,7 @@ def recognize_bots(**args):
     def _add_to_list(username, message):
         if username not in config.runtime_config_store['other_bots']:
             config.runtime_config_store['other_bots'].append(username)
-            config.runtime_config_store.write()
+            config.runtimeconf_persist()
             return {
                 'event': {
                     'time': time.time() + 3,
@@ -988,7 +988,7 @@ def remove_from_botlist(argv, **args):
 
     if argv[1] in config.runtime_config_store['other_bots']:
         config.runtime_config_store['other_bots'].remove(argv[1])
-        config.runtime_config_store.write()
+        config.runtimeconf_persist()
         return {'msg': '%s was removed from the botlist.' % argv[1]}
     else:
         return False
