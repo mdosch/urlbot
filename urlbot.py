@@ -115,7 +115,8 @@ class UrlBot(IdleBot):
             self.logger.warning("I'm muted! (status: %s)", self.show)
             return
 
-        config.runtimeconf_set('request_counter', config.runtimeconf_get('request_counter') + 1)
+        request_counter = int(config.runtimeconf_get('request_counter'))
+        config.runtimeconf_set('request_counter', request_counter + 1)
 
         if str is not type(message):
             message = '\n'.join(message)

@@ -23,9 +23,9 @@ __initialized = False
 __config_store = ConfigObj('local_config{}.ini'.format(CONFIG_SUFFIX), configspec='local_config.ini.spec')
 runtime_config_store = ConfigObj('persistent_config.ini'.format(CONFIG_SUFFIX), configspec='persistent_config.ini.spec')
 
-validator = Validator()
-result = __config_store.validate(validator)
-runtime_config_store.validate(validator)
+result = __config_store.validate(Validator())
+# copy is essential to store values with a default.. see configobj.py:2053
+assert runtime_config_store.validate(Validator(), copy=True)
 
 if not result:
     print('Config file validation failed!')

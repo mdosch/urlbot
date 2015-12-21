@@ -3,8 +3,12 @@ To be executed with nose
 
 TODO: test all plugins, maybe declare their sample input somewhere near the code
 """
-import unittest
+import tempfile
 import time
+import unittest
+
+import mock as mock
+
 from common import buckets, rate_limit, RATE_GLOBAL
 
 
@@ -237,3 +241,67 @@ class TestPlugins(unittest.TestCase):
         self.assertIn('time', result['event'])
         self.assertIn('msg', result['event'])
         self.assertIn('msg', result)
+
+    def test_botlist(self):
+        import config
+
+        def test_in_actual_file(filename):
+            with open(filename) as f:
+                filecontent = str(f.read())
+                self.assertIn('DERPDERP', filecontent)
+
+        def test_in_file():
+            with tempfile.NamedTemporaryFile() as f:
+                filename = config.runtime_config_store.filename
+                config.runtime_config_store.write(outfile=f)
+                config.runtime_config_store.filename = filename
+                f.seek(0)
+                filecontent = str(f.read())
+                self.assertIn('DERPDERP', filecontent)
+
+        def test_in_memory():
+            self.assertEqual(config.runtime_config_store['other_bots'], ['DERPDERP'])
+
+        def test_in_write():
+            filename = config.runtime_config_store.filename
+            filecontent = config.runtime_config_store.write()
+            config.runtime_config_store.filename = filename
+            self.assertIn('DERPDERP', '\n'.join(filecontent))
+
+        orig_filename = config.runtime_config_store.filename
+        config.runtime_config_store.filename = None
+
+        # empty the botlist
+        config.runtime_config_store['other_bots'] = []
+        with open(orig_filename, 'wb') as f:
+            f.write(b'')
+
+        # only append to the dict, asserting it's in memory
+        self.assertEqual(config.runtime_config_store['other_bots'], [])
+        config.runtime_config_store['other_bots'].append('DERPDERP')
+        test_in_memory()
+        test_in_write()
+
+        # using the setter (with write usage), assert it's in the file
+        # config.runtimeconf_set('other_bots', ['DERPDERP'])
+        test_in_memory()
+        test_in_write()
+        test_in_file()
+
+        # reloading the config, assuming in memory AND file
+        test_in_memory()
+        test_in_write()
+        test_in_file()
+
+        config.runtime_config_store.filename = orig_filename
+        config.runtime_config_store.write()
+
+        test_in_actual_file(orig_filename)
+
+    def tearDown(self):
+        import config
+        if 'DERPDERP' in config.runtime_config_store['other_bots']:
+            config.runtime_config_store['other_bots'].remove('DERPDERP')
+            config.runtime_config_store.write()
+
+

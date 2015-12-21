@@ -392,7 +392,7 @@ def command_uptime(argv, **args):
 
     if 1 == u:
         plural_uptime = ''
-    if 1 == config.runtimeconf_get('request_counter'):
+    if 1 == int(config.runtimeconf_get('request_counter')):
         plural_request = ''
 
     log.info('sent statistics')
@@ -995,6 +995,22 @@ def remove_from_botlist(argv, **args):
         return False
 
 
+@pluginfunction("add-to-botlist", "add a user to the botlist", ptypes_COMMAND)
+def add_to_botlist(argv, **args):
+    if len(argv) != 2:
+        return {'msg': "wrong number of arguments!"}
+
+    if args['reply_user'] != config.conf_get('bot_owner'):
+        return {'msg': "only %s may do this!" % config.conf_get('bot_owner')}
+
+    if argv[1] not in config.runtime_config_store['other_bots']:
+        config.runtime_config_store['other_bots'].append(argv[1])
+        config.runtimeconf_persist()
+        return {'msg': '%s was added to the botlist.' % argv[1]}
+    else:
+        return {'msg': '%s is already in the botlist.' % argv[1]}
+
+
 @pluginfunction("set-status", "set bot status", ptypes_COMMAND)
 def set_status(argv, **args):
     if 'set-status' != argv[0] or len(argv) != 2:
@@ -1018,10 +1034,19 @@ def set_status(argv, **args):
 
 @pluginfunction('reset-jobs', "reset joblist", ptypes_COMMAND, ratelimit_class=RATE_NO_LIMIT)
 def reset_jobs(argv, **args):
-    if 'reset-jobs' != argv[0] or args['reply_user'] != config.conf_get('bot_owner'):
+    if args['reply_user'] != config.conf_get('bot_owner'):
         return
     else:
         joblist.clear()
+        return {'msg': 'done.'}
+
+
+@pluginfunction('save-config', "save config", ptypes_COMMAND, ratelimit_class=RATE_NO_LIMIT)
+def save_config(argv, **args):
+    if args['reply_user'] != config.conf_get('bot_owner'):
+        return
+    else:
+        config.runtime_config_store.write()
         return {'msg': 'done.'}
 
 
@@ -1099,6 +1124,24 @@ def resolve_url_title(**args):
     return {
         'msg': out
     }
+
+
+@pluginfunction('show-runtimeconfig', "show the current runtimeconfig", ptypes_COMMAND, ratelimit_class=RATE_NO_LIMIT)
+def show_runtimeconfig(argv, **args):
+    if args['reply_user'] != config.conf_get('bot_owner'):
+        return
+    else:
+        msg = json.dumps(config.runtime_config_store, indent=4)
+        return {'msg': msg}
+
+
+@pluginfunction('reload-runtimeconfig', "reload the runtimeconfig", ptypes_COMMAND, ratelimit_class=RATE_NO_LIMIT)
+def reload_runtimeconfig(argv, **args):
+    if args['reply_user'] != config.conf_get('bot_owner'):
+        return
+    else:
+        config.runtime_config_store.reload()
+        return {'msg': 'done'}
 
 
 def else_command(args):
