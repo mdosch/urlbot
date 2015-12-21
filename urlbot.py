@@ -158,8 +158,8 @@ class UrlBot(IdleBot):
             if msg_obj:
                 # TODO: bot modes off/on/auto... this should be active for "on".
                 # message = _prevent_panic(message, msg_obj['from'].bare)
-                if get_bots_present(msg_obj['from'].bare):
-                    return
+                # if get_bots_present(msg_obj['from'].bare):
+                #     return
                 self.send_message(
                     mto=msg_obj['from'].bare,
                     mbody=message,

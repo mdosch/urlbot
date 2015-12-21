@@ -67,6 +67,7 @@ def runtimeconf_get(key, default=None):
 
 @interprocess_locked(runtime_config_store.filename)
 def runtimeconf_persist():
+    logging.getLogger(__name__).debug(json.dumps(runtime_config_store, indent=2))
     runtime_config_store.write()
 
 

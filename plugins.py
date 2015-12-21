@@ -962,6 +962,7 @@ def recognize_bots(**args):
         if username not in config.runtime_config_store['other_bots']:
             config.runtime_config_store['other_bots'].append(username)
             config.runtimeconf_persist()
+            log.info("Adding {} to the list of bots (now {})".format(username, config.runtime_config_store['other_bots']))
             return {
                 'event': {
                     'time': time.time() + 3,
@@ -970,9 +971,9 @@ def recognize_bots(**args):
             }
 
     if any([phrase in args['data'] for phrase in unique_standard_phrases]):
-        _add_to_list(args['reply_user'], 'Making notes...')
+        return _add_to_list(args['reply_user'], 'Making notes...')
     elif 'I\'ll be back' in args['data']:
-        _add_to_list(args['reply_user'], 'Hey there, buddy!')
+        return _add_to_list(args['reply_user'], 'Hey there, buddy!')
 
 
 @pluginfunction("remove-from-botlist", "remove a user from the botlist", ptypes_COMMAND)
