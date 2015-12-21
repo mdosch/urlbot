@@ -978,14 +978,11 @@ def recognize_bots(**args):
 
 @pluginfunction("remove-from-botlist", "remove a user from the botlist", ptypes_COMMAND)
 def remove_from_botlist(argv, **args):
-    if 'remove-from-botlist' != argv[0]:
-        return
-
     if len(argv) != 2:
         return {'msg': "wrong number of arguments!"}
 
-    if args['reply_user'] != config.conf_get('bot_owner'):
-        return {'msg': "only %s may do this!" % config.conf_get('bot_owner')}
+    if args['reply_user'] != config.conf_get('bot_owner') and args['reply_user'] != argv[1]:
+        return {'msg': "only %s or the bot may do this!" % config.conf_get('bot_owner')}
 
     if argv[1] in config.runtime_config_store['other_bots']:
         config.runtime_config_store['other_bots'].remove(argv[1])

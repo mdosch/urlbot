@@ -52,9 +52,9 @@ class IdleBot(ClientXMPP):
             ))
             self.hangup()
             return False
-        elif msg_obj['mucnick'] in config.runtimeconf_get("other_bots", ()):
-            self.logger.debug("not talking to the other bot named {}".format( msg_obj['mucnick']))
-            return False
+        # elif msg_obj['mucnick'] in config.runtimeconf_get("other_bots", ()):
+        #     self.logger.debug("not talking to the other bot named {}".format( msg_obj['mucnick']))
+        #     return False
         else:
             return True
 

@@ -161,6 +161,9 @@ class UrlBot(IdleBot):
                 # message = _prevent_panic(message, msg_obj['from'].bare)
                 # if get_bots_present(msg_obj['from'].bare):
                 #     return
+                if msg_obj['mucnick'] in config.runtimeconf_get("other_bots", ()):
+                    self.logger.debug("not talking to the other bot named {}".format( msg_obj['mucnick']))
+                    return False
                 self.send_message(
                     mto=msg_obj['from'].bare,
                     mbody=message,
