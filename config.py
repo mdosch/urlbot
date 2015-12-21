@@ -11,13 +11,17 @@ TODO: check lock safety
 """
 import json
 import logging
+import os
 import sys
+from fasteners import interprocess_locked
 from configobj import ConfigObj
 from validate import Validator
 
+
+CONFIG_SUFFIX = os.environ.get('BOTSUFFIX', '')
 __initialized = False
-__config_store = ConfigObj('local_config.ini', configspec='local_config.ini.spec')
-runtime_config_store = ConfigObj('persistent_config.ini', configspec='persistent_config.ini.spec')
+__config_store = ConfigObj('local_config{}.ini'.format(CONFIG_SUFFIX), configspec='local_config.ini.spec')
+runtime_config_store = ConfigObj('persistent_config.ini'.format(CONFIG_SUFFIX), configspec='persistent_config.ini.spec')
 
 validator = Validator()
 result = __config_store.validate(validator)
@@ -61,6 +65,7 @@ def runtimeconf_get(key, default=None):
         return runtime_config_store.get(key, default=default)
 
 
+@interprocess_locked(runtime_config_store.filename)
 def runtimeconf_persist():
     runtime_config_store.write()
 
