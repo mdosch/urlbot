@@ -66,13 +66,19 @@ def runtimeconf_persist():
 
 
 def runtimeconf_deepget(key, default=None):
+    """
+    access a nested key with get("plugins.moin.enabled")
+    :param key: string of nested properties joined with dots
+    :param default: default key if None found
+    :return:
+    """
     if '.' not in key:
         return runtimeconf_get(key, default)
     else:
         path = key.split('.')
         value = runtimeconf_get(path.pop(0))
         for p in path:
-            value = value.get(p)
+            value = value.get(p, default)
             if value is None:
-                return None
+                break
         return value
