@@ -30,10 +30,7 @@
     git: repo="{{botrepo}}" dest=~/urlbot force=yes update=yes
     register: source_code
   - name: install bot dependencies into virtualenv
-    pip: name="{{item}}" virtualenv=~/botenv extra_args="-i {{pypi_mirror}}"
-    with_items:
-    - sleekxmpp
-    - configobj
+    pip: requirements="~/urlbot/requirements.txt" virtualenv=~/botenv extra_args="-i {{pypi_mirror}}"
   - name: install supervisor
     pip: name=supervisor virtualenv=~/svenv extra_args="-i {{pypi_mirror}}"
 
