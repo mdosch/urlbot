@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """ Common functions for urlbot """
 import html.parser
+import json
 import logging
 import re
 import time
@@ -192,3 +193,15 @@ def extract_title(url):
         return expanded_html
     else:
         return None
+
+
+def giphy(subject, api_key):
+    url = 'http://api.giphy.com/v1/gifs/random?tag={}&api_key={}&limit=1&offset=0'.format(subject, api_key)
+    response = urllib.request.urlopen(url)
+    giphy_url = None
+    try:
+        data = json.loads(response.read().decode('utf-8'))
+        giphy_url = data['data']['image_url']
+    except:
+        pass
+    return giphy_url

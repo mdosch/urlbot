@@ -11,7 +11,7 @@ import urllib.parse
 import urllib.request
 
 from common import RATE_GLOBAL, RATE_NO_SILENCE, VERSION, RATE_INTERACTIVE, BUFSIZ, \
-    USER_AGENT, extract_title, RATE_FUN, RATE_NO_LIMIT, RATE_URL
+    USER_AGENT, extract_title, RATE_FUN, RATE_NO_LIMIT, RATE_URL, giphy
 from config import runtimeconf_get
 import config
 from string_constants import excuses, moin_strings_hi, moin_strings_bye, cakes
@@ -603,8 +603,10 @@ def command_usersetting(argv, **args):
 
 @pluginfunction('cake', 'displays a cake ASCII art', ptypes_COMMAND, ratelimit_class=RATE_FUN | RATE_GLOBAL)
 def command_cake(argv, **args):
-    if 'cake' != argv[0]:
-        return
+    if 'please' in argv:
+        return {
+            'msg': 'cake for {}: {}'.format(args['reply_user'], giphy('cake', 'dc6zaTOxFJmzC'))
+        }
 
     return {
         'msg': args['reply_user'] + ': %s' % (random.sample(cakes, 1)[0])
