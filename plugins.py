@@ -613,6 +613,18 @@ def command_cake(argv, **args):
     }
 
 
+@pluginfunction('keks', 'keks!', ptypes_COMMAND, ratelimit_class=RATE_FUN | RATE_GLOBAL)
+def command_cookie(argv, **args):
+    if {'please', 'bitte'}.intersection(set(argv)):
+        return {
+            'msg': 'keks für {}: {}'.format(args['reply_user'], giphy('cookie', 'dc6zaTOxFJmzC'))
+        }
+
+    return {
+        'msg': args['reply_user'] + ': %s' % (random.sample(cakes, 1)[0])
+    }
+
+
 @pluginfunction('plugin', "'disable' or 'enable' plugins", ptypes_COMMAND)
 def command_plugin_activation(argv, **args):
     if argv[0] != 'plugin' or len(argv) == 1:
