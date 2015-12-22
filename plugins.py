@@ -603,7 +603,7 @@ def command_usersetting(argv, **args):
 
 @pluginfunction('cake', 'displays a cake ASCII art', ptypes_COMMAND, ratelimit_class=RATE_FUN | RATE_GLOBAL)
 def command_cake(argv, **args):
-    if 'please' in argv:
+    if {'please', 'bitte'}.intersection(set(argv)):
         return {
             'msg': 'cake for {}: {}'.format(args['reply_user'], giphy('cake', 'dc6zaTOxFJmzC'))
         }
