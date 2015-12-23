@@ -626,7 +626,7 @@ def command_cookie(argv, **args):
 
 
 @pluginfunction('terminate', 'hidden prototype', ptypes_COMMAND, ratelimit_class=RATE_FUN | RATE_GLOBAL)
-def command_cookie(argv, **args):
+def command_terminate(argv, **args):
     return {
         'msg': 'insufficient power supply, please connect fission module'
     }
