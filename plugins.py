@@ -489,7 +489,7 @@ def command_unicode_lookup(argv, **args):
 
     characters = {
         k: v for k, v in unicode.characters.items() if
-        search_word.lower() in v.lower()
+        search_word.lower() in v.lower().split()
         }
     lines = []
 
