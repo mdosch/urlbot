@@ -494,7 +494,8 @@ def command_unicode_lookup(argv, **args):
     lines = []
 
     for code, name in characters.items():
-        lines.append("Code {} is named \"{}\"".format(code, name))
+        char = chr(int(code, 16))
+        lines.append("Character \"{}\" with code {} is named \"{}\"".format(char, code, name))
         if len(lines) > 9:
             lines.append("warning: limit (10) reached.")
             break
