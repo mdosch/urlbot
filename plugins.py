@@ -476,12 +476,37 @@ def command_teatimer(argv, **args):
     }
 
 
+@pluginfunction('unicode-lookup', 'search unicode characters', ptypes_COMMAND,
+                ratelimit_class=RATE_INTERACTIVE)
+def command_unicode_lookup(argv, **args):
+    if len(argv) <= 1:
+        return {
+            'msg': args['reply_user'] + ': usage: decode {single character}'
+        }
+    search_word = argv[1]
+
+    import unicode
+
+    characters = {
+        k: v for k, v in unicode.characters.items() if
+        search_word.lower() in v.lower()
+        }
+    lines = []
+
+    for code, name in characters.items():
+        lines.append("Code {} is named \"{}\"".format(code, name))
+        if len(lines) > 9:
+            lines.append("warning: limit (10) reached.")
+            break
+
+    return {
+        'msg': lines
+    }
+
+
 @pluginfunction('decode', 'prints the long description of an unicode character', ptypes_COMMAND,
                 ratelimit_class=RATE_INTERACTIVE)
 def command_decode(argv, **args):
-    if 'decode' != argv[0]:
-        return
-
     if len(argv) <= 1:
         return {
             'msg': args['reply_user'] + ': usage: decode {single character}'
