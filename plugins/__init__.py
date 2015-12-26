@@ -56,14 +56,14 @@ def register(func_type):
 
     if func_type == ptypes_COMMAND:
         local_commands = [command_plugin_activation, command_list, command_help, reset_jobs]
-        plugin_funcs = commands.__dict__.items() + local_commands
+        plugin_funcs = list(commands.__dict__.values()) + local_commands
     elif func_type == ptypes_PARSE:
-        plugin_funcs = parsers.__dict__.items()
+        plugin_funcs = parsers.__dict__.values()
     else:
         raise RuntimeError("invalid func type: {}".format(func_type))
 
     functions = [
-        f for ignored, f in plugin_funcs if
+        f for f in plugin_funcs if
         isinstance(f, types.FunctionType) and
         all([
             f.__dict__.get('is_plugin', False),
