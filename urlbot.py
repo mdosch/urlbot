@@ -4,9 +4,7 @@
 The URLBot - ready to strive for desaster in YOUR jabber MUC
 """
 import sys
-
 import time
-
 from common import (
     rate_limit_classes,
     RATE_GLOBAL,
@@ -24,7 +22,6 @@ from plugins import (
     register_event,
     else_command
 )
-
 import config
 
 
@@ -32,6 +29,7 @@ class UrlBot(IdleBot):
     """
     The URLBot, doing things the IdleBot wouldn't dare to.
     """
+
     def __init__(self, jid, password, rooms, nick):
         super(UrlBot, self).__init__(jid, password, rooms, nick)
 
@@ -165,6 +163,11 @@ class UrlBot(IdleBot):
                 #     return
                 if msg_obj['type'] == 'groupchat':
                     if msg_obj['mucnick'] in config.runtimeconf_get("other_bots", ()):
+                        msg_obj['type'] = 'chat'
+                        self.send_reply("You're flagged as bot, please write {}: remove-from-botlist "
+                                        "{} if you're not a bot.".format(
+                                            config.conf_get('bot_nickname'), msg_obj['mucnick']
+                                        ), msg_obj)
                         self.logger.debug("not talking to the other bot named {}".format(msg_obj['mucnick']))
                         return False
                     self.send_message(
@@ -319,7 +322,7 @@ class UrlBot(IdleBot):
             self.show = presence.get('status')
 
             self.send_presence(pstatus=self.status, pshow=self.show)
-        # self.reconnect(wait=True)
+            # self.reconnect(wait=True)
 
 
 if __name__ == '__main__':
