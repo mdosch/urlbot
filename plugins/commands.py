@@ -77,8 +77,6 @@ def command_source(argv, **_):
 
 @pluginfunction('dice', 'rolls a dice, optional N times', ptypes_COMMAND, ratelimit_class=RATE_INTERACTIVE)
 def command_dice(argv, **args):
-    if 'dice' != argv[0]:
-        return
     try:
         count = 1 if len(argv) < 2 else int(argv[1])
     except ValueError as e:
@@ -753,7 +751,7 @@ def show_runtimeconfig(argv, **args):
         return
     else:
         msg = json.dumps(config.runtime_config_store, indent=4)
-        return {'msg': msg}
+        return {'priv_msg': msg}
 
 
 @pluginfunction('reload-runtimeconfig', "reload the runtimeconfig", ptypes_COMMAND, ratelimit_class=RATE_NO_LIMIT)

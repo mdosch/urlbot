@@ -58,9 +58,11 @@ class UrlBot(IdleBot):
         :param msg_obj:
         """
         if msg_obj['type'] == 'groupchat':
+            self.logger.info("Got the following MUC message: %s", str(msg_obj))
             return
         else:
             self.logger.info("Got the following PM: %s", str(msg_obj))
+            self.handle_msg(msg_obj)
 
     def muc_online(self, msg_obj):
         """
@@ -161,14 +163,21 @@ class UrlBot(IdleBot):
                 # message = _prevent_panic(message, msg_obj['from'].bare)
                 # if get_bots_present(msg_obj['from'].bare):
                 #     return
-                if msg_obj['mucnick'] in config.runtimeconf_get("other_bots", ()):
-                    self.logger.debug("not talking to the other bot named {}".format( msg_obj['mucnick']))
-                    return False
-                self.send_message(
-                    mto=msg_obj['from'].bare,
-                    mbody=message,
-                    mtype='groupchat'
-                )
+                if msg_obj['type'] == 'groupchat':
+                    if msg_obj['mucnick'] in config.runtimeconf_get("other_bots", ()):
+                        self.logger.debug("not talking to the other bot named {}".format(msg_obj['mucnick']))
+                        return False
+                    self.send_message(
+                        mto=msg_obj['from'].bare,
+                        mbody=message,
+                        mtype='groupchat'
+                    )
+                elif msg_obj['type'] == 'chat':
+                    self.send_message(
+                        mto=msg_obj['from'],
+                        mbody=message,
+                        mtype='chat'
+                    )
             else:
                 for room in self.rooms:
                     # message = _prevent_panic(message, room)
@@ -231,7 +240,7 @@ class UrlBot(IdleBot):
             self.hangup()
             sys.exit(1)
 
-        reply_user = msg_obj['mucnick']
+        reply_user = msg_obj['mucnick'] or msg_obj['from']._jid[2]
 
         # TODO: check how several commands/plugins
         # in a single message behave (also with rate limiting)
@@ -297,6 +306,10 @@ class UrlBot(IdleBot):
 
         if 'msg' in action and rate_limit(RATE_CHAT | plugin.ratelimit_class):
             self.send_reply(action['msg'], msg_obj)
+
+        if 'priv_msg' in action and rate_limit(RATE_CHAT | plugin.ratelimit_class):
+            msg_obj['type'] = 'chat'
+            self.send_reply(action['priv_msg'], msg_obj)
 
         if 'presence' in action:
             presence = action['presence']
