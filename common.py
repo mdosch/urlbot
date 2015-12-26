@@ -205,3 +205,31 @@ def giphy(subject, api_key):
     except:
         pass
     return giphy_url
+
+
+def pluginfunction(name, desc, plugin_type, ratelimit_class=RATE_GLOBAL, enabled=True):
+    """A decorator to make a plugin out of a function
+    :param enabled:
+    :param ratelimit_class:
+    :param plugin_type:
+    :param desc:
+    :param name:
+    """
+    if plugin_type not in ptypes:
+        raise TypeError('Illegal plugin_type: %s' % plugin_type)
+
+    def decorate(f):
+        f.is_plugin = True
+        f.is_enabled = enabled
+        f.plugin_name = name
+        f.plugin_desc = desc
+        f.plugin_type = plugin_type
+        f.ratelimit_class = ratelimit_class
+        return f
+
+    return decorate
+
+
+ptypes_PARSE = 'parser'
+ptypes_COMMAND = 'command'
+ptypes = [ptypes_PARSE, ptypes_COMMAND]

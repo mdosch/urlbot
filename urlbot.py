@@ -13,7 +13,7 @@ from common import (
     RATE_CHAT,
     RATE_EVENT,
     rate_limit,
-)
+    ptypes_PARSE, ptypes_COMMAND)
 from config import runtimeconf_set
 from idlebot import IdleBot, start
 from plugins import (

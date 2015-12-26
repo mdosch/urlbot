@@ -6,8 +6,7 @@ TODO: test all plugins, maybe declare their sample input somewhere near the code
 import tempfile
 import time
 import unittest
-
-import mock as mock
+from collections import namedtuple
 
 from common import buckets, rate_limit, RATE_GLOBAL
 
@@ -22,8 +21,6 @@ class TestEventlooper(unittest.TestCase):
         result = fetch_page(url=broken_url)
         self.assertEqual(result, (None, None))
 
-
-from collections import namedtuple
 
 Bucket = namedtuple("BucketConfig", ["history", "period", "max_hist_len"])
 
@@ -235,7 +232,7 @@ class TestPlugins(unittest.TestCase):
                     self.assertTrue(all(['msg' in result['presence'], 'status' in result['presence']]))
 
     def test_teatimer(self):
-        from plugins import command_teatimer
+        from plugins.commands import command_teatimer
         result = command_teatimer(['teatimer'], reply_user='hans')
         self.assertIn('event', result)
         self.assertIn('time', result['event'])
@@ -303,5 +300,3 @@ class TestPlugins(unittest.TestCase):
         if 'DERPDERP' in config.runtime_config_store['other_bots']:
             config.runtime_config_store['other_bots'].remove('DERPDERP')
             config.runtime_config_store.write()
-
-
