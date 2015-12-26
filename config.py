@@ -20,12 +20,23 @@ from validate import Validator
 
 CONFIG_SUFFIX = os.environ.get('BOTSUFFIX', '')
 __initialized = False
-__config_store = ConfigObj('local_config{}.ini'.format(CONFIG_SUFFIX), configspec='local_config.ini.spec')
-runtime_config_store = ConfigObj('persistent_config.ini'.format(CONFIG_SUFFIX), configspec='persistent_config.ini.spec')
+__config_store = ConfigObj(
+    'local_config{}.ini'.format(CONFIG_SUFFIX),
+    configspec='local_config.ini.spec',
+    encoding='utf-8'
+)
+runtime_config_store = ConfigObj(
+    'persistent_config.ini'.format(CONFIG_SUFFIX),
+    configspec='persistent_config.ini.spec',
+    encoding='utf-8'
+)
 
 result = __config_store.validate(Validator())
 # copy is essential to store values with a default.. see configobj.py:2053
 assert runtime_config_store.validate(Validator(), copy=True)
+# oh look, a bug: https://github.com/DiffSK/configobj/issues/86
+# workaround: set the encoding after validating
+runtime_config_store.encoding = 'utf-8'
 
 if not result:
     print('Config file validation failed!')
