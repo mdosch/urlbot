@@ -43,7 +43,6 @@ class UrlBot(IdleBot):
 
         for room in self.rooms:
             self.add_event_handler('muc::%s::got_online' % room, self.muc_online)
-            self.add_event_handler('muc::%s::got_offline' % room, self.muc_offline)
 
     def muc_message(self, msg_obj):
         """
@@ -106,17 +105,6 @@ class UrlBot(IdleBot):
             config.runtimeconf_persist()
 
             config.conf_set('persistent_locked', False)
-
-    def muc_offline(self, msg_obj):
-        room = msg_obj.values['muc']['room']
-        user = msg_obj.values['muc']['nick']
-        if user == config.conf_get('bot_nickname'):
-            self.logger.warn("Left my room, rejoin")
-            self.plugin['xep_0045'].joinMUC(
-                room,
-                self.nick,
-                wait=True
-            )
 
     # @rate_limited(10)
     def send_reply(self, message, msg_obj=None):
