@@ -11,7 +11,7 @@ from common import (
     RATE_CHAT,
     RATE_EVENT,
     rate_limit,
-    ptypes_PARSE, ptypes_COMMAND)
+)
 from config import runtimeconf_set
 from idlebot import IdleBot, start
 from plugins import (
@@ -216,8 +216,15 @@ class UrlBot(IdleBot):
             return
 
         try:
-            self.data_parse_commands(msg_obj)
-            self.data_parse_other(msg_obj)
+            reacted_on_command = self.data_parse_commands(msg_obj)
+            reacted_on_parse = self.data_parse_other(msg_obj)
+
+            if not any([reacted_on_command, reacted_on_parse]) \
+                    and rate_limit(RATE_GLOBAL):
+                ret = else_command({'reply_user': msg_obj['from']._jid[2]})
+                if ret:
+                    if 'msg' in ret:
+                        self.send_reply(ret['msg'], msg_obj)
         except Exception as e:
             self.logger.exception(e)
 
@@ -265,12 +272,7 @@ class UrlBot(IdleBot):
             if ret:
                 self._run_action(ret, plugin, msg_obj)
                 reacted = True
-
-        if not reacted and rate_limit(RATE_GLOBAL):
-            ret = else_command({'reply_user': reply_user})
-            if ret:
-                if 'msg' in ret:
-                    self.send_reply(ret['msg'], msg_obj)
+        return reacted
 
     def data_parse_other(self, msg_obj):
         """
@@ -280,7 +282,8 @@ class UrlBot(IdleBot):
         :return:
         """
         data = msg_obj['body']
-        reply_user = msg_obj['mucnick']
+        reply_user = msg_obj['mucnick'] or msg_obj['from']._jid[2]
+        reacted = False
 
         for plugin in plugin_storage[ptypes_PARSE]:
             if not plugin_enabled_get(plugin):
@@ -290,6 +293,8 @@ class UrlBot(IdleBot):
 
             if ret:
                 self._run_action(ret, plugin, msg_obj)
+                reacted = True
+        return reacted
 
     def _run_action(self, action, plugin, msg_obj):
         """
