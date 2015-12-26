@@ -166,9 +166,9 @@ class UrlBot(IdleBot):
                         msg_obj['type'] = 'chat'
                         self.send_reply("You're flagged as bot, please write {}: remove-from-botlist "
                                         "{} if you're not a bot.".format(
-                                            config.conf_get('bot_nickname'), msg_obj['from'].bare
+                                            config.conf_get('bot_nickname'), msg_obj['from']._jid[2]
                                         ), msg_obj)
-                        self.logger.debug("not talking to the other bot named {}".format(msg_obj['from'].bare))
+                        self.logger.debug("not talking to the other bot named {}".format(msg_obj['from']._jid[2]))
                         return False
                     self.send_message(
                         mto=msg_obj['from'].bare,
