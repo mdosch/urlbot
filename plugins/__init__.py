@@ -55,7 +55,7 @@ def register(func_type):
     """
 
     if func_type == ptypes_COMMAND:
-        local_commands = [command_plugin_activation + command_list + command_help + reset_jobs]
+        local_commands = [command_plugin_activation, command_list, command_help, reset_jobs]
         plugin_funcs = commands.__dict__.items() + local_commands
     elif func_type == ptypes_PARSE:
         plugin_funcs = parsers.__dict__.items()
