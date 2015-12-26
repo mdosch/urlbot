@@ -773,6 +773,11 @@ def ignore_user(argv, **args):
     then = time.time() + 15*60
     spammer = argv[1]
 
+    if spammer == config.conf_get("bot_owner"):
+        return {
+            'msg': 'My owner does not spam, he is just very informative.'
+        }
+
     if spammer not in config.runtime_config_store['spammers']:
         config.runtime_config_store['spammers'].append(spammer)
 
