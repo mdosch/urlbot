@@ -1,4 +1,5 @@
 other_bots = string_list(default=list())
+spammers = string_list(default=list())
 request_counter = integer(default=0)
 start_time = integer(default=0)
 

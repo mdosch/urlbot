@@ -7,9 +7,11 @@ import unicodedata
 import urllib.parse
 import urllib.request
 import config
-from common import VERSION, RATE_FUN, RATE_GLOBAL, RATE_INTERACTIVE, RATE_NO_LIMIT, giphy, BUFSIZ, pluginfunction, \
+from common import (
+    VERSION, RATE_FUN, RATE_GLOBAL, RATE_INTERACTIVE, RATE_NO_LIMIT, BUFSIZ,
+    giphy, pluginfunction,
     ptypes_COMMAND
-from plugins import ptypes_COMMAND
+)
 from string_constants import cakes, excuses, moin_strings_hi, moin_strings_bye
 
 log = logging.getLogger(__name__)
@@ -664,6 +666,8 @@ def command_show_recordlist(argv, **args):
 #         msg = 'wrong argument'
 #         log.warn(msg)
 #         return {'msg': msg}
+
+
 @pluginfunction("provoke-bots", "search for other bots", ptypes_COMMAND)
 def provoke_bots(argv, **args):
     if 'provoke-bots' == argv[0]:
@@ -759,3 +763,33 @@ def reload_runtimeconfig(argv, **args):
     else:
         config.runtime_config_store.reload()
         return {'msg': 'done'}
+
+
+@pluginfunction('snitch', "tell on a spammy user", ptypes_COMMAND)
+def ignore_user(argv, **args):
+    if len(argv) != 2:
+        return {'msg': 'syntax: "{}: snitch username"'.format(config.conf_get("bot_nickname"))}
+
+    then = time.time() + 15*60
+    spammer = argv[1]
+
+    if spammer not in config.runtime_config_store['spammers']:
+        config.runtime_config_store['spammers'].append(spammer)
+
+    def unblock_user(user):
+        if user not in config.runtime_config_store['spammers']:
+            config.runtime_config_store['spammers'].append(user)
+
+    return {
+        'msg': 'user reported and ignored till {}'.format(time.strftime('%H:%M', time.localtime(then))),
+        'event': {
+            'time': then,
+            'command': (unblock_user, ([spammer],))
+        }
+    }
+
+
+@pluginfunction('raise', 'only for debugging', ptypes_COMMAND)
+def raise_an_error(argv, **args):
+    if args['reply_user'] == config.conf_get("bot_owner"):
+        raise RuntimeError("Exception for debugging")

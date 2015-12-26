@@ -97,17 +97,6 @@ def start(botclass, active=False):
 
     config.runtimeconf_set('start_time', -time.time())
 
-    while 1:
-        try:
-            # print("hangup: %s" % got_hangup)
-            if not plugins.event_trigger():
-                bot.hangup()
-
-            time.sleep(EVENTLOOP_DELAY)
-        except KeyboardInterrupt:
-            print('')
-            exit(130)
-
 
 if '__main__' == __name__:
     start(IdleBot)
