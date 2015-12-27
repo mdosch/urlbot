@@ -61,15 +61,16 @@ class IdleBot(ClientXMPP):
             return True
 
     def muc_offline(self, msg_obj):
-        room = msg_obj.values['muc']['room']
-        user = msg_obj.values['muc']['nick']
-        if user == config.conf_get('bot_nickname'):
-            self.logger.warn("Left my room, rejoin")
-            self.plugin['xep_0045'].joinMUC(
-                room,
-                self.nick,
-                wait=True
-            )
+        if 'muc' in msg_obj.values:
+            room = msg_obj.values['muc']['room']
+            user = msg_obj.values['muc']['nick']
+            if user == config.conf_get('bot_nickname'):
+                self.logger.warn("Left my room, rejoin")
+                self.plugin['xep_0045'].joinMUC(
+                    room,
+                    self.nick,
+                    wait=True
+                )
 
     def hangup(self):
         """
