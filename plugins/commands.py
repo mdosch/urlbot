@@ -237,25 +237,33 @@ def command_unicode_lookup(argv, **args):
         return {
             'msg': args['reply_user'] + ': usage: decode {single character}'
         }
-    search_word = argv[1]
+    search_words = argv[1:]
 
     import unicode
 
     characters = {
         k: v for k, v in unicode.characters.items() if
-        search_word.lower() in v.lower().split()
+        all([word.lower() in v.lower().split() for word in search_words])
         }
     lines = []
 
     for code, name in characters.items():
         char = chr(int(code, 16))
         lines.append("Character \"{}\" with code {} is named \"{}\"".format(char, code, name))
-        if len(lines) > 9:
-            lines.append("warning: limit (10) reached.")
+        if len(lines) > 29:
+            lines.append("warning: limit (30) reached.")
             break
 
+    if not lines:
+        return {
+            'msg': 'No match.'
+        }
+    elif len(lines) > 3:
+        channel = 'priv_msg'
+    else:
+        channel = 'msg'
     return {
-        'msg': lines
+        channel: lines
     }
 
 
