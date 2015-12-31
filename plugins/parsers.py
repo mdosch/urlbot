@@ -203,17 +203,6 @@ def resolve_url_title(**args):
         if any([re.match(b, url) for b in url_blacklist]):
             log.info('url blacklist match for ' + url)
             break
-
-        # urllib.request is broken:
-        # >>> '.'.encode('idna')
-        # ....
-        # UnicodeError: label empty or too long
-        # >>> '.a.'.encode('idna')
-        # ....
-        # UnicodeError: label empty or too long
-        # >>> 'a.a.'.encode('idna')
-        # b'a.a.'
-
         try:
             title = extract_title(url)
         except UnicodeError as e:

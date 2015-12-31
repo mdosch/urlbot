@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """ Common functions for urlbot """
 import html.parser
-import json
 import logging
 import re
 import time
@@ -126,22 +125,8 @@ VERSION = get_version_git()
 def fetch_page(url):
     log = logging.getLogger(__name__)
     log.info('fetching page ' + url)
-    # request = urllib.request.Request(url)
-    # request.add_header('User-Agent', USER_AGENT)
-    # response = urllib.request.urlopen(request)
-    # html_text = response.read(BUFSIZ)  # ignore more than BUFSIZ
-    # if html_text[0] == 0x1f and html_text[1] == 0x8b:
-    #     import zlib
-    #     try:
-    #         gzip_data = zlib.decompress(html_text, zlib.MAX_WBITS | 16)
-    #     except:
-    #         pass
-    #     else:
-    #         html_text = gzip_data
-    # response.close()
     response = requests.get(url, headers={'User-Agent': USER_AGENT}, stream=True)
     content = response.raw.read(BUFSIZ, decode_content=True)
-    # return html_text, response.headers
     return content, response.headers
 
 
@@ -162,24 +147,11 @@ def extract_title(url):
     except Exception as e:
         return 'failed: %s for %s' % (str(e), url)
 
-    charset = None
     if 'content-type' in headers:
         log.debug('content-type: ' + headers['content-type'])
 
         if 'text/' != headers['content-type'][:len('text/')]:
             return 1, headers['content-type']
-
-        charset = re.sub(
-            r'.*charset=(?P<charset>\S+).*',
-            r'\g<charset>', headers['content-type'], re.IGNORECASE
-        )
-
-    # if charset:
-    #     try:
-    #         html_text = html_text.decode(charset)
-    #     except LookupError:
-    #         log.warn("invalid charset in '%s': '%s'" % (headers['content-type'], charset))
-
     if str != type(html_text):
         html_text = str(html_text)
 
