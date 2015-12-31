@@ -5,7 +5,7 @@ import json
 import logging
 import re
 import time
-import urllib.request
+import requests
 from collections import namedtuple
 from urllib.error import URLError
 
@@ -126,20 +126,23 @@ VERSION = get_version_git()
 def fetch_page(url):
     log = logging.getLogger(__name__)
     log.info('fetching page ' + url)
-    request = urllib.request.Request(url)
-    request.add_header('User-Agent', USER_AGENT)
-    response = urllib.request.urlopen(request)
-    html_text = response.read(BUFSIZ)  # ignore more than BUFSIZ
-    if html_text[0] == 0x1f and html_text[1] == 0x8b:
-        import zlib
-        try:
-            gzip_data = zlib.decompress(html_text, zlib.MAX_WBITS | 16)
-        except:
-            pass
-        else:
-            html_text = gzip_data
-    response.close()
-    return html_text, response.headers
+    # request = urllib.request.Request(url)
+    # request.add_header('User-Agent', USER_AGENT)
+    # response = urllib.request.urlopen(request)
+    # html_text = response.read(BUFSIZ)  # ignore more than BUFSIZ
+    # if html_text[0] == 0x1f and html_text[1] == 0x8b:
+    #     import zlib
+    #     try:
+    #         gzip_data = zlib.decompress(html_text, zlib.MAX_WBITS | 16)
+    #     except:
+    #         pass
+    #     else:
+    #         html_text = gzip_data
+    # response.close()
+    response = requests.get(url, headers={'User-Agent': USER_AGENT}, stream=True)
+    content = response.raw.read(BUFSIZ, decode_content=True)
+    # return html_text, response.headers
+    return content, response.headers
 
 
 def extract_title(url):
@@ -171,11 +174,11 @@ def extract_title(url):
             r'\g<charset>', headers['content-type'], re.IGNORECASE
         )
 
-    if charset:
-        try:
-            html_text = html_text.decode(charset)
-        except LookupError:
-            log.warn("invalid charset in '%s': '%s'" % (headers['content-type'], charset))
+    # if charset:
+    #     try:
+    #         html_text = html_text.decode(charset)
+    #     except LookupError:
+    #         log.warn("invalid charset in '%s': '%s'" % (headers['content-type'], charset))
 
     if str != type(html_text):
         html_text = str(html_text)
@@ -197,10 +200,10 @@ def extract_title(url):
 
 def giphy(subject, api_key):
     url = 'http://api.giphy.com/v1/gifs/random?tag={}&api_key={}&limit=1&offset=0'.format(subject, api_key)
-    response = urllib.request.urlopen(url)
+    response = requests.get(url)
     giphy_url = None
     try:
-        data = json.loads(response.read().decode('utf-8'))
+        data = response.json()
         giphy_url = data['data']['image_url']
     except:
         pass
