@@ -3,8 +3,13 @@
 """
 The URLBot - ready to strive for desaster in YOUR jabber MUC
 """
+import re
 import sys
 import time
+from lxml import etree
+
+import requests
+
 from common import (
     rate_limit_classes,
     RATE_GLOBAL,
@@ -218,6 +223,8 @@ class UrlBot(IdleBot):
         try:
             reacted_on_command = self.data_parse_commands(msg_obj)
             reacted_on_parse = self.data_parse_other(msg_obj)
+            self.data_parse_forum_thread(msg_obj)
+            self.data_parse_forum_post(msg_obj)
 
             if (msg_obj['body'].startswith(config.conf_get('bot_nickname')) and not any(
                     [reacted_on_command, reacted_on_parse]) and rate_limit(RATE_GLOBAL)):
@@ -295,6 +302,34 @@ class UrlBot(IdleBot):
                 self._run_action(ret, plugin, msg_obj)
                 reacted = True
         return reacted
+
+    def data_parse_forum_thread(self, msg_obj):
+        return
+
+    def data_parse_forum_post(self, msg_obj):
+        links = re.findall(r'(https?://(?:www\.)?debianforum\.de/forum/[^\s>]+)', msg_obj['body'])
+        for link in links:
+            html = requests.get(link).text
+            tree = etree.XML(html, etree.HTMLParser())
+            postid = re.findall('p=?([0-9]{4,})', link)
+            if not postid:
+                return
+            postid = 'p{}'.format(postid[0])
+            post_path = '//div[@id="{}"]'.format(postid)
+            postelement = tree.xpath(post_path)
+            if postelement:
+                postelement = postelement[0]
+            else:
+                self.logger.warn("No post with id {} found!".format(postid))
+                return
+            # excludes any [code] and [quote] elements by only looking at direct text child nodes
+            username_xpath = '//dl[@class="postprofile"]//*[contains(@href, "memberlist")]/text()'
+            user = tree.xpath('{}{}'.format(post_path, username_xpath))[0]
+            posttext = postelement.xpath('{}//div[@class="content"]/text()'.format(post_path))
+            print(user, '\n'.join(posttext))
+            summary_action = {'msg': '{} posted {} words'.format(user, len('\n'.join(posttext).split()))}
+            self._run_action(summary_action, plugin=plugin_storage[ptypes_COMMAND][0], msg_obj=msg_obj)
+        return
 
     def _run_action(self, action, plugin, msg_obj):
         """
