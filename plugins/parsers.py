@@ -95,7 +95,7 @@ def parse_skynet(**args):
         }
 
 
-@pluginfunction('moin', 'parse hi/bye', ptypes_PARSE)
+@pluginfunction('moin', 'parse hi/bye', ptypes_PARSE, enabled=False)
 def parse_moin(**args):
     for direction in [moin_strings_hi, moin_strings_bye]:
         for d in direction:
