@@ -223,8 +223,10 @@ class UrlBot(IdleBot):
         try:
             reacted_on_command = self.data_parse_commands(msg_obj)
             reacted_on_parse = self.data_parse_other(msg_obj)
-            self.data_parse_forum_thread(msg_obj)
-            self.data_parse_forum_post(msg_obj)
+
+            # disabled for now
+            # self.data_parse_forum_thread(msg_obj)
+            # self.data_parse_forum_post(msg_obj)
 
             if (msg_obj['body'].startswith(config.conf_get('bot_nickname')) and not any(
                     [reacted_on_command, reacted_on_parse]) and rate_limit(RATE_GLOBAL)):
