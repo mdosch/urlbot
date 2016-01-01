@@ -275,7 +275,7 @@ class UrlBot(IdleBot):
                 parser_list=[pl.plugin_name for pl in plugin_storage[ptypes_PARSE]],
                 reply_user=reply_user,
                 msg_obj=msg_obj,
-                argv=words[1:]
+                argv=words[2:]
             )
 
             if ret:

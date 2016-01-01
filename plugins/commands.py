@@ -19,17 +19,67 @@ log = logging.getLogger(__name__)
 
 @pluginfunction('version', 'prints version', ptypes_COMMAND)
 def command_version(argv, **args):
-
     log.info('sent version string')
     return {
         'msg': args['reply_user'] + (''': I'm running ''' + VERSION)
     }
 
 
+@pluginfunction('uptime', 'prints uptime', ptypes_COMMAND)
+def command_uptime(argv, **args):
+
+    u = int(config.runtimeconf_get('start_time') + time.time())
+    plural_uptime = 's'
+    plural_request = 's'
+
+    if 1 == u:
+        plural_uptime = ''
+    if 1 == int(config.runtimeconf_get('request_counter')):
+        plural_request = ''
+
+    log.info('sent statistics')
+    return {
+        'msg': args['reply_user'] + (''': happily serving for %d second%s, %d request%s so far.''' % (
+            u, plural_uptime, int(config.runtimeconf_get('request_counter')), plural_request))
+    }
+
+
+@pluginfunction('info', 'prints info message', ptypes_COMMAND)
+def command_info(argv, **args):
+
+    log.info('sent long info')
+    return {
+        'msg': args['reply_user'] + (
+            ''': I'm a bot, my job is to extract <title> tags from posted URLs. In case I'm annoying or for further
+            questions, please talk to my master %s. I'm rate limited.
+            To make me exit immediately, highlight me with 'hangup' in the message
+            (emergency only, please). For other commands, highlight me with 'help'.''' % (
+                config.conf_get('bot_owner')))
+    }
+
+
+@pluginfunction('ping', 'sends pong', ptypes_COMMAND, ratelimit_class=RATE_INTERACTIVE)
+def command_ping(argv, **args):
+
+    rnd = random.randint(0, 3)  # 1:4
+    if 0 == rnd:
+        msg = args['reply_user'] + ''': peng (You're dead now.)'''
+        log.info('sent pong (variant)')
+    elif 1 == rnd:
+        msg = args['reply_user'] + ''': I don't like you, leave me alone.'''
+        log.info('sent pong (dontlike)')
+    else:
+        msg = args['reply_user'] + ''': pong'''
+        log.info('sent pong')
+
+    return {
+        'msg': msg
+    }
+
+
 @pluginfunction('klammer', 'prints an anoying paper clip aka. Karl Klammer', ptypes_COMMAND,
                 ratelimit_class=RATE_FUN | RATE_GLOBAL)
 def command_klammer(argv, **args):
-
     log.info('sent karl klammer')
     return {
         'msg': (
@@ -44,9 +94,34 @@ def command_klammer(argv, **args):
     }
 
 
+@pluginfunction('excuse', 'prints BOFH style excuses', ptypes_COMMAND)
+def command_excuse(argv, **args):
+    log.info('BOFH plugin called')
+
+    excuse = random.sample(excuses, 1)[0]
+
+    return {
+        'msg': args['reply_user'] + ': ' + excuse
+    }
+
+
+@pluginfunction('terminate', 'hidden prototype', ptypes_COMMAND, ratelimit_class=RATE_FUN | RATE_GLOBAL)
+def command_terminate(argv, **args):
+    return {
+        'msg': 'insufficient power supply, please connect fission module'
+    }
+
+
+@pluginfunction('source', 'prints git URL', ptypes_COMMAND)
+def command_source(argv, **_):
+    log.info('sent source URL')
+    return {
+        'msg': 'My source code can be found at %s' % config.conf_get('src-url')
+    }
+
+
 @pluginfunction('unikot', 'prints an unicode string', ptypes_COMMAND, ratelimit_class=RATE_FUN | RATE_GLOBAL)
 def command_unicode(argv, **args):
-
     log.info('sent some unicode')
     return {
         'msg': (
@@ -58,23 +133,14 @@ def command_unicode(argv, **args):
     }
 
 
-@pluginfunction('source', 'prints git URL', ptypes_COMMAND)
-def command_source(argv, **_):
-
-    log.info('sent source URL')
-    return {
-        'msg': 'My source code can be found at %s' % config.conf_get('src-url')
-    }
-
-
 @pluginfunction('dice', 'rolls a dice, optional N times', ptypes_COMMAND, ratelimit_class=RATE_INTERACTIVE)
 def command_dice(argv, **args):
     try:
-        count = 1 if len(argv) < 2 else int(argv[1])
+        count = 1 if argv else int(argv[0])
     except ValueError as e:
         return {
             'msg': '%s: dice: error when parsing int(%s): %s' % (
-                args['reply_user'], argv[1], str(e)
+                args['reply_user'], argv[0], str(e)
             )
         }
 
@@ -108,87 +174,31 @@ def command_dice(argv, **args):
 
 @pluginfunction('choose', 'chooses randomly between arguments', ptypes_COMMAND, ratelimit_class=RATE_INTERACTIVE)
 def command_choose(argv, **args):
-
-    alternatives = argv[1:]
-
+    alternatives = argv
     if 2 > len(alternatives):
         return {
             'msg': '%s: choosing between one or less things is pointless' % args['reply_user']
         }
 
     choice = random.choice(alternatives)
-
     log.info('sent random choice')
     return {
         'msg': '%s: I prefer %s!' % (args['reply_user'], choice)
     }
 
 
-@pluginfunction('uptime', 'prints uptime', ptypes_COMMAND)
-def command_uptime(argv, **args):
-
-    u = int(config.runtimeconf_get('start_time') + time.time())
-    plural_uptime = 's'
-    plural_request = 's'
-
-    if 1 == u:
-        plural_uptime = ''
-    if 1 == int(config.runtimeconf_get('request_counter')):
-        plural_request = ''
-
-    log.info('sent statistics')
-    return {
-        'msg': args['reply_user'] + (''': happily serving for %d second%s, %d request%s so far.''' % (
-            u, plural_uptime, int(config.runtimeconf_get('request_counter')), plural_request))
-    }
-
-
-@pluginfunction('ping', 'sends pong', ptypes_COMMAND, ratelimit_class=RATE_INTERACTIVE)
-def command_ping(argv, **args):
-
-    rnd = random.randint(0, 3)  # 1:4
-    if 0 == rnd:
-        msg = args['reply_user'] + ''': peng (You're dead now.)'''
-        log.info('sent pong (variant)')
-    elif 1 == rnd:
-        msg = args['reply_user'] + ''': I don't like you, leave me alone.'''
-        log.info('sent pong (dontlike)')
-    else:
-        msg = args['reply_user'] + ''': pong'''
-        log.info('sent pong')
-
-    return {
-        'msg': msg
-    }
-
-
-@pluginfunction('info', 'prints info message', ptypes_COMMAND)
-def command_info(argv, **args):
-
-    log.info('sent long info')
-    return {
-        'msg': args['reply_user'] + (
-            ''': I'm a bot, my job is to extract <title> tags from posted URLs. In case I'm annoying or for further
-            questions, please talk to my master %s. I'm rate limited.
-            To make me exit immediately, highlight me with 'hangup' in the message
-            (emergency only, please). For other commands, highlight me with 'help'.''' % (
-                config.conf_get('bot_owner')))
-    }
-
-
 @pluginfunction('teatimer', 'sets a tea timer to $1 or currently %d seconds' % config.conf_get('tea_steep_time'),
                 ptypes_COMMAND)
 def command_teatimer(argv, **args):
-
     steep = config.conf_get('tea_steep_time')
 
-    if len(argv) > 1:
+    if argv:
         try:
-            steep = int(argv[1])
-        except Exception as e:
+            steep = int(argv[0])
+        except ValueError as e:
             return {
                 'msg': args['reply_user'] + ': error when parsing int(%s): %s' % (
-                    argv[1], str(e)
+                    argv[0], str(e)
                 )
             }
 
@@ -215,11 +225,11 @@ def command_teatimer(argv, **args):
 @pluginfunction('unicode-lookup', 'search unicode characters', ptypes_COMMAND,
                 ratelimit_class=RATE_INTERACTIVE)
 def command_unicode_lookup(argv, **args):
-    if len(argv) <= 1:
+    if not argv:
         return {
             'msg': args['reply_user'] + ': usage: decode {single character}'
         }
-    search_words = argv[1:]
+    search_words = argv
 
     import unicode
 
@@ -252,15 +262,13 @@ def command_unicode_lookup(argv, **args):
 @pluginfunction('decode', 'prints the long description of an unicode character', ptypes_COMMAND,
                 ratelimit_class=RATE_INTERACTIVE)
 def command_decode(argv, **args):
-    if len(argv) <= 1:
+    if not argv:
         return {
             'msg': args['reply_user'] + ': usage: decode {single character}'
         }
-
-    log.info('decode called for %s' % argv[1])
-
+    log.info('decode called for %s' % argv[0])
     out = []
-    for i, char in enumerate(argv[1]):
+    for i, char in enumerate(argv[0]):
         if i > 9:
             out.append('... limit reached.')
             break
@@ -287,31 +295,32 @@ def command_decode(argv, **args):
         }
     else:
         return {
-            'msg': [args['reply_user'] + ': decoding %s:' % argv[1]] + out
+            'msg': [args['reply_user'] + ': decoding %s:' % argv[0]] + out
         }
 
 
 @pluginfunction('show-blacklist', 'show the current URL blacklist, optionally filtered', ptypes_COMMAND)
 def command_show_blacklist(argv, **args):
-
     log.info('sent URL blacklist')
-
-    argv1 = None if len(argv) < 2 else argv[1]
+    if argv:
+        urlpart = argv[0]
+    else:
+        urlpart = None
 
     return {
         'msg': [
                    args['reply_user'] + ': URL blacklist%s: ' % (
-                       '' if not argv1 else ' (limited to %s)' % argv1
+                       '' if not urlpart else ' (limited to %s)' % urlpart
                    )
                ] + [
-                   b for b in config.runtime_config_store['url_blacklist'].values() if not argv1 or argv1 in b
+                   b for b in config.runtime_config_store['url_blacklist'].values() if not urlpart or urlpart in b
                    ]
     }
 
 
 def usersetting_get(argv, args):
     arg_user = args['reply_user']
-    arg_key = argv[1]
+    arg_key = argv[0]
 
     if arg_user not in config.runtime_config_store['user_pref']:
         return {
@@ -331,8 +340,8 @@ def command_usersetting(argv, **args):
 
     settings = ['spoiler']
     arg_user = args['reply_user']
-    arg_key = argv[1] if len(argv) > 1 else None
-    arg_val = argv[2] if len(argv) > 2 else None
+    arg_key = argv[0] if len(argv) > 0 else None
+    arg_val = argv[1] if len(argv) > 1 else None
 
     if arg_key not in settings:
         return {
@@ -391,24 +400,14 @@ def command_cookie(argv, **args):
     }
 
 
-@pluginfunction('terminate', 'hidden prototype', ptypes_COMMAND, ratelimit_class=RATE_FUN | RATE_GLOBAL)
-def command_terminate(argv, **args):
-    return {
-        'msg': 'insufficient power supply, please connect fission module'
-    }
-
-
 @pluginfunction('wp-en', 'crawl the english Wikipedia', ptypes_COMMAND)
 def command_wp_en(argv, **args):
-    if argv[0]:
-        argv[0] = 'wp'
-
     return command_wp(argv, lang='en', **args)
 
 
 @pluginfunction('wp', 'crawl the german Wikipedia', ptypes_COMMAND)
 def command_wp(argv, lang='de', **args):
-    query = ' '.join(argv[1:])
+    query = ' '.join(argv)
 
     if query == '':
         return {
@@ -464,31 +463,20 @@ def command_wp(argv, lang='de', **args):
         }
 
 
-@pluginfunction('excuse', 'prints BOFH style excuses', ptypes_COMMAND)
-def command_excuse(argv, **args):
-    log.info('BOFH plugin called')
-
-    excuse = random.sample(excuses, 1)[0]
-
-    return {
-        'msg': args['reply_user'] + ': ' + excuse
-    }
-
-
 @pluginfunction('show-moinlist', 'show the current moin reply list, optionally filtered', ptypes_COMMAND)
 def command_show_moinlist(argv, **args):
     log.info('sent moin reply list')
 
-    argv1 = None if len(argv) < 2 else argv[1]
+    user = None if not argv else argv[0]
 
     return {
         'msg':
             '%s: moin reply list%s: %s' % (
                 args['reply_user'],
-                '' if not argv1 else ' (limited to %s)' % argv1,
+                '' if not user else ' (limited to %s)' % user,
                 ', '.join([
                               b for b in moin_strings_hi + moin_strings_bye
-                              if not argv1 or argv1.lower() in b.lower()
+                              if not user or user.lower() in b.lower()
                               ])
             )
     }
@@ -497,14 +485,14 @@ def command_show_moinlist(argv, **args):
 @pluginfunction(
     'record', 'record a message for a now offline user (usage: record {user} {some message})', ptypes_COMMAND)
 def command_record(argv, **args):
-    if 3 > len(argv):
+    if len(argv) < 2:
         return {
             'msg': '%s: usage: record {user} {some message}' % args['reply_user']
         }
 
-    target_user = argv[1].lower()
+    target_user = argv[0].lower()
     message = '{} ({}): '.format(args['reply_user'], time.strftime('%Y-%m-%d %H:%M'))
-    message += ' '.join(argv[2:])
+    message += ' '.join(argv[1:])
 
     if config.conf_get('persistent_locked'):
         return {
@@ -530,17 +518,17 @@ def command_record(argv, **args):
 def command_show_recordlist(argv, **args):
     log.info('sent offline records list')
 
-    argv1 = None if len(argv) < 2 else argv[1]
+    user = None if not argv else argv[0]
 
     return {
         'msg':
             '%s: offline records%s: %s' % (
                 args['reply_user'],
-                '' if not argv1 else ' (limited to %s)' % argv1,
+                '' if not user else ' (limited to %s)' % user,
                 ', '.join(
                     [
                         '%s (%d)' % (key, len(val)) for key, val in config.runtime_config_store['user_records'].items()
-                        if not argv1 or argv1.lower() in key.lower()
+                        if not user or user.lower() in key.lower()
                         ]
                 )
             )
@@ -641,49 +629,53 @@ def provoke_bots(argv, **args):
 
 @pluginfunction("remove-from-botlist", "remove a user from the botlist", ptypes_COMMAND)
 def remove_from_botlist(argv, **args):
-    if len(argv) != 2:
+    if not argv:
         return {'msg': "wrong number of arguments!"}
+    suspect = argv[0]
 
-    if args['reply_user'] != config.conf_get('bot_owner') and args['reply_user'] != argv[1]:
+    if args['reply_user'] != config.conf_get('bot_owner') and args['reply_user'] != suspect:
         return {'msg': "only %s or the bot may do this!" % config.conf_get('bot_owner')}
 
-    if argv[1] in config.runtime_config_store['other_bots']:
-        config.runtime_config_store['other_bots'].remove(argv[1])
+    if suspect in config.runtime_config_store['other_bots']:
+        config.runtime_config_store['other_bots'].remove(suspect)
         config.runtimeconf_persist()
-        return {'msg': '%s was removed from the botlist.' % argv[1]}
+        return {'msg': '%s was removed from the botlist.' % suspect}
     else:
         return False
 
 
 @pluginfunction("add-to-botlist", "add a user to the botlist", ptypes_COMMAND)
 def add_to_botlist(argv, **args):
-    if len(argv) != 2:
+    if not argv:
         return {'msg': "wrong number of arguments!"}
+    suspect = argv[0]
 
     if args['reply_user'] != config.conf_get('bot_owner'):
         return {'msg': "only %s may do this!" % config.conf_get('bot_owner')}
 
-    if argv[1] not in config.runtime_config_store['other_bots']:
-        config.runtime_config_store['other_bots'].append(argv[1])
+    if suspect not in config.runtime_config_store['other_bots']:
+        config.runtime_config_store['other_bots'].append(suspect)
         config.runtimeconf_persist()
-        return {'msg': '%s was added to the botlist.' % argv[1]}
+        return {'msg': '%s was added to the botlist.' % suspect}
     else:
-        return {'msg': '%s is already in the botlist.' % argv[1]}
+        return {'msg': '%s is already in the botlist.' % suspect}
 
 
 @pluginfunction("set-status", "set bot status", ptypes_COMMAND)
 def set_status(argv, **args):
-    if len(argv) != 2:
+    if not argv:
         return
+    else:
+        command = argv[0]
 
-    if argv[1] == 'mute' and args['reply_user'] == config.conf_get('bot_owner'):
+    if command == 'mute' and args['reply_user'] == config.conf_get('bot_owner'):
         return {
             'presence': {
                 'status': 'xa',
                 'msg': 'I\'m muted now. You can unmute me with "%s: set_status unmute"' % config.conf_get("bot_nickname")
             }
         }
-    elif argv[1] == 'unmute' and args['reply_user'] == config.conf_get('bot_owner'):
+    elif command == 'unmute' and args['reply_user'] == config.conf_get('bot_owner'):
         return {
             'presence': {
                 'status': None,
@@ -703,10 +695,10 @@ def save_config(argv, **args):
 
 @pluginfunction('flausch', "make people flauschig", ptypes_COMMAND, ratelimit_class=RATE_FUN)
 def flausch(argv, **args):
-    if len(argv) != 2:
+    if not argv:
         return
     return {
-        'msg': '{}: *flausch*'.format(argv[1])
+        'msg': '{}: *flausch*'.format(argv[0])
     }
 
 
@@ -730,11 +722,11 @@ def reload_runtimeconfig(argv, **args):
 
 @pluginfunction('snitch', "tell on a spammy user", ptypes_COMMAND)
 def ignore_user(argv, **args):
-    if len(argv) != 2:
+    if not argv:
         return {'msg': 'syntax: "{}: snitch username"'.format(config.conf_get("bot_nickname"))}
 
     then = time.time() + 15*60
-    spammer = argv[1]
+    spammer = argv[0]
 
     if spammer == config.conf_get("bot_owner"):
         return {
