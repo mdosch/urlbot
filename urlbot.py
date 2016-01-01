@@ -247,11 +247,15 @@ class UrlBot(IdleBot):
         data = msg_obj['body']
         words = data.split()
 
+        # prepend the bot nick so we have the same syntax as in muc
+        if msg_obj['type'] == 'chat' and words and self.nick not in words[0]:
+            words = [self.nick] + words
+
         if len(words) < 2:  # need at least two words
             return None
 
-        # don't reply if beginning of the text matches bot_nickname
-        if not data.startswith(config.conf_get('bot_nickname')):
+        # only reply if beginning of the text matches bot_nickname or it's a private session.
+        if msg_obj['type'] == 'groupchat' and not data.startswith(config.conf_get('bot_nickname')):
             return None
 
         if 'hangup' in data:
@@ -275,7 +279,7 @@ class UrlBot(IdleBot):
                 parser_list=[pl.plugin_name for pl in plugin_storage[ptypes_PARSE]],
                 reply_user=reply_user,
                 msg_obj=msg_obj,
-                argv=words[2:]
+                argv=words[2:] if len(words) > 1 else []
             )
 
             if ret:

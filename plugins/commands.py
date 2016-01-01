@@ -136,7 +136,7 @@ def command_unicode(argv, **args):
 @pluginfunction('dice', 'rolls a dice, optional N times', ptypes_COMMAND, ratelimit_class=RATE_INTERACTIVE)
 def command_dice(argv, **args):
     try:
-        count = 1 if argv else int(argv[0])
+        count = 1 if not argv else int(argv[0])
     except ValueError as e:
         return {
             'msg': '%s: dice: error when parsing int(%s): %s' % (
