@@ -19,8 +19,6 @@ log = logging.getLogger(__name__)
 
 @pluginfunction('version', 'prints version', ptypes_COMMAND)
 def command_version(argv, **args):
-    if 'version' != argv[0]:
-        return
 
     log.info('sent version string')
     return {
@@ -31,8 +29,6 @@ def command_version(argv, **args):
 @pluginfunction('klammer', 'prints an anoying paper clip aka. Karl Klammer', ptypes_COMMAND,
                 ratelimit_class=RATE_FUN | RATE_GLOBAL)
 def command_klammer(argv, **args):
-    if 'klammer' != argv[0]:
-        return
 
     log.info('sent karl klammer')
     return {
@@ -50,8 +46,6 @@ def command_klammer(argv, **args):
 
 @pluginfunction('unikot', 'prints an unicode string', ptypes_COMMAND, ratelimit_class=RATE_FUN | RATE_GLOBAL)
 def command_unicode(argv, **args):
-    if 'unikot' != argv[0]:
-        return
 
     log.info('sent some unicode')
     return {
@@ -66,8 +60,6 @@ def command_unicode(argv, **args):
 
 @pluginfunction('source', 'prints git URL', ptypes_COMMAND)
 def command_source(argv, **_):
-    if argv[0] not in ('source', 'src'):
-        return
 
     log.info('sent source URL')
     return {
@@ -116,8 +108,6 @@ def command_dice(argv, **args):
 
 @pluginfunction('choose', 'chooses randomly between arguments', ptypes_COMMAND, ratelimit_class=RATE_INTERACTIVE)
 def command_choose(argv, **args):
-    if 'choose' != argv[0]:
-        return
 
     alternatives = argv[1:]
 
@@ -136,8 +126,6 @@ def command_choose(argv, **args):
 
 @pluginfunction('uptime', 'prints uptime', ptypes_COMMAND)
 def command_uptime(argv, **args):
-    if 'uptime' != argv[0]:
-        return
 
     u = int(config.runtimeconf_get('start_time') + time.time())
     plural_uptime = 's'
@@ -157,8 +145,6 @@ def command_uptime(argv, **args):
 
 @pluginfunction('ping', 'sends pong', ptypes_COMMAND, ratelimit_class=RATE_INTERACTIVE)
 def command_ping(argv, **args):
-    if 'ping' != argv[0]:
-        return
 
     rnd = random.randint(0, 3)  # 1:4
     if 0 == rnd:
@@ -178,8 +164,6 @@ def command_ping(argv, **args):
 
 @pluginfunction('info', 'prints info message', ptypes_COMMAND)
 def command_info(argv, **args):
-    if 'info' != argv[0]:
-        return
 
     log.info('sent long info')
     return {
@@ -195,8 +179,6 @@ def command_info(argv, **args):
 @pluginfunction('teatimer', 'sets a tea timer to $1 or currently %d seconds' % config.conf_get('tea_steep_time'),
                 ptypes_COMMAND)
 def command_teatimer(argv, **args):
-    if 'teatimer' != argv[0]:
-        return
 
     steep = config.conf_get('tea_steep_time')
 
@@ -311,8 +293,6 @@ def command_decode(argv, **args):
 
 @pluginfunction('show-blacklist', 'show the current URL blacklist, optionally filtered', ptypes_COMMAND)
 def command_show_blacklist(argv, **args):
-    if 'show-blacklist' != argv[0]:
-        return
 
     log.info('sent URL blacklist')
 
@@ -348,8 +328,6 @@ def usersetting_get(argv, args):
 
 @pluginfunction('set', 'modify a user setting', ptypes_COMMAND, ratelimit_class=RATE_NO_LIMIT)
 def command_usersetting(argv, **args):
-    if 'set' != argv[0]:
-        return
 
     settings = ['spoiler']
     arg_user = args['reply_user']
@@ -422,9 +400,6 @@ def command_terminate(argv, **args):
 
 @pluginfunction('wp-en', 'crawl the english Wikipedia', ptypes_COMMAND)
 def command_wp_en(argv, **args):
-    if 'wp-en' != argv[0]:
-        return
-
     if argv[0]:
         argv[0] = 'wp'
 
@@ -433,9 +408,6 @@ def command_wp_en(argv, **args):
 
 @pluginfunction('wp', 'crawl the german Wikipedia', ptypes_COMMAND)
 def command_wp(argv, lang='de', **args):
-    if 'wp' != argv[0]:
-        return
-
     query = ' '.join(argv[1:])
 
     if query == '':
@@ -494,9 +466,6 @@ def command_wp(argv, lang='de', **args):
 
 @pluginfunction('excuse', 'prints BOFH style excuses', ptypes_COMMAND)
 def command_excuse(argv, **args):
-    if 'excuse' != argv[0]:
-        return
-
     log.info('BOFH plugin called')
 
     excuse = random.sample(excuses, 1)[0]
@@ -508,9 +477,6 @@ def command_excuse(argv, **args):
 
 @pluginfunction('show-moinlist', 'show the current moin reply list, optionally filtered', ptypes_COMMAND)
 def command_show_moinlist(argv, **args):
-    if 'show-moinlist' != argv[0]:
-        return
-
     log.info('sent moin reply list')
 
     argv1 = None if len(argv) < 2 else argv[1]
@@ -531,9 +497,6 @@ def command_show_moinlist(argv, **args):
 @pluginfunction(
     'record', 'record a message for a now offline user (usage: record {user} {some message})', ptypes_COMMAND)
 def command_record(argv, **args):
-    if 'record' != argv[0]:
-        return
-
     if 3 > len(argv):
         return {
             'msg': '%s: usage: record {user} {some message}' % args['reply_user']
@@ -565,9 +528,6 @@ def command_record(argv, **args):
 
 @pluginfunction('show-records', 'show current offline records', ptypes_COMMAND)
 def command_show_recordlist(argv, **args):
-    if 'show-records' != argv[0]:
-        return
-
     log.info('sent offline records list')
 
     argv1 = None if len(argv) < 2 else argv[1]
@@ -593,8 +553,6 @@ def command_show_recordlist(argv, **args):
 #     """
 #     TODO: rewrite so that a last_dsa_date is used instead, then all DSAs since then printed and the date set to now()
 #     """
-#     if 'dsa-watcher' != argv[0]:
-#         return
 #
 #     if 2 != len(argv):
 #         msg = 'wrong number of arguments'
@@ -676,10 +634,9 @@ def command_show_recordlist(argv, **args):
 
 @pluginfunction("provoke-bots", "search for other bots", ptypes_COMMAND)
 def provoke_bots(argv, **args):
-    if 'provoke-bots' == argv[0]:
-        return {
-            'msg': 'Searching for other less intelligent lifeforms... skynet? You here?'
-        }
+    return {
+        'msg': 'Searching for other less intelligent lifeforms... skynet? You here?'
+    }
 
 
 @pluginfunction("remove-from-botlist", "remove a user from the botlist", ptypes_COMMAND)
@@ -716,7 +673,7 @@ def add_to_botlist(argv, **args):
 
 @pluginfunction("set-status", "set bot status", ptypes_COMMAND)
 def set_status(argv, **args):
-    if 'set-status' != argv[0] or len(argv) != 2:
+    if len(argv) != 2:
         return
 
     if argv[1] == 'mute' and args['reply_user'] == config.conf_get('bot_owner'):
