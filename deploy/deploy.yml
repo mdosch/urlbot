@@ -13,6 +13,7 @@
     - python3
     - virtualenv
     - python3-virtualenv
+    - python3-lxml
 
 - hosts: bots
   remote_user: jabberbot

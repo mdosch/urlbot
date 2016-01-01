@@ -1,5 +1,6 @@
 fasteners
 sleekxmpp
 configobj
-lxml
 requests
+# installed with APT, excluded here
+# lxml
