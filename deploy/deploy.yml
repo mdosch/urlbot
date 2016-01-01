@@ -24,7 +24,7 @@
   - include_vars: credentials.yml
     tags: [render_config]
   - name: virtualenv for the bot
-    shell: virtualenv -p python3 ~/botenv creates=~/botenv/bin/activate
+    shell: virtualenv -p python3 --system-site-packages ~/botenv creates=~/botenv/bin/activate
   - name: virtualenv for supervisord
     shell: virtualenv -p python2 ~/svenv creates=~/svenv/bin/activate
   - name: clone repository
