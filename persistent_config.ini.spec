@@ -22,3 +22,4 @@ paste_debian = string(default='^.*paste\.debian\.net/((hidden|plainh?)/)?[0-9a-f
 example = string(default='^.*example\.(org|net|com).*$')
 sprunge = string(default='^.*sprunge\.us/.*$')
 ftp_debian = string(default='^.*ftp\...\.debian\.org.*$')
+fefe = string(default='fefe=^.*blog\.fefe\.de.*$')
