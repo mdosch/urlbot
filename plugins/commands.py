@@ -176,7 +176,7 @@ def command_dice(argv, **args):
 @pluginfunction('choose', 'chooses randomly between arguments', ptypes_COMMAND, ratelimit_class=RATE_INTERACTIVE)
 def command_choose(argv, **args):
     alternatives = argv
-    if not alternatives:
+    if len(alternatives) < 2:
         return {
             'msg': '{}: {}.'.format(args['reply_user'], random.choice(['Yes', 'No']))
         }
