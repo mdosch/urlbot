@@ -748,7 +748,7 @@ def ignore_user(argv, **args):
 def search_the_web(argv, **args):
     url = 'http://api.duckduckgo.com/'
     params = dict(
-        q='+'.join(argv),
+        q=' '.join(argv),
         format='json',
         pretty=0,
         no_redirect=1,
