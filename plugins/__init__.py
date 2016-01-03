@@ -142,11 +142,11 @@ def command_help(argv, **args):
 
 @pluginfunction('plugin', "'disable' or 'enable' plugins", ptypes_COMMAND)
 def command_plugin_activation(argv, **args):
-    if argv[0] != 'plugin' or len(argv) == 1:
+    if not argv:
         return
 
-    command = argv[1]
-    plugin = argv[2] if len(argv) > 2 else None
+    command = argv[0]
+    plugin = argv[1] if len(argv) > 1 else None
 
     if command not in ('enable', 'disable'):
         return
@@ -179,8 +179,6 @@ def command_plugin_activation(argv, **args):
 
 @pluginfunction('list', 'list plugin and parser status', ptypes_COMMAND)
 def command_list(argv, **args):
-    if 'list' != argv[0]:
-        return
 
     log.info('list plugin called')
 
@@ -189,7 +187,7 @@ def command_list(argv, **args):
             'msg': args['reply_user'] + ": both 'enabled' and 'disabled' makes no sense"
         }
 
-    # if not given, asume both
+    # if not given, assume both
     if 'command' not in argv and 'parser' not in argv:
         argv.append('command')
         argv.append('parser')
