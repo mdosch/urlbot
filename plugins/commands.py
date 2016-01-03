@@ -772,6 +772,8 @@ def search_the_web(argv, **args):
         return {
             'msg': 'No direct result found, use {}'.format(redirect)
         }
+    else:
+        return {'msg': 'Sorry, no results.'}
 
 
 @pluginfunction('raise', 'only for debugging', ptypes_COMMAND)
