@@ -757,6 +757,8 @@ def search_the_web(argv, **args):
     response = requests.get(url, params=params).json()
     link = response.get('AbstractURL')
     abstract = response.get('Abstract')
+    redirect = response.get('Redirect')
+
     if len(abstract) > 150:
         suffix = '…'
     else:
@@ -765,6 +767,10 @@ def search_the_web(argv, **args):
     if link:
         return {
             'msg': '{}{} ({})'.format(abstract[:150], suffix, link)
+        }
+    elif redirect:
+        return {
+            'msg': 'No direct result found, use {}'.format(redirect)
         }
 
 
