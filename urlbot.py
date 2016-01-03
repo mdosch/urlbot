@@ -4,6 +4,7 @@
 The URLBot - ready to strive for desaster in YOUR jabber MUC
 """
 import re
+import shlex
 import sys
 import time
 from lxml import etree
@@ -245,7 +246,10 @@ class UrlBot(IdleBot):
         :returns: nothing
         """
         data = msg_obj['body']
-        words = data.split()
+        try:
+            words = shlex.split(data)
+        except ValueError:
+            words = data.split()
 
         # prepend the bot nick so we have the same syntax as in muc
         if msg_obj['type'] == 'chat' and words and self.nick not in words[0]:
