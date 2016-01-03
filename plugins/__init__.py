@@ -106,7 +106,7 @@ def event_trigger():
 
 @pluginfunction('help', 'print help for a command or all known commands', ptypes_COMMAND)
 def command_help(argv, **args):
-    what = argv[1] if len(argv) > 1 else None
+    what = argv[0] if argv else None
     logger = logging.getLogger(__name__)
 
     if not what:
