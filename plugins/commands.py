@@ -4,11 +4,12 @@ import random
 import time
 import traceback
 import unicodedata
-import urllib.parse
-import urllib.request
+
+import requests
+
 import config
 from common import (
-    VERSION, RATE_FUN, RATE_GLOBAL, RATE_INTERACTIVE, RATE_NO_LIMIT, BUFSIZ,
+    VERSION, RATE_FUN, RATE_GLOBAL, RATE_INTERACTIVE, RATE_NO_LIMIT,
     giphy, pluginfunction,
     ptypes_COMMAND
 )
@@ -414,40 +415,34 @@ def command_wp(argv, lang='de', **args):
             'msg': args['reply_user'] + ': no query given'
         }
 
-    api = {
+    apiparams = {
         'action': 'query',
-        'prop': 'extracts',
+        'prop': 'extracts|info',
         'explaintext': '',
         'redirects': '',
         'exsentences': 2,
         'continue': '',
         'format': 'json',
-        'titles': query
+        'titles': query,
+        'inprop': 'url'
     }
-    apiurl = 'https://%s.wikipedia.org/w/api.php?%s' % (
-        lang, urllib.parse.urlencode(api)
-    )
+    apiurl = 'https://%s.wikipedia.org/w/api.php' % (lang)
 
     log.info('fetching %s' % apiurl)
 
     try:
-        response = urllib.request.urlopen(apiurl)
-        buf = response.read(BUFSIZ)
-        j = json.loads(buf.decode('utf8'))
+        response = requests.get(apiurl, params=apiparams).json()
 
-        page = next(iter(j['query']['pages'].values()))
-        short = page.get('extract', None)
-        linktitle = page.get('title', query).replace(' ', '_')
-        link = 'https://%s.wikipedia.org/wiki/%s' % (
-            lang, urllib.parse.quote(linktitle)
-        )
+        page = next(iter(response['query']['pages'].values()))
+        short = page.get('extract')
+        link = page.get('canonicalurl')
     except Exception as e:
         log.info('wp(%s) failed: %s, %s' % (query, e, traceback.format_exc()))
         return {
             'msg': args['reply_user'] + ': something failed: %s' % e
         }
 
-    if short is not None:
+    if short:
         return {
             'msg': args['reply_user'] + ': %s (<%s>)' % (
                 short if short.strip() else '(nix)', link
@@ -747,6 +742,30 @@ def ignore_user(argv, **args):
             'command': (unblock_user, ([spammer],))
         }
     }
+
+
+@pluginfunction('search', 'search the web (using duckduckgo)', ptypes_COMMAND)
+def search_the_web(argv, **args):
+    url = 'http://api.duckduckgo.com/'
+    params = dict(
+        q='+'.join(argv),
+        format='json',
+        pretty=0,
+        no_redirect=1,
+        t='jabberbot'
+    )
+    response = requests.get(url, params=params).json()
+    link = response.get('AbstractURL')
+    abstract = response.get('Abstract')
+    if len(abstract) > 150:
+        suffix = '…'
+    else:
+        suffix = ''
+
+    if link:
+        return {
+            'msg': '{}{} ({})'.format(abstract[:150], suffix, link)
+        }
 
 
 @pluginfunction('raise', 'only for debugging', ptypes_COMMAND)
