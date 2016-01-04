@@ -26,7 +26,6 @@ def plugin_enabled_set(plugin, enabled):
         log.warn("couldn't get exclusive lock")
 
     config.conf_set('persistent_locked', True)
-    # blob = conf_load()
 
     if plugin.plugin_name not in config.runtime_config_store['plugins']:
         config.runtime_config_store['plugins'][plugin.plugin_name] = {}
@@ -34,6 +33,25 @@ def plugin_enabled_set(plugin, enabled):
     config.runtime_config_store['plugins'][plugin.plugin_name]['enabled'] = enabled
     config.runtimeconf_persist()
     config.conf_set('persistent_locked', False)
+
+
+def register_active_event(t, callback, args, action_runner, plugin, msg_obj):
+    """
+    Execute a callback at a given time and react on the output
+
+    :param t: when to execute the job
+    :param callback: the function to execute
+    :param args: parameters for said function
+    :param action_runner: bots action dict parser
+    :param plugin: pass-through object for action parser
+    :param msg_obj: pass-through object for action parser
+    :return:
+    """
+    def func(func_args):
+        action = callback(*func_args)
+        if action:
+            action_runner(action=action, plugin=plugin, msg_obj=msg_obj)
+    joblist.append((t, func, args))
 
 
 def register_event(t, callback, args):

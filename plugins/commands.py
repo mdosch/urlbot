@@ -6,13 +6,14 @@ import traceback
 import unicodedata
 
 import requests
+from lxml import etree
 
 import config
 from common import (
     VERSION, RATE_FUN, RATE_GLOBAL, RATE_INTERACTIVE, RATE_NO_LIMIT,
     giphy, pluginfunction,
-    ptypes_COMMAND
-)
+    ptypes_COMMAND,
+    RATE_NO_SILENCE)
 from string_constants import cakes, excuses, moin_strings_hi, moin_strings_bye
 
 log = logging.getLogger(__name__)
@@ -28,7 +29,6 @@ def command_version(argv, **args):
 
 @pluginfunction('uptime', 'prints uptime', ptypes_COMMAND)
 def command_uptime(argv, **args):
-
     u = int(config.runtimeconf_get('start_time') + time.time())
     plural_uptime = 's'
     plural_request = 's'
@@ -47,7 +47,6 @@ def command_uptime(argv, **args):
 
 @pluginfunction('info', 'prints info message', ptypes_COMMAND)
 def command_info(argv, **args):
-
     log.info('sent long info')
     return {
         'msg': args['reply_user'] + (
@@ -61,7 +60,6 @@ def command_info(argv, **args):
 
 @pluginfunction('ping', 'sends pong', ptypes_COMMAND, ratelimit_class=RATE_INTERACTIVE)
 def command_ping(argv, **args):
-
     rnd = random.randint(0, 3)  # 1:4
     if 0 == rnd:
         msg = args['reply_user'] + ''': peng (You're dead now.)'''
@@ -338,7 +336,6 @@ def usersetting_get(argv, args):
 
 @pluginfunction('set', 'modify a user setting', ptypes_COMMAND, ratelimit_class=RATE_NO_LIMIT)
 def command_usersetting(argv, **args):
-
     settings = ['spoiler']
     arg_user = args['reply_user']
     arg_key = argv[0] if len(argv) > 0 else None
@@ -529,90 +526,67 @@ def command_show_recordlist(argv, **args):
             )
     }
 
-# TODO: disabled until rewrite
-# @pluginfunction('dsa-watcher', 'automatically crawls for newly published Debian Security Announces', ptypes_COMMAND,
-#                 ratelimit_class=RATE_NO_SILENCE)
-# def command_dsa_watcher(argv, **_):
-#     """
-#     TODO: rewrite so that a last_dsa_date is used instead, then all DSAs since then printed and the date set to now()
-#     """
-#
-#     if 2 != len(argv):
-#         msg = 'wrong number of arguments'
-#         log.warn(msg)
-#         return {'msg': msg}
-#
-#     if 'crawl' == argv[1]:
-#         out = []
-#         # TODO: this is broken... the default should neither be part of the code,
-#         # but rather be determined at runtime (like "latest" or similar)
-#         dsa = config.runtime_config_store.deepget('plugins.last_dsa', 1000)
-#
-#         url = 'https://security-tracker.debian.org/tracker/DSA-%d-1' % dsa
-#
-#         try:
-#             request = urllib.request.Request(url)
-#             request.add_header('User-Agent', USER_AGENT)
-#             response = urllib.request.urlopen(request)
-#             html_text = response.read(BUFSIZ)  # ignore more than BUFSIZ
-#         except Exception as e:
-#             err = e
-#             if '404' not in str(err):
-#                 msg = 'error for %s: %s' % (url, err)
-#                 log.warn(msg)
-#                 out.append(msg)
-#         else:
-#             if str != type(html_text):
-#                 html_text = str(html_text)
-#
-#             result = re.match(r'.*?Description</b></td><td>(.*?)</td>.*?', html_text, re.S | re.M | re.IGNORECASE)
-#
-#             package = 'error extracting package name'
-#             if result:
-#                 package = result.groups()[0]
-#
-#             if config.get('persistent_locked'):
-#                 msg = "couldn't get exclusive lock"
-#                 log.warn(msg)
-#                 out.append(msg)
-#             else:
-#                 config.set('persistent_locked', True)
-#                 blob = conf_load()
-#
-#                 if 'plugin_conf' not in blob:
-#                     blob['plugin_conf'] = {}
-#
-#                 if 'last_dsa' not in blob['plugin_conf']:
-#                     blob['plugin_conf']['last_dsa'] = 3308  # FIXME: fixed value
-#
-#                 blob['plugin_conf']['last_dsa'] += 1
-#
-#                 runtimeconf_save(blob)
-#                 config.set('persistent_locked', False)
-#
-#             msg = (
-#                 'new Debian Security Announce found (%s): %s' % (str(package).replace(' - security update', ''), url))
-#             out.append(msg)
-#
-#             log.info('no dsa for %d, trying again...' % dsa)
-#         # that's good, no error, just 404 -> DSA not released yet
-#
-#         crawl_at = time.time() + config.get('dsa_watcher_interval')
-#         # register_event(crawl_at, command_dsa_watcher, (['dsa-watcher', 'crawl'],))
-#
-#         msg = 'next crawl set to %s' % time.strftime('%Y-%m-%d %H:%M', time.localtime(crawl_at))
-#         out.append(msg)
-#         return {
-#             'msg': out,
-#             'event': {
-#                 'time': crawl_at,
-#                 'command': (command_dsa_watcher, (['dsa-watcher', 'crawl'],))
-#             }
-#         }
-#     else:
-#         msg = 'wrong argument'
-#         log.warn(msg)
-#         return {'msg': msg}
+
+@pluginfunction(
+    'dsa-watcher',
+    'automatically crawls for newly published Debian Security Announces', ptypes_COMMAND,
+    ratelimit_class=RATE_NO_SILENCE, enabled=True)
+def command_dsa_watcher(argv=None, **_):
+    """
+    TODO: rewrite so that a last_dsa_date is used instead,
+    then all DSAs since then printed and the date set to now()
+    :param argv:
+    :param _:
+    """
+    log.debug("Called command_dsa_watcher")
+
+    def get_id_from_about_string(about):
+        return int(about.split('/')[-1].split('-')[1])
+
+    def get_dsa_list(after):
+        """
+        Get a list of dsa items in form of id and package, retrieved from the RSS feed
+        :param after: optional integer to filter on (only DSA's after that will be returned)
+        :returns list of id, package (with DSA prefix)
+        """
+        nsmap = {
+            "purl": "http://purl.org/rss/1.0/",
+            "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+        }
+        dsa_response = requests.get("https://www.debian.org/security/dsa-long")
+        xmldoc = etree.fromstring(dsa_response.content)
+        dsa_about_list = xmldoc.xpath('//purl:item/@rdf:about', namespaces=nsmap)
+        for dsa_about in reversed(dsa_about_list):
+            dsa_id = get_id_from_about_string(dsa_about)
+            if after and dsa_id <= after:
+                continue
+            else:
+                yield dsa_id, str(dsa_about).replace(' - security update', '')
+
+    out = []
+    last_dsa = config.runtimeconf_deepget('plugins.dsa-watcher.last_dsa')
+    log.debug('Searching for DSA after ID {}'.format(last_dsa))
+    for dsa, package in get_dsa_list(after=last_dsa):
+        url = 'https://security-tracker.debian.org/tracker/DSA-%d-1' % dsa
+
+        msg = 'new Debian Security Announce found ({}): {}'.format(package, url)
+        out.append(msg)
+
+        last_dsa = dsa
+
+    config.runtime_config_store['plugins']['dsa-watcher']['last_dsa'] = last_dsa
+    config.runtimeconf_persist()
+    crawl_at = time.time() + config.runtimeconf_deepget('plugins.dsa-watcher.interval')
+
+    msg = 'next crawl set to %s' % time.strftime('%Y-%m-%d %H:%M', time.localtime(crawl_at))
+    out.append(msg)
+    return {
+        'msg': out,
+        'event': {
+            'time': crawl_at,
+            'command': (command_dsa_watcher, ([],))
+        }
+    }
 
 
 @pluginfunction("provoke-bots", "search for other bots", ptypes_COMMAND)
@@ -667,7 +641,8 @@ def set_status(argv, **args):
         return {
             'presence': {
                 'status': 'xa',
-                'msg': 'I\'m muted now. You can unmute me with "%s: set_status unmute"' % config.conf_get("bot_nickname")
+                'msg': 'I\'m muted now. You can unmute me with "%s: set_status unmute"' % config.conf_get(
+                    "bot_nickname")
             }
         }
     elif command == 'unmute' and args['reply_user'] == config.conf_get('bot_owner'):
@@ -720,7 +695,7 @@ def ignore_user(argv, **args):
     if not argv:
         return {'msg': 'syntax: "{}: snitch username"'.format(config.conf_get("bot_nickname"))}
 
-    then = time.time() + 15*60
+    then = time.time() + 15 * 60
     spammer = argv[0]
 
     if spammer == config.conf_get("bot_owner"):

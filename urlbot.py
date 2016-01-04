@@ -26,7 +26,8 @@ from plugins import (
     plugin_enabled_get,
     ptypes_PARSE,
     register_event,
-    else_command
+    register_active_event,
+    else_command,
 )
 import config
 
@@ -355,7 +356,16 @@ class UrlBot(IdleBot):
             elif 'command' in event:
                 command = event["command"]
                 if rate_limit(RATE_EVENT):
-                    register_event(event["time"], command[0], command[1])
+                    register_event(t=event["time"], callback=command[0], args=command[1])
+                    # kind of ugly..
+                    register_active_event(
+                        t=event['time'],
+                        callback=command[0],
+                        args=command[1],
+                        action_runner=self._run_action,
+                        plugin=plugin,
+                        msg_obj=msg_obj
+                    )
 
         if 'msg' in action and rate_limit(RATE_CHAT | plugin.ratelimit_class):
             self.send_reply(action['msg'], msg_obj)

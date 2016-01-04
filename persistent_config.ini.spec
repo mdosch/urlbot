@@ -6,7 +6,9 @@ start_time = integer(default=0)
 [plugins]
   [[info]]
     enabled = boolean(default=true)
-  last_dsa = integer(default=0)  # TODO broken
+  [[dsa-watcher]]
+    last_dsa = integer(default=0)
+    interval = integer(default=900)
 
 [user_pref]
 
