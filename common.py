@@ -152,8 +152,12 @@ def extract_title(url):
 
         if 'text/' != headers['content-type'][:len('text/')]:
             return 1, headers['content-type']
-    if str != type(html_text):
-        html_text = str(html_text)
+        try:
+            charset = headers['content-type'].split(';')[1]
+            charset = charset.split("=")[1]
+            html_text = html_text.decode(charset)
+        except KeyError:
+            html_text = str(html_text)
 
     result = re.match(r'.*?<title.*?>(.*?)</title>.*?', html_text, re.S | re.M | re.IGNORECASE)
     if result:
