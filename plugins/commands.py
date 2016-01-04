@@ -558,10 +558,14 @@ def command_dsa_watcher(argv=None, **_):
         dsa_about_list = xmldoc.xpath('//purl:item/@rdf:about', namespaces=nsmap)
         for dsa_about in reversed(dsa_about_list):
             dsa_id = get_id_from_about_string(dsa_about)
+            title = xmldoc.xpath(
+                    '//purl:item[@rdf:about="{}"]/purl:title/text()'.format(dsa_about),
+                    namespaces=nsmap
+            )[0]
             if after and dsa_id <= after:
                 continue
             else:
-                yield dsa_id, str(dsa_about).replace(' - security update', '')
+                yield dsa_id, str(title).replace(' - security update', '')
 
     out = []
     last_dsa = config.runtimeconf_deepget('plugins.dsa-watcher.last_dsa')
