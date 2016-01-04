@@ -127,7 +127,7 @@ def fetch_page(url):
     log.info('fetching page ' + url)
     response = requests.get(url, headers={'User-Agent': USER_AGENT}, stream=True)
     content = response.raw.read(BUFSIZ, decode_content=True)
-    return content.decode(response.encoding), response.headers
+    return content.decode(response.encoding or 'utf-8'), response.headers
 
 
 def extract_title(url):
