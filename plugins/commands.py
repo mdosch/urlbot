@@ -585,7 +585,6 @@ def command_dsa_watcher(argv=None, **_):
     msg = 'next crawl set to %s' % time.strftime('%Y-%m-%d %H:%M', time.localtime(crawl_at))
     out.append(msg)
     return {
-        'msg': out,
         'event': {
             'time': crawl_at,
             'command': (command_dsa_watcher, ([],))
