@@ -144,6 +144,8 @@ def extract_title(url):
         (html_text, headers) = fetch_page(url)
     except URLError as e:
         return None
+    except UnicodeDecodeError:
+        return None
     except Exception as e:
         return 'failed: %s for %s' % (str(e), url)
 
