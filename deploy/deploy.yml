@@ -52,6 +52,8 @@
         value: "{{bot_owner}}"
       - key: "bot_owner_email"
         value: "{{bot_owner_email}}"
+      - key: "detectlanguage_api_key"
+        value: "{{detectlanguage_api_key}}"
     tags: [render_config]
     register: urlbot_config
 
