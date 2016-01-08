@@ -15,7 +15,7 @@ from common import (
     giphy, pluginfunction,
     ptypes_COMMAND,
     RATE_NO_SILENCE)
-from string_constants import cakes, excuses, moin_strings_hi, moin_strings_bye
+from string_constants import cakes, excuses, moin_strings_hi, moin_strings_bye, languages
 
 log = logging.getLogger(__name__)
 
@@ -763,17 +763,36 @@ def raise_an_error(argv, **args):
 
 @pluginfunction('translate', 'translate text fragments', ptypes_COMMAND)
 def translate(argv, **args):
+    available_languages = [code[0] for code in languages]
 
-    if len(argv) < 2 or not re.match('[a-z-]{2,}\|[a-z-]{2,}', argv[0]):
-        return {'msg': 'Usage: translate en|de my favorite bot'}
+    if argv and argv[0] == 'show':
+        return {
+            'priv_msg': 'All language codes: {}'.format(', '.join(available_languages))
+        }
+    pattern = '^(?P<from_lang>[a-z-]{2})(-(?P<from_ct>[a-z-]{2}))?\|(?P<to_lang>[a-z-]{2})(-(?P<to_ct>[a-z-]{2}))?$'
+    pair = re.match(pattern, argv[0])
+    if len(argv) < 2 or not pair:
+        return {
+            'msg': 'Usage: translate en|de my favorite bot'
+        }
     else:
-        pair = argv[0]
+        pair = pair.groupdict()
+        from_lang = pair.get('from_lang')
+        to_lang = pair.get('to_lang')
+
+        # TODO: check country code as well
+        if not all([lang in available_languages for lang in [from_lang, to_lang]]):
+            return {
+                'msg': '{}: not a valid language code. Please use ISO 639-1 or RFC3066 codes. '
+                       'Use "translate show" to get a full list of all known language '
+                       'codes (not necessarily supported) as privmsg.'.format(args['reply_user'])
+            }
 
     words = ' '.join(argv[1:])
     url = 'http://api.mymemory.translated.net/get'
     params = {
         'q': words,
-        'langpair': pair,
+        'langpair': argv[0],
         'de': config.conf_get('bot_owner_email')
     }
     response = requests.get(url, params=params).json()
