@@ -1,6 +1,7 @@
 import json
 import logging
 import random
+import re
 import time
 import traceback
 import unicodedata
@@ -758,3 +759,24 @@ def search_the_web(argv, **args):
 def raise_an_error(argv, **args):
     if args['reply_user'] == config.conf_get("bot_owner"):
         raise RuntimeError("Exception for debugging")
+
+
+@pluginfunction('translate', 'translate text fragments', ptypes_COMMAND)
+def translate(argv, **args):
+
+    if len(argv) < 2 or not re.match('[a-z]{2}\|[a-z]{2}', argv[0]):
+        return {'msg': 'Usage: translate en|de my favorite bot'}
+    else:
+        pair = argv[0]
+
+    words = ' '.join(argv[1:])
+    url = 'http://api.mymemory.translated.net/get'
+    params = {
+        'q': words,
+        'langpair': pair,
+        'de': config.conf_get('bot_owner_email')
+    }
+    response = requests.get(url, params=params).json()
+    return {
+        'msg': 'translation: {}'.format(response['responseData']['translatedText'])
+    }

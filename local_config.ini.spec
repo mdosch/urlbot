@@ -6,6 +6,7 @@ src-url = string
 
 bot_nickname = string
 bot_owner = string
+bot_owner_email = string
 
 # rate limiting
 hist_max_count = integer(default=5)
