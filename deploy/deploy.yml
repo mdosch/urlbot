@@ -50,6 +50,8 @@
         value: "{{bot_nickname}}"
       - key: "bot_owner"
         value: "{{bot_owner}}"
+      - key: "bot_owner_email"
+        value: "{{bot_owner_email}}"
     tags: [render_config]
     register: urlbot_config
 
