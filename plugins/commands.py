@@ -761,7 +761,7 @@ def raise_an_error(argv, **args):
         raise RuntimeError("Exception for debugging")
 
 
-@pluginfunction('translate', 'translate text fragments', ptypes_COMMAND)
+@pluginfunction('translate', 'translate text fragments, use translate show to get a list of languages', ptypes_COMMAND)
 def translate(argv, **args):
     available_languages = [code[0] for code in languages]
 
