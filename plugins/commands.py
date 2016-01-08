@@ -764,7 +764,7 @@ def raise_an_error(argv, **args):
 @pluginfunction('translate', 'translate text fragments', ptypes_COMMAND)
 def translate(argv, **args):
 
-    if len(argv) < 2 or not re.match('[a-z]{2}\|[a-z]{2}', argv[0]):
+    if len(argv) < 2 or not re.match('[a-z-]{2,}\|[a-z-]{2,}', argv[0]):
         return {'msg': 'Usage: translate en|de my favorite bot'}
     else:
         pair = argv[0]
