@@ -5,6 +5,7 @@ import re
 import time
 import traceback
 import unicodedata
+import shlex
 
 import requests
 from lxml import etree
@@ -761,7 +762,15 @@ def raise_an_error(argv, **args):
         raise RuntimeError("Exception for debugging")
 
 
-@pluginfunction('translate', 'translate text fragments, use translate show to get a list of languages', ptypes_COMMAND)
+@pluginfunction('repeat', 'repeat the last message', ptypes_COMMAND)
+def repeat_message(argv, **args):
+    return {
+        'msg': args['stack'][-1]['body']
+    }
+
+
+@pluginfunction('translate', 'translate text fragments, use "translate show" to get a list of languages'
+                             'or "translate that" to get the last message translated (to german)', ptypes_COMMAND)
 def translate(argv, **args):
     available_languages = [code[0] for code in languages]
 
@@ -769,6 +778,23 @@ def translate(argv, **args):
         return {
             'priv_msg': 'All language codes: {}'.format(', '.join(available_languages))
         }
+    elif argv and argv[0] == 'that':
+        api_key = config.conf_get('detectlanguage_api_key')
+        if not api_key:
+            return
+        message_stack = args['stack']
+        last_message = message_stack[-1]['body']
+        data = {
+            'q': last_message,
+            'key': api_key
+        }
+        result = requests.post('http://ws.detectlanguage.com/0.2/detect', data=data).json()
+        educated_guess = result['data']['detections'][0]
+        if not educated_guess['isReliable']:
+            return {'msg': 'not sure about the language.'}
+        else:
+            return translate(['{}|de'.format(educated_guess['language'])] + shlex.split(last_message))
+
     pattern = '^(?P<from_lang>[a-z-]{2})(-(?P<from_ct>[a-z-]{2}))?\|(?P<to_lang>[a-z-]{2})(-(?P<to_ct>[a-z-]{2}))?$'
     pair = re.match(pattern, argv[0])
     if len(argv) < 2 or not pair:

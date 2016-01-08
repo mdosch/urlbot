@@ -42,6 +42,7 @@ class UrlBot(IdleBot):
 
         self.hist_ts = {p: [] for p in rate_limit_classes}
         self.hist_flag = {p: True for p in rate_limit_classes}
+        self.message_stack = []
 
         self.add_event_handler('message', self.message)
         self.priority = 100
@@ -238,6 +239,10 @@ class UrlBot(IdleBot):
                         self.send_reply(ret['msg'], msg_obj)
         except Exception as e:
             self.logger.exception(e)
+        finally:
+            if len(self.message_stack) > 4:
+                self.message_stack.pop(0)
+            self.message_stack.append(msg_obj)
 
     def data_parse_commands(self, msg_obj):
         """
@@ -284,7 +289,8 @@ class UrlBot(IdleBot):
                 parser_list=[pl.plugin_name for pl in plugin_storage[ptypes_PARSE]],
                 reply_user=reply_user,
                 msg_obj=msg_obj,
-                argv=words[2:] if len(words) > 1 else []
+                argv=words[2:] if len(words) > 1 else [],
+                stack=self.message_stack
             )
 
             if ret:
