@@ -2,11 +2,11 @@ import json
 import logging
 import random
 import re
+import shlex
 import time
 import traceback
 import unicodedata
-import shlex
-
+from urllib.parse import urlparse
 import requests
 from lxml import etree
 
@@ -825,3 +825,17 @@ def translate(argv, **args):
     return {
         'msg': 'translation: {}'.format(response['responseData']['translatedText'])
     }
+
+
+@pluginfunction('isdown', 'check if a website is reachable', ptypes_COMMAND)
+def isdown(argv, **args):
+    if not argv:
+        return
+    url = argv[0]
+    if 'http' not in url:
+        url = 'http://{}'.format(url)
+    response = requests.get('http://www.isup.me/{}'.format(urlparse(url).hostname)).text
+    if "looks down" in response:
+        return {'msg': '{}: {} looks down'.format(args['reply_user'], url)}
+    elif "is up" in response:
+        return {'msg': '{}: {} looks up'.format(args['reply_user'], url)}
