@@ -839,3 +839,5 @@ def isdown(argv, **args):
         return {'msg': '{}: {} looks down'.format(args['reply_user'], url)}
     elif "is up" in response:
         return {'msg': '{}: {} looks up'.format(args['reply_user'], url)}
+    elif "site on the interwho" in response:
+        return {'msg': '{}: {} does not exist, you\'re trying to fool me?'.format(args['reply_user'], url)}
