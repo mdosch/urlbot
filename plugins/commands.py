@@ -477,7 +477,8 @@ def command_show_moinlist(argv, **args):
 
 
 @pluginfunction(
-    'record', 'record a message for a now offline user (usage: record {user} {some message})', ptypes_COMMAND)
+    'record', 'record a message for a now offline user (usage: record {user} {some message};'
+              ' {some message} == "previous" to use the last channel message)', ptypes_COMMAND)
 def command_record(argv, **args):
     if len(argv) < 2:
         return {
@@ -486,7 +487,12 @@ def command_record(argv, **args):
 
     target_user = argv[0].lower()
     message = '{} ({}): '.format(args['reply_user'], time.strftime('%Y-%m-%d %H:%M'))
-    message += ' '.join(argv[1:])
+    if argv[1] == "previous":
+        prev_message_obj = args['stack'][-1]
+        message += '[{}]: '.format(prev_message_obj['mucnick'] or prev_message_obj['from']._jid[2])
+        message += prev_message_obj['body']
+    else:
+        message += ' '.join(argv[1:])
 
     if config.conf_get('persistent_locked'):
         return {
