@@ -900,6 +900,7 @@ def poll(argv, **args):
             # create an item for each option
             pollcfg['subject'] = subject
             pollcfg.update({k: [] for k in choices})
+            return {'msg': 'created the poll.'}
 
     config.runtime_config_store['plugins']['poll'] = pollcfg
     config.runtimeconf_persist()
