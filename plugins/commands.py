@@ -847,3 +847,64 @@ def isdown(argv, **args):
         return {'msg': '{}: {} looks up'.format(args['reply_user'], url)}
     elif "site on the interwho" in response:
         return {'msg': '{}: {} does not exist, you\'re trying to fool me?'.format(args['reply_user'], url)}
+
+
+@pluginfunction('poll', 'create a poll', ptypes_COMMAND)
+def poll(argv, **args):
+    pollcfg = config.runtimeconf_deepget('plugins.poll')
+    current_poll = pollcfg.get('subject') if pollcfg else None
+
+    if not argv:
+        # return poll info
+        if not current_poll:
+            return {'msg': 'no poll running.'}
+        else:
+            return {'msg': 'current poll: {}'.format(current_poll)}
+    elif len(argv) == 1:
+        if argv[0] == 'stop':
+            if not current_poll:
+                return {'msg': 'no poll to stop.'}
+            pollcfg.clear()
+            return {'msg': 'stopped the poll "{}"'.format(current_poll)}
+        elif argv[0] == 'show_raw':
+            if not current_poll:
+                return {'msg': 'no poll to show.'}
+            return {'msg': 'current poll (raw): {}'.format(str(pollcfg))}
+        elif argv[0] == 'show':
+            if not current_poll:
+                return {'msg': 'no poll to show.'}
+            lines = ['current poll: "{}"'.format(current_poll)]
+            for option, voters in pollcfg.items():
+                if option == 'subject':
+                    continue
+                lines.append('{0: <4} {1}'.format(len(voters), option))
+            return {'msg': lines}
+        if current_poll and argv[0] in pollcfg:
+            user = args['reply_user']
+            for option, voters in pollcfg.items():
+                if user in voters:
+                    pollcfg[option].remove(user)
+
+            pollcfg[argv[0]] = list(set(pollcfg[argv[0]] + [user]))
+            return {'msg': 'voted.'}
+    else:
+        subject = argv[0]
+        choices = argv[1:]
+        if len(choices) == 1:
+            return {'msg': 'creating a poll with a single option is "alternativlos"'}
+        else:
+            if current_poll:
+                return {'msg': 'a poll is already running ({})'.format(current_poll)}
+            if pollcfg is None:
+                pollcfg = dict()
+            # create an item for each option
+            pollcfg['subject'] = subject
+            pollcfg.update({k: [] for k in choices})
+
+    config.runtime_config_store['plugins']['poll'] = pollcfg
+    config.runtimeconf_persist()
+
+
+@pluginfunction('vote', 'alias for poll', ptypes_COMMAND)
+def vote(argv, **args):
+    return poll(argv, **args)
