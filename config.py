@@ -13,6 +13,8 @@ import json
 import logging
 import os
 import sys
+from contextlib import contextmanager
+
 from fasteners import interprocess_locked
 from configobj import ConfigObj
 from validate import Validator
@@ -99,3 +101,11 @@ def runtimeconf_deepget(key, default=None):
             if value is None:
                 break
         return value
+
+
+@contextmanager
+def plugin_config(name):
+    cfg = runtimeconf_deepget('plugins.{}'.format(name), {})
+    yield cfg
+    runtime_config_store['plugins'][name] = cfg
+    runtimeconf_persist()
