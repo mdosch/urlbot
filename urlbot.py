@@ -17,7 +17,7 @@ from common import (
     RATE_CHAT,
     RATE_EVENT,
     rate_limit,
-)
+    get_nick_from_object)
 from config import runtimeconf_set
 from idlebot import IdleBot, start
 from plugins import (
@@ -174,9 +174,10 @@ class UrlBot(IdleBot):
                         msg_obj['type'] = 'chat'
                         self.send_reply("You're flagged as bot, please write {}: remove-from-botlist "
                                         "{} if you're not a bot.".format(
-                            config.conf_get('bot_nickname'), msg_obj['from']._jid[2]
-                        ), msg_obj)
-                        self.logger.debug("not talking to the other bot named {}".format(msg_obj['from']._jid[2]))
+                                            config.conf_get('bot_nickname'),
+                                            get_nick_from_object(msg_obj)
+                                        ), msg_obj)
+                        self.logger.debug("not talking to the other bot named {}".format(get_nick_from_object(msg_obj)))
                         return False
                     self.send_message(
                         mto=msg_obj['from'].bare,
@@ -233,7 +234,7 @@ class UrlBot(IdleBot):
 
             if (msg_obj['body'].startswith(config.conf_get('bot_nickname')) and not any(
                     [reacted_on_command, reacted_on_parse]) and rate_limit(RATE_GLOBAL)):
-                ret = else_command({'reply_user': msg_obj['from']._jid[2]})
+                ret = else_command({'reply_user': get_nick_from_object(msg_obj)})
                 if ret:
                     if 'msg' in ret:
                         self.send_reply(ret['msg'], msg_obj)
@@ -273,7 +274,7 @@ class UrlBot(IdleBot):
             self.hangup()
             sys.exit(1)
 
-        reply_user = msg_obj['mucnick'] or msg_obj['from']._jid[2]
+        reply_user = get_nick_from_object(msg_obj)
 
         # TODO: check how several commands/plugins
         # in a single message behave (also with rate limiting)
@@ -306,7 +307,7 @@ class UrlBot(IdleBot):
         :return:
         """
         data = msg_obj['body']
-        reply_user = msg_obj['mucnick'] or msg_obj['from']._jid[2]
+        reply_user = get_nick_from_object(msg_obj)
         reacted = False
 
         for plugin in plugin_storage[ptypes_PARSE]:

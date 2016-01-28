@@ -205,6 +205,14 @@ def pluginfunction(name, desc, plugin_type, ratelimit_class=RATE_GLOBAL, enabled
     return decorate
 
 
+def get_nick_from_object(message_obj):
+    """
+    not quite correct yet, also the private property access isn't nice.
+    """
+    nick = message_obj['mucnick'] or message_obj['from']._jid[2]
+    return nick
+
+
 ptypes_PARSE = 'parser'
 ptypes_COMMAND = 'command'
 ptypes = [ptypes_PARSE, ptypes_COMMAND]

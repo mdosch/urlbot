@@ -15,7 +15,9 @@ from common import (
     VERSION, RATE_FUN, RATE_GLOBAL, RATE_INTERACTIVE, RATE_NO_LIMIT,
     giphy, pluginfunction,
     ptypes_COMMAND,
-    RATE_NO_SILENCE)
+    RATE_NO_SILENCE,
+    get_nick_from_object
+)
 from string_constants import cakes, excuses, moin_strings_hi, moin_strings_bye, languages
 
 log = logging.getLogger(__name__)
@@ -485,11 +487,11 @@ def command_record(argv, **args):
             'msg': '%s: usage: record {user} {some message}' % args['reply_user']
         }
 
-    target_user = argv[0].lower()
+    target_user = argv[0].lower().strip(':')
     message = '{} ({}): '.format(args['reply_user'], time.strftime('%Y-%m-%d %H:%M'))
     if argv[1] == "previous":
         prev_message_obj = args['stack'][-1]
-        message += '[{}]: '.format(prev_message_obj['mucnick'] or prev_message_obj['from']._jid[2])
+        message += '[{}]: '.format(get_nick_from_object(prev_message_obj))
         message += prev_message_obj['body']
     else:
         message += ' '.join(argv[1:])
