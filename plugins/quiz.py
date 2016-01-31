@@ -15,7 +15,7 @@ def get_questions(directory=None):
         directory = 'plugins/quiz_resources/'
     all_files = sorted(filter(lambda x: x.endswith('.txt'), os.listdir(directory)))
     all_questions = []
-    for q_file in all_files:
+    for q_file in all_files[3:5]:
         with open(directory + q_file) as f:
             all_questions += f.readlines()[1:]
     return all_questions
