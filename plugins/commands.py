@@ -911,7 +911,7 @@ def vote(argv, **args):
 
 @pluginfunction('quiz', 'play quiz', ptypes_COMMAND)
 def quiz_control(argv, **args):
-    usage = """quiz mode usage: "quiz start", "quiz stop", "quiz answer", "quiz skip",
+    usage = """quiz mode usage: "quiz start [secs interval]", "quiz stop", "quiz answer", "quiz skip",
 "quiz rules;
 if the quiz mode is active, sentences are parsed and compared against the answer.
     """
@@ -938,7 +938,8 @@ The answers will be matched by characters/words. Answers will be
             quizcfg = dict()
 
         if argv[0] == 'start':
-            return quiz.start_random_question(quizcfg)
+            interval = argv[1] if len(argv) > 1 else 60
+            return quiz.start_random_question(quizcfg, interval)
         elif argv[0] == 'stop':
             return quiz.stop(quizcfg)
         elif argv[0] == 'answer':

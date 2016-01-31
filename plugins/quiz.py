@@ -115,7 +115,7 @@ def rate(quizcfg, response, user):
     # }
 
 
-def start_random_question(quizcfg):
+def start_random_question(quizcfg, interval):
     stop(quizcfg)
     qa = get_random_question(quizcfg)
 
@@ -123,7 +123,7 @@ def start_random_question(quizcfg):
         'msg': ['Q: {}'.format(qa[0])],
         'event': {
             'command': (end_question, ([quizcfg],)),
-            'time': time.time() + 15
+            'time': time.time() + interval
         }
     }
 
