@@ -37,7 +37,7 @@ def get_random_question(quizcfg):
 
 
 def get_current_question(quizcfg):
-    if quizcfg.get('active_id'):
+    if quizcfg.get('active_id') and quizcfg.get('active_id') != 'None':
         return int(quizcfg['active_id'])
 
 
