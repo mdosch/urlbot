@@ -52,7 +52,7 @@ def end_question():
         win_msg = '{} scores with {:.2f}%'.format(winner, score)
         lose_msg = 'nobody scores.'
 
-        if score > 50.0:
+        if score >= 50.0:
             lines.append(win_msg)
         else:
             lines.append(lose_msg)
@@ -107,7 +107,7 @@ def rate(quizcfg, response, user):
 
     threshold = 50
     if (
-        percentage > threshold and
+        percentage >= threshold and
         float(quizcfg.get('current_max_score', 0)) < percentage
     ):
         quizcfg['current_max_user'] = user
