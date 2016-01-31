@@ -911,18 +911,12 @@ def vote(argv, **args):
 
 @pluginfunction('quiz', 'play quiz', ptypes_COMMAND)
 def quiz_control(argv, **args):
-    usage = """quiz mode usage: "quiz start [secs interval]", "quiz stop", "quiz answer", "quiz skip",
-"quiz rules;
-if the quiz mode is active, sentences are parsed and compared against the answer.
+    usage = """quiz mode usage: "quiz start [secs interval:default 30]", "quiz stop", "quiz rules;
+Not yet implemented: "quiz answer", "quiz skip".
+If the quiz mode is active, all messages are parsed and compared against the answer.
     """
-    questions = [
-        'die antwort auf alle fragen?',
-        'keks',
-        'Welcher Stern ist der Erde am nächsten?',
-        'Sonne'
-    ]
     if not argv:
-        return usage
+        return {'msg': usage}
 
     rules = """
 The answers will be matched by characters/words. Answers will be
@@ -938,10 +932,12 @@ The answers will be matched by characters/words. Answers will be
             quizcfg = dict()
 
         if argv[0] == 'start':
-            interval = argv[1] if len(argv) > 1 else 60
-            return quiz.start_random_question(quizcfg, interval)
+            quizcfg['stop_bit'] = False
+            interval = int(argv[1]) if len(argv) > 1 else 30
+            quizcfg['interval'] = interval
+            return quiz.start_random_question()
         elif argv[0] == 'stop':
-            return quiz.stop(quizcfg)
+            return quiz.end(quizcfg)
         elif argv[0] == 'answer':
             return quiz.answer(quizcfg)
         elif argv[0] == 'skip':

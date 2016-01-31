@@ -6,6 +6,7 @@ from functools import lru_cache
 import re
 
 import time
+from config import plugin_config
 
 
 @lru_cache(10)
@@ -40,41 +41,48 @@ def get_current_question(quizcfg):
         return int(quizcfg['active_id'])
 
 
-def end_question(quizcfg):
-    lines = ['Question time over!']
+def end_question():
+    with plugin_config('quiz') as quizcfg:
+        lines = ['Question time over!']
 
-    score = float(quizcfg.get('current_max_score', 0))
-    winner = quizcfg.get('current_max_user', 'nobody')
+        score = float(quizcfg.get('current_max_score', 0))
+        winner = quizcfg.get('current_max_user', 'nobody')
 
-    print(winner, score)
-    win_msg = '{} scores with {:.2f}%'.format(winner, score)
-    lose_msg = 'nobody scores.'
+        print(winner, score)
+        win_msg = '{} scores with {:.2f}%'.format(winner, score)
+        lose_msg = 'nobody scores.'
 
-    if score > 50.0:
-        lines.append(win_msg)
-    else:
-        lines.append(lose_msg)
+        if score > 50.0:
+            lines.append(win_msg)
+        else:
+            lines.append(lose_msg)
 
-    quizcfg['current_max_user'] = 'nobody'
-    quizcfg['current_max_score'] = 0
+        quizcfg["locked"] = False
+        quizcfg['current_max_user'] = 'nobody'
+        quizcfg['current_max_score'] = 0
 
-    quizcfg['active_id'] = None
+        quizcfg['active_id'] = None
 
-    start_next = None
-    if not quizcfg.get('stop_bit', False):
-        start_next = {
-            'time': time.time() + 10,
-            'command': (start_random_question, ([quizcfg],))
+        action = {
+            'msg': lines
         }
-    return {
-        'msg': lines,
-        'event': start_next
-    }
+        if quizcfg.get('stop_bit', False):
+            quizcfg['stop_bit'] = False
+            lines.append('stopping the quiz now.')
+        else:
+            action['event'] = {
+                'time': time.time() + 10,
+                'command': (start_random_question, ([],))
+            }
+            lines.append('continuing.')
+
+        return action
 
 
-def stop(quizcfg):
+def end(quizcfg):
+    # TODO: cleanup the switches
     quizcfg['stop_bit'] = True
-    return end_question(quizcfg)
+    quizcfg['locked'] = False
 
 
 def rate(quizcfg, response, user):
@@ -87,9 +95,9 @@ def rate(quizcfg, response, user):
     """
     questions = get_questions()
     current_quiz_question = get_current_question(quizcfg)
-    answer = questions[current_quiz_question+1].lower()
+    the_answer = questions[current_quiz_question+1].lower()
 
-    anwer_words = set(re.findall('[a-zA-ZäöüÄÖÜß]+', answer))
+    anwer_words = set(re.findall('[a-zA-ZäöüÄÖÜß0-9]+', the_answer))
     words = set(response.lower().split())
 
     # stripping all fill words seems like a tedious task...
@@ -115,32 +123,40 @@ def rate(quizcfg, response, user):
     # }
 
 
-def start_random_question(quizcfg, interval):
-    stop(quizcfg)
-    qa = get_random_question(quizcfg)
+def start_random_question():
+    with plugin_config('quiz') as quizcfg:
+        if quizcfg.get("locked", False):
+            return {'msg': 'already running!'}
 
-    return {
-        'msg': ['Q: {}'.format(qa[0])],
-        'event': {
-            'command': (end_question, ([quizcfg],)),
-            'time': time.time() + interval
+        else:
+            quizcfg["locked"] = True
+        qa = get_random_question(quizcfg)
+
+        return {
+            'msg': ['Q: {}'.format(qa[0])],
+            'event': {
+                'command': (end_question, ([],)),
+                'time': time.time() + int(quizcfg['interval'])
+            }
         }
-    }
 
 
+# TODO: fix those
 def skip(quizcfg):
     """ skip the current question, omitting the
     answer and removing it from the used ones """
+    raise NotImplementedError()
     quizcfg['used_ids'].remove(get_current_question(quizcfg))
-    return end_question(quizcfg)
+    return end_question()
 
 
 def answer(quizcfg):
+    raise NotImplementedError()
     the_answer = get_questions()[get_current_question(quizcfg)+1]
     return {
         'msg': 'Answer to the question: {}'.format(the_answer),
         'event': {
-            'command': (end_question, ([quizcfg], )),
+            'command': (end_question, ([], )),
             'time': time.time() + 3
         }
     }
