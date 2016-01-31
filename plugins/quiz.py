@@ -52,6 +52,9 @@ def end_question():
         win_msg = '{} scores with {:.2f}%'.format(winner, score)
         lose_msg = 'nobody scores.'
 
+        the_answer = get_questions()[get_current_question(quizcfg)+1]
+        lines.append('Answer to the question: {}'.format(the_answer))
+
         if score >= 50.0:
             lines.append(win_msg)
         else:
