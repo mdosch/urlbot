@@ -21,18 +21,19 @@ def get_questions(directory=None):
     return all_questions
 
 
-def get_random_question(quizcfg):
-    questions = get_questions()
-    # select a random question
-    used_ids = quizcfg.get('used_ids', [])
-    q_index = None
-    while q_index is None:
-        rand = random.choice(range(0, len(questions)-2, 2))
-        if rand not in used_ids:
-            q_index = rand
+def get_random_question():
+    with plugin_config('quiz') as quizcfg:
+        questions = get_questions()
+        # select a random question
+        used_ids = quizcfg.get('used_ids', [])
+        q_index = None
+        while q_index is None or len(questions[q_index+1].split()) > 2:
+            rand = random.choice(range(0, len(questions)-2, 2))
+            if rand not in used_ids:
+                q_index = rand
 
-    quizcfg['active_id'] = q_index
-    quizcfg['used_ids'] = used_ids + [q_index]
+        quizcfg['active_id'] = q_index
+        quizcfg['used_ids'] = used_ids + [q_index]
     return questions[q_index], questions[q_index+1]
 
 
@@ -134,7 +135,7 @@ def start_random_question():
 
         else:
             quizcfg["locked"] = True
-        qa = get_random_question(quizcfg)
+        qa = get_random_question()
 
         return {
             'msg': ['Q: {}'.format(qa[0])],
