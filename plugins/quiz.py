@@ -15,7 +15,7 @@ def get_questions(directory=None):
         directory = 'plugins/quiz_resources/'
     all_files = sorted(filter(lambda x: x.endswith('.txt'), os.listdir(directory)))
     all_questions = []
-    for q_file in all_files[3:5]:
+    for q_file in all_files:
         with open(directory + q_file) as f:
             all_questions += f.readlines()[1:]
     return all_questions
@@ -27,8 +27,8 @@ def get_random_question():
         # select a random question
         used_ids = quizcfg.get('used_ids', [])
         q_index = None
-        while q_index is None or len(questions[q_index+1].split()) > 2:
-            rand = random.choice(range(0, len(questions)-2, 2))
+        while q_index is None or len(questions[q_index+1].split()) > 8:
+            rand = random.choice(range(1956, len(questions)-2, 2))
             if rand not in used_ids:
                 q_index = rand
 
