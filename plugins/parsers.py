@@ -6,7 +6,7 @@ import time
 import config
 from common import RATE_NO_SILENCE, RATE_GLOBAL, extract_title, RATE_FUN, RATE_URL, pluginfunction, ptypes_PARSE
 from config import runtimeconf_get
-from plugins import ptypes_PARSE
+from plugins import ptypes_PARSE, quiz
 from string_constants import moin_strings_hi, moin_strings_bye
 
 log = logging.getLogger(__name__)
@@ -219,3 +219,13 @@ def resolve_url_title(**args):
     return {
         'msg': out
     }
+
+
+@pluginfunction('quizparser', 'react on chat during quiz games', ptypes_PARSE)
+def quizparser(**args):
+    with config.plugin_config('quiz') as quizcfg:
+        current_quiz_question = quiz.get_current_question(quizcfg)
+        if current_quiz_question is None:
+            return
+        else:
+            return quiz.rate(quizcfg, args['data'], args['reply_user'])

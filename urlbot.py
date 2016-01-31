@@ -356,14 +356,14 @@ class UrlBot(IdleBot):
         :param plugin: plugin obj
         :param msg_obj: xmpp message obj
         """
-        if 'event' in action:
+        if 'event' in action and action["event"] is not None:
             event = action["event"]
             if 'msg' in event:
                 register_event(event["time"], self.send_reply, [event['msg'], msg_obj])
             elif 'command' in event:
                 command = event["command"]
                 if rate_limit(RATE_EVENT):
-                    register_event(t=event["time"], callback=command[0], args=command[1])
+                    # register_event(t=event["time"], callback=command[0], args=command[1])
                     # kind of ugly..
                     register_active_event(
                         t=event['time'],

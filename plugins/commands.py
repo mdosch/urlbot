@@ -18,6 +18,7 @@ from common import (
     RATE_NO_SILENCE,
     get_nick_from_object
 )
+from plugins import quiz
 from string_constants import cakes, excuses, moin_strings_hi, moin_strings_bye, languages
 
 log = logging.getLogger(__name__)
@@ -903,15 +904,16 @@ def poll(argv, **args):
                 return {'msg': 'created the poll.'}
 
 
-@pluginfunction('vote', 'alias for poll', ptypes_COMMAND, enabled=False)
+@pluginfunction('vote', 'alias for poll', ptypes_COMMAND)
 def vote(argv, **args):
     return poll(argv, **args)
 
 
-@pluginfunction('quiz', 'play quiz', ptypes_COMMAND, enabled=False)
-def quiz(argv, **args):
-    usage = """quiz mode usage: "quiz start", "quiz stop", "quiz answer", "quiz skip";
-    if the quiz mode is active, sentences are parsed and compared against the answer.
+@pluginfunction('quiz', 'play quiz', ptypes_COMMAND)
+def quiz_control(argv, **args):
+    usage = """quiz mode usage: "quiz start", "quiz stop", "quiz answer", "quiz skip",
+"quiz rules;
+if the quiz mode is active, sentences are parsed and compared against the answer.
     """
     questions = [
         'die antwort auf alle fragen?',
@@ -922,21 +924,28 @@ def quiz(argv, **args):
     if not argv:
         return usage
 
+    rules = """
+The answers will be matched by characters/words. Answers will be
+ granted points according to the match percentage with a minimum
+ percentage depending on word count. After a configurable timeout per
+ quiz game, a single winner will be declared, if any. The timeout can
+ be cancelled with "quiz answer" or "quiz skip", which results in
+ a lost round.
+    """
+
     with config.plugin_config('quiz') as quizcfg:
         if quizcfg is None:
             quizcfg = dict()
 
         if argv[0] == 'start':
-            # select a random question
-            used_ids = quizcfg['used_ids']
-            q_index = -1
-            while q_index == -1:
-                rand = random.choice(range(0, len(questions)-2, 2))
-                if rand not in used_ids:
-                    q_index = rand
-
-            quizcfg['active_id'] = q_index
-            quizcfg['used_ids'] = used_ids + []
-
-            return {'msg': ['Q: {}'.format(questions[q_index]),
-                            'A: {}'.format(questions[q_index+1]), ]}
+            return quiz.start_random_question(quizcfg)
+        elif argv[0] == 'stop':
+            return quiz.stop(quizcfg)
+        elif argv[0] == 'answer':
+            return quiz.answer(quizcfg)
+        elif argv[0] == 'skip':
+            return quiz.skip(quizcfg)
+        elif argv[0] == 'rules':
+            return {
+                'msg': rules
+            }

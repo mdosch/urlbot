@@ -1,0 +1,57 @@
+# source: http://sock-raw.org/netsec/tcpipdrink.html
+What is a fuzzball router?
+The first modern router on the Internet, used on the first 56KB/sec NSFnet (1980s).
+What is a pure ACK?
+An ACK packet that has no data.
+Which was possibly one of the earliest remote DoS attacks?
++++ATH hangup (usually inside an ICMP echo request) from the Hayes command set used by first modems.
+What is a Bogon packet?
+An IP packet having a source IP of a private address space but appearing on the public internet.
+Which L3 protocol is used along with multicasting?
+IGMP (Internet Group Message Protocol)
+What is the RFC for TCP Congestion Control?
+RFC 2581
+What does EOL mean in TCP context?
+End-of-options-list which can also be used as padding.
+How many bytes will a TCP header be when the Timestamp option is included?
+32 bytes (20 bytes minimum header + 10 bytes Timestamp + 2 bytes padding).
+Which is the only IP header field that cannot be manipulated with a raw socket on Linux?
+IP total length
+What is the main technique used by PortBunny?
+Sending 'trigger packets' of variable size to find optimal delay value.
+Who is the creator of p0f?
+Michal Zalewski aka lcamtuf
+What is IPoAC?
+IP over Avian Carriers, RFC 1149, issued on April 1, 1990.
+Name one technique that Nmap doesn't use for OS fingerprinting?
+Passive OS fingerprinting, since it would be less accurate.
+Who were the inventors of SYN cookies?
+Phil Karn and D.J. Bernstein aka djb
+Which Linux kernel developer maintains the SKB diet page?
+Dave S. Miller
+Which Nmap option invokes the RPC grinder?
+-sR
+Who is the creator of hping2?
+Salvatore Sanfilippo aka antirez
+What kind of probes does pakketto keiretsu's paratrace use?
+TCP Keepalive probes
+What is TCP piggybacking?
+Placing data inside an ACK packet.
+Which TCP Timer can potentially be reset infinitely?
+The TCP Persist Timer
+What is the slow start initial threshold (ssthresh) size?
+65535 bytes
+What is the main problem of NewReno?
+It doesn't scale well.
+Which hosts are vulnerable to being leveraged in a zombie scan attack?
+Any network stack implementation that uses predictable IP IDs.
+What is the use of the TCP_DEFER_ACCEPT option?
+The kernel does not inform the listening socket of a new connection until the client has sent both the last ACK packet of the 3way handshake and some initial data.
+Which are the basic timers that TCP uses?
+Connection Establishment, Retransmission, Delayed ACK, Persist, Keepalive,  FIN_WAIT_2 and TIME_WAIT(2MSL)
+Name an attack that can lead to network congestion collapse.
+Fake duplicate ACKs
+What is the default congestion avoidance algorithm since Linux 2.6.19?
+CUBIC -> cat /proc/sys/net/ipv4/tcp_congestion_control: cubic
+What is the maximum RTO on Linux?
+2 minutes -> include/net/tcp.h: #define TCP_RTO_MAX ((unsigned)(120*HZ))

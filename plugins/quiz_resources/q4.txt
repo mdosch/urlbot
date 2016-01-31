@@ -1,0 +1,269 @@
+# source: http://valerieaurora.org/tcpip.html
+What should happen upon receipt of a RST packet containing data?
+The host should accept it. It was suggested that a RST could contain ASCII text explaining the error, but no standard was ever established.
+What is the longest acceptable delay for an ACK?
+0.5 seconds.
+An ICMP error message must include what data from the original erring datagram?
+The IP header and at least 8 bytes of payload.
+What is the major difference between Windows tracert and Van Jacobson-style UNIX traceroute?
+Windows tracert uses ICMP where Van Jacobson-style traceroute uses UDP.
+Name three modern OS's that still use the mbuf structure, described in detail in TCP/IP Illustrated.
+FreeBSD, OpenBSD, NetBSD
+What is cheapernet?
+Coaxial cable with a diameter no longer suited to hit burglers with. The original ethernet cables were 1/2" in diameter and quite rigid.
+How many colours are in an 8-wire Cat5 cable?
+Four.  The other four wires are colour/white striped.
+What are the four colours in Cat5 cables?
+Orange, Blue, Brown, Green
+How does a Windows machine react if ports above 1080 are blocked by a router?
+A regular user can surf for roughly 2min after booting, then has to reboot.
+What happens if a network card's transmit interrupts are blocked in Linux?
+Usually nothing.  But on packet loss, retransmits can get delayed indefinitely.
+Who wrote the original Ping program?
+Mike Muuss
+What's the base UDP port number used in the original Traceroute program?
+33434 (32768 + 666)
+What's the minimum value allowed for the Header Length field in a valid IPv4 header?
+5 (5 * 4 = 20)
+Which RFC introduced the TCP Timestamps option?
+RFC 1323
+While computing the checksum of a TCP packet, what happens to the checksum?
+It's replaced (or filled) with zeros.
+What is the Ethernet type for the Banyan Vines protocol?
+0BAD
+Name at least two colors of packet-dropping mechanism that are NOT an acronym or an abbreviation.
+BLUE, GREEN, PURPLE, WHITE (RED and BLACK are acronyms).
+What was PC-IP?
+The first implementation of TCP/IP on an IBM PC.
+What semi-famous hacker tool uses port 31337?
+Back Orifice, from Cult of the Dead Cow.
+What two ICMP types should never be blocked?
+ICMP type 3, Destination Unreachable, especially code 4, "fragmentation needed but don't fragment bit set" (necessary for path MTU discovery) and ICMP type 11, time exceeded (so you can use traceroute from inside the network and get replies).
+What is the typical MTU for an RFC 1149 transmission?
+From RFC 1149, Carrier Pigeon Internet Protocol: "The MTU is variable, and paradoxically, generally increases with increased carrier age.  A typicall MTU is 256 milligrams"
+What data link layer algorithm is described by an "algorhyme" in the original paper? Extra credit for reciting the first two lines.
+The spanning tree algorithm by Dr. Radia Perlman: The first two lines are: I think that I shall never see / A graph more lovely than a tree.
+What is the minimum length of an Ethernet packet, and why is there a minimum length?
+64 bytes.  It must be this long so that a collision can be detected.
+What is the 'Stretch ACK violation' documented in RFC 2525?
+When using delayed ACKs, the receiver sends an ACK less frequently than every other sender's MSS causing potential performance degradation.
+Name at least three official DNS resource record types.
+Any three of A, CNAME, HINFO, MX, NS, PTR, SOA, TXT, WKS, RT, NULL, AXFR, MAILB, MAILA, KX, KEY, SIG, NXT, PX, NSAP, NSAP-PTR, RP, AFSDB, RT, GPOS, DNAME, AAAA, SRV, LOC, EID, NIMLOC, ATMA, NAPTR, CERT, SINK, OPT, APL, TKEY, TSIG, IXFR, Deprecated: MB, MD, MF, Experimental: MINFO, MR, MG, X25
+What is the maximum amount of data in a UDP packet over IPv6?
+65487 bytes (65535 - 40 IPv6 header - 8 UDP header).
+What is the minimum IPv6 datagram size that a host must be able to receive?
+1280 bytes.
+What is the IANA reserved Ethernet MAC address range for IP Multicast?
+01:00:5e.
+Name one of the Ethernet patent (#4,063,220) holders.
+Robert Metcalfe, David Boggs, Charles Thacker, or Butler Lampson. (Metcalfe and Lampson are generally credited for the invention.)
+What is the MAC address prefix for DECnet addresses?
+AA:00:04:00
+Who wrote the original traceroute program?
+Van Jacobson
+What feature of IP is central to most traceroute implementations?
+The TTL (Time To Live) field.  Most traceroutes send packets with artificially small TTLs and use the ICMP Time Exceeded responses from intermediate hosts to trace the route to a host.
+Why was traceroute originally implemented using UDP packets rather than ICMP echo requests?
+In 1988, many TCP/IP stacks didn't return ICMP Time Exceeded responses to ICMP packets, but would for UDP packets.
+What is RED, Random Early Detection?
+A route queuing protocol used for congestion avoidance.  Once it detects "incipient congestion," the router randomly discards packets based on average queue size.
+What application uses TCP port 666?
+Doom.
+What is "ships in the night" routing?
+When you run two or more routing protocols on the same router.
+What does CRC stand for?
+Cyclic Redundancy Check.
+What IP network is reserved for internal testing?
+Anything with a netid (first octet) of 127.
+What are class D networks used for?
+Multicasting.
+What is bootp an abbreviation for?
+Bootstrap protocol.
+What is a runt packet?
+A packet that is shorter than the minimum packet length as defined by the protocol it is using.
+As of RFC 1394, how many values can the TOS field in an IPv4 header have?
+5 (4 bit wide field, only one may be set at a time, 0 is valid).
+What is the H.323 protocol used for?
+Video or teleconferencing ("Packet-based multimedia communications systems").
+What OSI model layer does IP most closely resemble?
+The network layer, layer 3.
+Why do IP packets have a TTL (Time To Live) field?
+To prevent a packet being retransmitted forever in the case of a routing loop.
+What experimental protocol might be able to fulfill RFC 1122's requirement of "SHOULD: able to leap tall buildings at a single bound?"
+CPIP, Carrier Pigeon Internet Protocol.
+What are the Dave Clark Five?
+RFCs 813 through 817.
+What was the first remotely operated non-computer appliance to be connected to the Internet?
+A toaster (controlled using SNMP).
+What is CPIP?
+Carrier Pigeon Internet Protocol (see RFC 1149).
+What common multicast group uses the address 224.0.1.1?
+NTP (Network Time Protocol).
+What is the only field that is different between a regular ARP packet and a gratuitous ARP packet?
+The target IP.
+What error is returned if a UDP datagram is received and has a checksum error?
+None.  It is silently discarded.
+What is the minimum IP datagram size that a host must be able to receive?
+576 bytes.
+When is the transmitted UDP checksum 0?
+When the sender did not compute it.
+Which is the only field used twice in the UDP checksum calculation?
+UDP length.
+Why is a pad byte of 0 occasionally appended for the UDP checksum calculation?
+Because the checksum algorithm requires an even number of bytes.
+What are the 5 fields of a UDP pseudoheader?
+Source IP, destination IP, zero, protocol, UDP length.
+Which parts of the packet does the UDP checksum cover?
+UDP pseudoheader, UDP header, UDP data.
+Which parts of the packet does the IP checksum cover?
+The IP header.
+What is the maximum amount of data in a UDP packet over IPv4?
+65507 bytes (65535 - 20 IP header - 8 UDP header).
+Who was the first individual member of the Internet Society?
+Jon Postel, narrowly beating Steve Wolff.
+Why hasn't RFC 1149 been ratified?
+The Avian Transmission Protocol has only been implemented once so far : http://www.blug.linux.no/rfc1149/
+How many identical acks need to be received for fast retransmit to occur?
+4 (3 duplicate + original).
+Under what circumstances is the TCP checksum incorrect, on a well-formed, in-flight packet?
+When the packet is using the IP source routing option (the destination IP changes along the route, which is used to calculate the TCP checksum).
+How many bytes total are in a standard sized ICMP echo request packet?
+84 bytes (56 data, 8 ICMP header, 20 IP header).
+What does "IETF" stand for?
+Internet Engineering Task Force.
+What does SLIP stand for?
+Serial Line Internet Protocol.
+What is the TCP retransmission ambiguity problem?
+An ACK arrives after a retransmit - was it sent in response to the initial transmit or the retransmit?
+Name one way to solve the TCP retransmission ambiguity problem.
+Use the Eifel detection algorithm.
+Enable timestamps (which is what Eifel does).
+When is an IGMP report timer cancelled?
+When the host receives an IGMP report for the same group (with a matching destination IP).
+When more than one host is a member of the same group on the same network.
+How many bits are in an "A" type DNS resource record?
+112, plus the owner name.
+What is archived at www.kohala.com?
+Richard Stevens' website.
+What does the tcp_close_wait_interval configuration option really do in Solaris?
+Sets the duration of the TIME_WAIT state.
+What is the range of class B IP addresses?
+128.0.0.0 through 191.255.255.255.
+What is the significance in networking of the amateur radio callsign KA9Q?
+It's the callsign of Phil Karn, who worked on SLIP, congestion control and TCP over amateur radio.
+Sally Floyd was heavily involved in the design of which TCP enhancement?
+ECN, see RFC 3042.
+Who said: "The IETF already has more than enough RFCs that codify the obvious, make stupidity illegal, support truth, justice, and the IETF way, and generally demonstrate the author is a brilliant and valuable Contributor to The Standards Process"?
+Vernon Schryver, on the mailing list for the tcp-impl IETF working group.
+What is the minimum MTU that allows any IP datagram to pass?
+68 bytes.
+What is a syncookie and who invented it?
+Syn cookies help avert synflood attacks by forcing all of the TCP state into the client, invented by Dan Bernstein.
+Van Jacobson claimed that the TCP receive packet processing fast-path could be done in how many instructions?
+30. (33 on Sparc, due to "compiler brain damage.")
+What would happen if you implemented the TCP URG pointer according to the standard?
+You would lose the last byte of urgent data because the other host implements BSD-style urgent pointers, which point to the byte following the last byte of urgent data.
+What is an LFN (spelled L-F-N, pronounced "elephant")?
+Long Fat Network, defined in RFC 1072.
+Where was John Nagle working when he invented the "Nagle algorithm?"
+Ford Motor Company.
+Who invented Tinygram Avoidance?
+John Nagle. (Tinygram Avoidance is also known as the "Nagle algorithm.")
+What is the sub-group FHE within the IETF?
+Facial hairius extremis, spotted at IETF conferences and noted in RFC 2323, "IETF Identification and Security Guidelines."
+Under what circumstances should you return error number 418: "I'm a teapot"?
+Any attempt to brew coffee with a teapot according to RFC 2324, "Hyper Text Coffee Pot Control Protocol."
+Who found additional problems beyond those in RFC 1337, "TIME-WAIT Assassination Hazards in TCP" which have yet (as of Feb 2002) to be fixed?
+Ian Heavens
+Private networks came from RFC 1597. Which later RFC claims this is a bad idea?
+RFC 1627, "Network 10 Considered Harmful."
+What makes it very difficult for any network stack to claim "strict compliance" to RFC 1122?
+Its requirement of "SHOULD: able to leap tall buildings at a single bound."
+Who said "If you know what you are doing, three layers is enough; if you don't even seventeen levels won't help?"
+Mike Padlipsky (or MAP).
+Which OSI networking model layers do TCP and IP correspond to?
+They don't. (Any answer with any kind of equivocation should be accepted.)
+Who invented NAT (Network Address Translation)?
+Paul Francis (but he credits Van Jacobson for the concept).
+How many hosts should be on a network with a 255.255.255.192 subnet mask?
+62 (64 - (broadcast address and network address))
+How many bytes are in an IPv4 header without options?
+20.
+Name one of the men described as "The Father of the Internet."
+Any of: Vinton Cerf (TCP/IP co-designer), Robert Kahn (TCP/IP co-designer), John Postel (started IANA), Al Gore (made encouraging noises)
+What does TCP/IP stand for?
+Transmission Control Protocol/Internet Protocol.
+How many layers are in the OSI networking model?
+7.
+Name a network address designated for private network use.
+10.0.0.0, 192.168.0.0, or 172.16.0.0
+Name two TCP header options.
+Any 2 of maximum segment size (MSS), window scale factor, timestamp, noop, SACK, and end of options list.
+What is the MSL as defined in RFC 793?
+2 minutes (but is usually implemented as 30 seconds).
+Name two ways to exit the TIME_WAIT state.
+2MSL timeout, TIME_WAIT assassination (receive a RST), or receive a SYN with greater sequence number.  Note: TIME_WAIT assassination is not permitted by RFC 1337.
+What is the TCP state that can only be reached through a simultaneous close?
+CLOSING
+What year was the first IETF meeting held?
+1986.
+Name all 7 layers of the OSI network model.
+Physical, Data Link, Network, Transport, Session, Presentation, and Application.
+Why are many network services assigned odd ports?
+The precursor to TCP and UDP was NCP, which was simplex and  required 2 ports for one connection.  When duplex protocols arrived, the even port numbers were abandoned.
+Which two of these three protocols are the most similar: IPv4, IPv6, or CLNP?
+IPv4 and CLNP. (CLNP stands for ConnectionLess Network Protocol, and is basically IPv4 with larger addresses.)
+In TCP, simultaneous open is a transition between which two TCP states?
+From SYN_SENT to SYN_RCVD.
+What is the ICMP type field for an Echo Request?
+8.
+What is the ICMP type field for an Echo Reply?
+0.
+What is the maximum number of IP addresses recordable by the IP Record Route option?
+9.
+If one end of a TCP connection crashes, and the other end doesn't attempt to send any data, is the resultant TCP connection half-open or half-closed from the point of view of the host that's still up?
+Half-open.
+In a Christmas tree packet, which TCP flag bits are turned on?
+SYN, URG, PSH, and FIN (all of them).
+TCP was defined in which RFC?
+RFC 793, "Transmission Control Protocol."
+What is silly window syndrome?
+In TCP, when the receiving end continually advertises a tiny window, resulting in data being sent in very small packets.
+If the remote host of a TCP connection does not advertise an MSS, what is the assumed MSS?
+536 bytes over IPv4, 1220 over IPv6, although most implementations default to 512 and 1024 respectively.
+How is the initial path MTU of a TCP connection calculated?
+min (outgoing interface MTU, remote advertised MSS)
+Why was the "AAAA" DNS resource record type created?
+For IPv6 addresses.
+What is the maximum amount of data allowed in an IPv4 packet?
+65515 bytes (65535 - 20, max total length minus 20 bytes of header)
+What was the default send and receive buffer size in 4.3BSD?
+2048 bytes.
+In TCP, when is the sender limited by the congestion window?
+When using the slow start algorithm, after packet loss has occurred.
+In most implementations of TCP, what byte does the urgent pointer point to?
+The byte following the last byte of urgent data.
+What service runs on port 6667?
+Internet Relay Chat (IRC)
+Name three methods or algorithms related to congestion control in TCP.
+Congestion window, Vegas, Reno, NewReno, SACK, DSACK, FACK, Eifel algorithm, ECN, RTO
+The ECN field uses which bits in the byte that contains the IPv4 TOS field?
+Bits 6 and 7.
+What's wrong with the standard way of estimating RTO (Retransmission TimeOut)?
+It places too much weight on the variance of round trip times.
+What is the minimum data payload in a ping of death?
+65508 bytes (65536 - 20 IP header - 8 ICMP header)
+What's the MTU of HiPPI (High Performance Parallel Interface)?
+65280 bytes
+How large is an entire AAL/5 encapsulated ATM cell?
+53 bytes (48 data + 5 header)
+Distance vector and link state are two types of what kind of protocol?
+Routing protocols
+The IPv4 fields formerly known as TOS (Type Of Service) and precedence are now called what?
+The DS (Differentiated Services) and ECN (Explicit Congestion Notification) fields.
+Why do most traceroute implementations NOT use the IP Record Route option to find intermediate hosts?
+The IP Record Route option can only record 9 intermediate hosts, which is too few for many routes in the modern Internet.
+Which spelling is correct, Van Jacobson or Van Jacobsen?
+Van Jacobson.
+Who invented the spanning tree algorithm?
+Dr. Radia Perlman
