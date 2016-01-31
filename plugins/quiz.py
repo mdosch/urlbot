@@ -83,6 +83,7 @@ def end(quizcfg):
     # TODO: cleanup the switches
     quizcfg['stop_bit'] = True
     quizcfg['locked'] = False
+    return {'msg': 'stopping.'}
 
 
 def rate(quizcfg, response, user):
