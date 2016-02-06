@@ -686,6 +686,15 @@ def flausch(argv, **args):
     }
 
 
+@pluginfunction('slap', "slap people", ptypes_COMMAND, ratelimit_class=RATE_FUN)
+def slap(argv, **args):
+    if not argv:
+        return
+    return {
+        'msg': '/me slaps {}'.format(argv[0])
+    }
+
+
 @pluginfunction('show-runtimeconfig', "show the current runtimeconfig", ptypes_COMMAND, ratelimit_class=RATE_NO_LIMIT)
 def show_runtimeconfig(argv, **args):
     if args['reply_user'] != config.conf_get('bot_owner'):
