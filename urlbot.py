@@ -25,6 +25,7 @@ from plugins import (
     ptypes_COMMAND,
     plugin_enabled_get,
     ptypes_PARSE,
+    ptypes_MUC_ONLINE,
     register_event,
     register_active_event,
     else_command,
@@ -73,46 +74,9 @@ class UrlBot(IdleBot):
     def muc_online(self, msg_obj):
         """
         Hook for muc event "user joins"
+        :param msg_obj:
         """
-        # don't react to yourself
-        if msg_obj['muc']['nick'] == self.nick:
-            return
-
-        # TODO: move this to a undirected plugin, maybe new plugin type
-        arg_user = msg_obj['muc']['nick']
-        arg_user_key = arg_user.lower()
-        user_records = config.runtimeconf_get('user_records')
-
-        if arg_user_key in user_records:
-            records = user_records[arg_user_key]
-
-            if not records:
-                return
-
-            self.send_message(
-                mto=msg_obj['from'].bare,
-                mbody='%s, there %s %d message%s for you:\n%s' % (
-                    arg_user,
-                    'is' if len(records) == 1 else 'are',
-                    len(records),
-                    '' if len(records) == 1 else 's',
-                    '\n'.join(records)
-                ),
-                mtype='groupchat'
-            )
-            self.logger.info('sent %d offline records to room %s',
-                             len(records), msg_obj['from'].bare)
-
-            if config.conf_get('persistent_locked'):
-                self.logger.warning("couldn't get exclusive lock")
-                return False
-
-            config.conf_set('persistent_locked', True)
-
-            user_records.pop(arg_user_key)
-            config.runtimeconf_persist()
-
-            config.conf_set('persistent_locked', False)
+        self.handle_muc_online(msg_obj)
 
     # @rate_limited(10)
     def send_reply(self, message, msg_obj=None):
@@ -244,6 +208,28 @@ class UrlBot(IdleBot):
             if len(self.message_stack) > 4:
                 self.message_stack.pop(0)
             self.message_stack.append(msg_obj)
+
+    def handle_muc_online(self, msg_obj):
+        """
+        react to users that got online
+
+        :param msg_obj: incoming message parameters
+        :return:
+        """
+
+        # don't react to yourself
+        if msg_obj['muc']['nick'] == self.nick:
+            return
+
+        reply_user = get_nick_from_object(msg_obj)
+
+        for plugin in plugin_storage[ptypes_MUC_ONLINE]:
+            if not plugin_enabled_get(plugin):
+                continue
+
+            ret = plugin(reply_user=reply_user)
+            if ret:
+                self._run_action(ret, plugin, msg_obj)
 
     def data_parse_commands(self, msg_obj):
         """

@@ -5,8 +5,8 @@ import traceback
 import types
 
 import config
-from common import RATE_NO_LIMIT, pluginfunction, ptypes_PARSE, ptypes_COMMAND, ptypes
-from plugins import commands, parsers
+from common import RATE_NO_LIMIT, pluginfunction, ptypes_PARSE, ptypes_COMMAND, ptypes_MUC_ONLINE, ptypes
+from plugins import commands, parsers, muc_online
 
 joblist = []
 plugins = {p: [] for p in ptypes}
@@ -77,6 +77,8 @@ def register(func_type):
         plugin_funcs = list(commands.__dict__.values()) + local_commands
     elif func_type == ptypes_PARSE:
         plugin_funcs = parsers.__dict__.values()
+    elif func_type == ptypes_MUC_ONLINE:
+        plugin_funcs = muc_online.__dict__.values()
     else:
         raise RuntimeError("invalid func type: {}".format(func_type))
 
@@ -107,6 +109,7 @@ def register_plugin(function, func_type):
 def register_all():
     register(ptypes_PARSE)
     register(ptypes_COMMAND)
+    register(ptypes_MUC_ONLINE)
 
 
 def event_trigger():

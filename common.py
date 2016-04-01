@@ -215,4 +215,5 @@ def get_nick_from_object(message_obj):
 
 ptypes_PARSE = 'parser'
 ptypes_COMMAND = 'command'
-ptypes = [ptypes_PARSE, ptypes_COMMAND]
+ptypes_MUC_ONLINE = 'muc_online'
+ptypes = [ptypes_PARSE, ptypes_COMMAND, ptypes_MUC_ONLINE]
