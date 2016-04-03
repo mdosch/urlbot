@@ -7,6 +7,7 @@ import time
 import requests
 from collections import namedtuple
 from urllib.error import URLError
+import threading
 
 RATE_NO_LIMIT = 0x00
 RATE_GLOBAL = 0x01
@@ -42,6 +43,8 @@ buckets = {
 }
 
 rate_limit_classes = buckets.keys()
+
+plugin_lock = threading.Lock()
 
 
 def rate_limit(rate_class=RATE_GLOBAL):
@@ -180,6 +183,23 @@ def giphy(subject, api_key):
     except:
         pass
     return giphy_url
+
+
+def config_locked(f):
+    """A decorator that makes access to the config thread-safe"""
+
+    def decorate(*args, **kwargs):
+
+        plugin_lock.acquire()
+
+        try:
+            return f(*args, **kwargs)
+        except:
+            raise
+        finally:
+            plugin_lock.release()
+
+    return decorate
 
 
 def pluginfunction(name, desc, plugin_type, ratelimit_class=RATE_GLOBAL, enabled=True):

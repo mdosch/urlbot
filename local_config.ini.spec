@@ -14,7 +14,6 @@ hist_max_count = integer(default=5)
 hist_max_time = integer(default=10*60)
 
 persistent_storage = string(default='urlbot.persistent')
-persistent_locked = boolean(default=false)
 
 # the "dice" feature will use more efficient random data (0) for given users
 enhanced-random-user = string_list(default=list())

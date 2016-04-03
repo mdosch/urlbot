@@ -2,7 +2,7 @@ import logging
 
 import config
 from common import (
-    pluginfunction,
+    pluginfunction, config_locked,
     ptypes_MUC_ONLINE
 )
 
@@ -10,6 +10,7 @@ log = logging.getLogger(__name__)
 
 
 @pluginfunction('send_record', 'delivers previously saved message to user', ptypes_MUC_ONLINE)
+@config_locked
 def send_record(**args):
     arg_user = args['reply_user']
     arg_user_key = arg_user.lower()
@@ -31,15 +32,7 @@ def send_record(**args):
                 )
         }
 
-        if config.conf_get('persistent_locked'):
-            log.warning("couldn't get exclusive lock")
-            return None
-
-        config.conf_set('persistent_locked', True)
-
         user_records.pop(arg_user_key)
         config.runtimeconf_persist()
-
-        config.conf_set('persistent_locked', False)
 
         return response

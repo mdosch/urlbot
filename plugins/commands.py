@@ -13,7 +13,7 @@ from lxml import etree
 import config
 from common import (
     VERSION, RATE_FUN, RATE_GLOBAL, RATE_INTERACTIVE, RATE_NO_LIMIT,
-    giphy, pluginfunction,
+    giphy, pluginfunction, config_locked,
     ptypes_COMMAND,
     RATE_NO_SILENCE,
     get_nick_from_object
@@ -340,6 +340,7 @@ def usersetting_get(argv, args):
 
 
 @pluginfunction('set', 'modify a user setting', ptypes_COMMAND, ratelimit_class=RATE_NO_LIMIT)
+@config_locked
 def command_usersetting(argv, **args):
     settings = ['spoiler']
     arg_user = args['reply_user']
@@ -360,20 +361,12 @@ def command_usersetting(argv, **args):
         # display current value
         return usersetting_get(argv, args)
 
-    if config.conf_get('persistent_locked'):
-        return {
-            'msg': args['reply_user'] + ''': couldn't get exclusive lock'''
-        }
-
-    config.conf_set('persistent_locked', True)
-
     if arg_user not in config.runtime_config_store['user_pref']:
         config.runtime_config_store['user_pref'][arg_user] = {}
 
     config.runtime_config_store['user_pref'][arg_user][arg_key] = 'on' == arg_val
 
     config.runtimeconf_persist()
-    config.conf_set('persistent_locked', False)
 
     # display value written to db
     return usersetting_get(argv, args)
@@ -482,6 +475,7 @@ def command_show_moinlist(argv, **args):
 @pluginfunction(
     'record', 'record a message for a now offline user (usage: record {user} {some message};'
               ' {some message} == "previous" to use the last channel message)', ptypes_COMMAND)
+@config_locked
 def command_record(argv, **args):
     if len(argv) < 2:
         return {
@@ -497,20 +491,12 @@ def command_record(argv, **args):
     else:
         message += ' '.join(argv[1:])
 
-    if config.conf_get('persistent_locked'):
-        return {
-            'msg': "%s: couldn't get exclusive lock" % args['reply_user']
-        }
-
-    config.conf_set('persistent_locked', True)
-
     if target_user not in config.runtime_config_store['user_records']:
         config.runtime_config_store['user_records'][target_user] = []
 
     config.runtime_config_store['user_records'][target_user].append(message)
 
     config.runtimeconf_persist()
-    config.conf_set('persistent_locked', False)
 
     return {
         'msg': '%s: message saved for %s' % (args['reply_user'], target_user)

@@ -5,7 +5,7 @@ import traceback
 import types
 
 import config
-from common import RATE_NO_LIMIT, pluginfunction, ptypes_PARSE, ptypes_COMMAND, ptypes_MUC_ONLINE, ptypes
+from common import RATE_NO_LIMIT, pluginfunction, config_locked, ptypes_PARSE, ptypes_COMMAND, ptypes_MUC_ONLINE, ptypes
 from plugins import commands, parsers, muc_online
 
 joblist = []
@@ -21,18 +21,14 @@ def plugin_enabled_get(urlbot_plugin):
         return urlbot_plugin.is_enabled
 
 
+@config_locked
 def plugin_enabled_set(plugin, enabled):
-    if config.conf_get('persistent_locked'):
-        log.warn("couldn't get exclusive lock")
-
-    config.conf_set('persistent_locked', True)
 
     if plugin.plugin_name not in config.runtime_config_store['plugins']:
         config.runtime_config_store['plugins'][plugin.plugin_name] = {}
 
     config.runtime_config_store['plugins'][plugin.plugin_name]['enabled'] = enabled
     config.runtimeconf_persist()
-    config.conf_set('persistent_locked', False)
 
 
 def register_active_event(t, callback, args, action_runner, plugin, msg_obj):
