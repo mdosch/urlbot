@@ -18,6 +18,7 @@ class IdleBot(ClientXMPP):
 
         self.add_event_handler('session_start', self.session_start)
         self.add_event_handler('groupchat_message', self.muc_message)
+        self.add_event_handler('disconnected', self.disconnected)
         self.priority = 0
         self.status = None
         self.show = None
@@ -25,6 +26,9 @@ class IdleBot(ClientXMPP):
         self.logger = logging.getLogger(__name__)
         for room in self.rooms:
             self.add_event_handler('muc::%s::got_offline' % room, self.muc_offline)
+
+    def disconnected(self, _):
+        exit(0)
 
     def session_start(self, _):
         self.get_roster()
@@ -113,12 +117,7 @@ def start(botclass, active=False):
 
     while 1:
         try:
-            # print("hangup: %s" % got_hangup)
-            if not plugins.event_trigger():
-                bot.hangup()
-            if bot.state.current_state() == 'disconnected':
-                exit(0)
-
+            plugins.joblist.run(False)
             time.sleep(EVENTLOOP_DELAY)
         except KeyboardInterrupt:
             print('')

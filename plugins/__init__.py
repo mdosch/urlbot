@@ -3,12 +3,13 @@ import logging
 import time
 import traceback
 import types
+import sched
 
 import config
 from common import RATE_NO_LIMIT, pluginfunction, config_locked, ptypes_PARSE, ptypes_COMMAND, ptypes_MUC_ONLINE, ptypes
 from plugins import commands, parsers, muc_online
 
-joblist = []
+joblist = sched.scheduler(time.time, time.sleep)
 plugins = {p: [] for p in ptypes}
 log = logging.getLogger(__name__)
 
@@ -47,11 +48,11 @@ def register_active_event(t, callback, args, action_runner, plugin, msg_obj):
         action = callback(*func_args)
         if action:
             action_runner(action=action, plugin=plugin, msg_obj=msg_obj)
-    joblist.append((t, func, args))
+    joblist.enterabs(t, 0, func, args)
 
 
 def register_event(t, callback, args):
-    joblist.append((t, callback, args))
+    joblist.enterabs(t, 0, callback, args)
 
 
 def else_command(args):
@@ -106,19 +107,6 @@ def register_all():
     register(ptypes_PARSE)
     register(ptypes_COMMAND)
     register(ptypes_MUC_ONLINE)
-
-
-def event_trigger():
-    if 0 == len(joblist):
-        return True
-
-    now = time.time()
-
-    for (i, (t, callback, args)) in enumerate(joblist):
-        if t < now:
-            callback(*args)
-            del (joblist[i])
-    return True
 
 
 @pluginfunction('help', 'print help for a command or all known commands', ptypes_COMMAND)
@@ -236,5 +224,7 @@ def reset_jobs(argv, **args):
     if args['reply_user'] != config.conf_get('bot_owner'):
         return
     else:
-        joblist.clear()
+        for event in joblist.queue:
+            joblist.cancel(event)
+
         return {'msg': 'done.'}
