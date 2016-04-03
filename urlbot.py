@@ -229,7 +229,7 @@ class UrlBot(IdleBot):
 
             ret = plugin(reply_user=reply_user)
             if ret:
-                self._run_action(ret, plugin, msg_obj)
+                self._run_action(ret, plugin, None)
 
     def data_parse_commands(self, msg_obj):
         """

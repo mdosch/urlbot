@@ -14,6 +14,8 @@ start_time = integer(default=0)
 
 [user_records]
 
+[user_joins]
+
 [url_blacklist]
 heise = string(default='^.*heise\.de/.*-[0-9]+\.html$')
 wikipedia = string(default='^.*wikipedia\.org/wiki/.*$')
