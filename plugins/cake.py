@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import random
 
+from common import giphy
 from plugin_system import pluginfunction, ptypes
 from rate_limit import RATE_FUN, RATE_GLOBAL
+
 
 @pluginfunction('cake', 'displays a cake ASCII art', ptypes.COMMAND, ratelimit_class=RATE_FUN | RATE_GLOBAL)
 def command_cake(argv, **args):

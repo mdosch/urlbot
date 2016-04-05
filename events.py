@@ -7,6 +7,7 @@ EVENTLOOP_DELAY = 0.100  # seconds
 
 event_list = sched.scheduler(time.time, time.sleep)
 
+
 def register_active_event(t, callback, args, action_runner, plugin, msg_obj):
     """
     Execute a callback at a given time and react on the output
@@ -31,9 +32,6 @@ def register_event(t, callback, args):
 
 
 class EventLoop(threading.Thread):
-    #def __init__(self):
-    #    threading.Thread.__init__(self)
-
     def run(self):
         while 1:
             event_list.run(False)

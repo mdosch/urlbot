@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
 from enum import Enum
-
 import config
 from rate_limit import RATE_GLOBAL
+
 
 class ptypes(Enum):
     PARSE = 1
     COMMAND = 2
     MUC_ONLINE = 3
 
-plugin_storage = { ptype: [] for ptype in ptypes }
+
+plugin_storage = {ptype: [] for ptype in ptypes}
+
 
 def pluginfunction(name, desc, plugin_type, ratelimit_class=RATE_GLOBAL, enabled=True):
     """A decorator to make a plugin out of a function
@@ -31,11 +33,11 @@ def pluginfunction(name, desc, plugin_type, ratelimit_class=RATE_GLOBAL, enabled
         plugin_storage[plugin_type].append(f)
 
         return f
-    
+
     return decorate
 
 
-#def plugin_alias(name):
+# def plugin_alias(name):
 #    """A decorator to add an alias to a plugin function"""
 #
 #    def decorate(f):
@@ -55,11 +57,8 @@ def plugin_enabled_get(urlbot_plugin):
 
 @config.config_locked
 def plugin_enabled_set(plugin, enabled):
-
     if plugin.plugin_name not in config.runtime_config_store['plugins']:
         config.runtime_config_store['plugins'][plugin.plugin_name] = {}
 
     config.runtime_config_store['plugins'][plugin.plugin_name]['enabled'] = enabled
     config.runtimeconf_persist()
-
-

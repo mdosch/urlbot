@@ -33,6 +33,7 @@ buckets = {
 
 rate_limit_classes = buckets.keys()
 
+
 def rate_limit(rate_class=RATE_GLOBAL):
     """
     Remember N timestamps,

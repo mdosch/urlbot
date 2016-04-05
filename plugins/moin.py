@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 import logging
-log = logging.getLogger(__name__)
 
+import re
+import random
 import config
 from plugin_system import pluginfunction, ptypes
+log = logging.getLogger(__name__)
+
 
 moin_strings_hi = [
     'Hi',
@@ -18,6 +21,7 @@ moin_strings_bye = [
     'Nacht', 'gN8', 'N8',
     'bye',
 ]
+
 
 @pluginfunction('moin', 'parse hi/bye', ptypes.PARSE, enabled=False)
 def parse_moin(**args):
@@ -73,5 +77,3 @@ def command_show_moinlist(argv, **args):
                               ])
             )
     }
-
-

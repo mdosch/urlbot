@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import logging
-log = logging.getLogger(__name__)
 
 import events
 import json
@@ -13,9 +12,11 @@ import requests
 from lxml import etree
 
 import config
-from common import VERSION, giphy, get_nick_from_object
+from common import VERSION
 from rate_limit import RATE_FUN, RATE_GLOBAL, RATE_INTERACTIVE, RATE_NO_SILENCE, RATE_NO_LIMIT
-from plugin_system import pluginfunction, ptypes, plugin_storage
+from plugin_system import pluginfunction, ptypes, plugin_storage, plugin_enabled_get, plugin_enabled_set
+log = logging.getLogger(__name__)
+
 
 @pluginfunction('help', 'print help for a command or all known commands', ptypes.COMMAND)
 def command_help(argv, **args):
@@ -779,6 +780,7 @@ def repeat_message(argv, **args):
         'msg': args['stack'][-1]['body']
     }
 
+
 @pluginfunction('isdown', 'check if a website is reachable', ptypes.COMMAND)
 def isdown(argv, **args):
     if not argv:
@@ -850,4 +852,3 @@ def poll(argv, **args):
 @pluginfunction('vote', 'alias for poll', ptypes.COMMAND)
 def vote(argv, **args):
     return poll(argv, **args)
-

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 import logging
+import time
+import config
+from common import get_nick_from_object
+from plugin_system import pluginfunction, ptypes
 log = logging.getLogger(__name__)
 
-import time
-
-import config
-from plugin_system import pluginfunction, ptypes
 
 @pluginfunction('send_record', 'delivers previously saved message to user', ptypes.MUC_ONLINE)
 @config.config_locked
@@ -21,19 +21,20 @@ def send_record(**args):
             return None
 
         response = {
-            'msg':  '%s, there %s %d message%s for you:\n%s' % (
-                    arg_user,
-                    'is' if len(records) == 1 else 'are',
-                    len(records),
-                    '' if len(records) == 1 else 's',
-                    '\n'.join(records)
-                )
+            'msg': '%s, there %s %d message%s for you:\n%s' % (
+                arg_user,
+                'is' if len(records) == 1 else 'are',
+                len(records),
+                '' if len(records) == 1 else 's',
+                '\n'.join(records)
+            )
         }
 
         user_records.pop(arg_user_key)
         config.runtimeconf_persist()
 
         return response
+
 
 @pluginfunction(
     'record', 'record a message for a now offline user (usage: record {user} {some message};'
@@ -85,4 +86,3 @@ def command_show_recordlist(argv, **args):
                 )
             )
     }
-

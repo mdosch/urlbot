@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 import logging
-log = logging.getLogger(__name__)
-
 import random
 
 from plugin_system import pluginfunction, ptypes
+log = logging.getLogger(__name__)
+
 
 @pluginfunction('excuse', 'prints BOFH style excuses', ptypes.COMMAND)
 def command_excuse(argv, **args):

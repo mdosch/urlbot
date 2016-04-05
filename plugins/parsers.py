@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import logging
-log = logging.getLogger(__name__)
 
 import random
 import re
@@ -11,6 +10,8 @@ from common import extract_title
 from rate_limit import RATE_NO_SILENCE, RATE_GLOBAL, RATE_FUN, RATE_URL
 from config import runtimeconf_get
 from plugin_system import pluginfunction, ptypes
+log = logging.getLogger(__name__)
+
 
 @pluginfunction('mental_ill', 'parse mental illness', ptypes.PARSE, ratelimit_class=RATE_NO_SILENCE | RATE_GLOBAL)
 def parse_mental_ill(**args):

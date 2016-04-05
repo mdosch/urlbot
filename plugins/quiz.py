@@ -9,6 +9,7 @@ import time
 import config
 from plugin_system import pluginfunction, ptypes
 
+
 @pluginfunction('quiz', 'play quiz', ptypes.COMMAND)
 def quiz_control(argv, **args):
     usage = """quiz mode usage: "quiz start [secs interval:default 30]", "quiz stop", "quiz rules;

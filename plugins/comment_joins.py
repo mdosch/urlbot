@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 import logging
-log = logging.getLogger(__name__)
 
 import time
 import random
 
 import config
 from plugin_system import pluginfunction, ptypes
+log = logging.getLogger(__name__)
 
 comment_joins_strings = [
     "%s: please consider to fix your internet connection"
 ]
+
 
 @pluginfunction('comment_joins', 'comments frequent joins', ptypes.MUC_ONLINE)
 @config.config_locked
@@ -46,4 +47,3 @@ def comment_joins(**args):
         user_joins.append(current_timestamp)
         config.runtime_config_store['user_joins'][arg_user_key] = user_joins
         config.runtimeconf_persist()
-

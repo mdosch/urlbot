@@ -8,7 +8,7 @@ import time
 import unittest
 from collections import namedtuple
 
-from common import buckets, rate_limit, RATE_GLOBAL
+from rate_limit import RATE_GLOBAL, rate_limit, buckets
 
 
 class TestEventlooper(unittest.TestCase):

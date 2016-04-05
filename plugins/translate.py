@@ -2,11 +2,11 @@
 import re
 import shlex
 
-import json
 import requests
 
 import config
 from plugin_system import pluginfunction, ptypes
+
 
 @pluginfunction('translate', 'translate text fragments, use "translate show" to get a list of languages'
                              'or "translate that" to get the last message translated (to german)', ptypes.COMMAND)
