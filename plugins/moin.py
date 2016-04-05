@@ -2,6 +2,7 @@
 import logging
 log = logging.getLogger(__name__)
 
+import config
 from plugin_system import pluginfunction, ptypes
 
 moin_strings_hi = [
