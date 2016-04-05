@@ -6,7 +6,56 @@ from functools import lru_cache
 import re
 
 import time
-from config import plugin_config
+import config
+from plugin_system import pluginfunction, ptypes
+
+@pluginfunction('quiz', 'play quiz', ptypes.COMMAND)
+def quiz_control(argv, **args):
+    usage = """quiz mode usage: "quiz start [secs interval:default 30]", "quiz stop", "quiz rules;
+Not yet implemented: "quiz answer", "quiz skip".
+If the quiz mode is active, all messages are parsed and compared against the answer.
+    """
+    if not argv:
+        return {'msg': usage}
+
+    rules = """
+The answers will be matched by characters/words. Answers will be
+ granted points according to the match percentage with a minimum
+ percentage depending on word count. After a configurable timeout per
+ quiz game, a single winner will be declared, if any. The timeout can
+ be cancelled with "quiz answer" or "quiz skip", which results in
+ a lost round.
+    """
+
+    with config.plugin_config('quiz') as quizcfg:
+        if quizcfg is None:
+            quizcfg = dict()
+
+        if argv[0] == 'start':
+            quizcfg['stop_bit'] = False
+            interval = int(argv[1]) if len(argv) > 1 else 30
+            quizcfg['interval'] = interval
+            return start_random_question()
+        elif argv[0] == 'stop':
+            return end(quizcfg)
+        elif argv[0] == 'answer':
+            return answer(quizcfg)
+        elif argv[0] == 'skip':
+            return skip(quizcfg)
+        elif argv[0] == 'rules':
+            return {
+                'msg': rules
+            }
+
+
+@pluginfunction('quizparser', 'react on chat during quiz games', ptypes.PARSE)
+def quizparser(**args):
+    with config.plugin_config('quiz') as quizcfg:
+        current_quiz_question = get_current_question(quizcfg)
+        if current_quiz_question is None:
+            return
+        else:
+            return rate(quizcfg, args['data'], args['reply_user'])
 
 
 @lru_cache(10)
@@ -22,7 +71,7 @@ def get_questions(directory=None):
 
 
 def get_random_question():
-    with plugin_config('quiz') as quizcfg:
+    with config.plugin_config('quiz') as quizcfg:
         questions = get_questions()
         # select a random question
         used_ids = quizcfg.get('used_ids', [])
@@ -43,7 +92,7 @@ def get_current_question(quizcfg):
 
 
 def end_question():
-    with plugin_config('quiz') as quizcfg:
+    with config.plugin_config('quiz') as quizcfg:
         lines = ['Question time over!']
 
         score = float(quizcfg.get('current_max_score', 0))
@@ -129,7 +178,7 @@ def rate(quizcfg, response, user):
 
 
 def start_random_question():
-    with plugin_config('quiz') as quizcfg:
+    with config.plugin_config('quiz') as quizcfg:
         if quizcfg.get("locked", False):
             return {'msg': 'already running!'}
 

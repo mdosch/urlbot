@@ -3,8 +3,9 @@
 import logging
 import time
 import sys
-from common import VERSION, EVENTLOOP_DELAY
 import config
+import events
+from common import VERSION
 
 from sleekxmpp import ClientXMPP
 
@@ -101,13 +102,6 @@ def start(botclass, active=False):
         rooms=config.conf_get('rooms'),
         nick=config.conf_get('bot_nickname')
     )
-    import plugins
-
-    if active:
-        plugins.register_all()
-        # if plugins.plugin_enabled_get(plugins.command_dsa_watcher):
-            # first result is lost.
-            # plugins.command_dsa_watcher(['dsa-watcher', 'crawl'])
 
     bot.connect()
     bot.register_plugin('xep_0045')
@@ -115,13 +109,10 @@ def start(botclass, active=False):
 
     config.runtimeconf_set('start_time', -time.time())
 
-    while 1:
-        try:
-            plugins.joblist.run(False)
-            time.sleep(EVENTLOOP_DELAY)
-        except KeyboardInterrupt:
-            print('')
-            exit(130)
+    if active:
+        import plugins
+
+    events.event_loop.start()
 
 
 if '__main__' == __name__:

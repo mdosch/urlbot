@@ -14,6 +14,7 @@ import logging
 import os
 import sys
 from contextlib import contextmanager
+import threading
 
 from fasteners import interprocess_locked
 from configobj import ConfigObj
@@ -32,6 +33,8 @@ runtime_config_store = ConfigObj(
     configspec='persistent_config.ini.spec',
     encoding='utf-8'
 )
+
+config_lock = threading.Lock()
 
 result = __config_store.validate(Validator())
 # copy is essential to store values with a default.. see configobj.py:2053
@@ -82,6 +85,23 @@ def runtimeconf_get(key, default=None):
 def runtimeconf_persist():
     # logging.getLogger(__name__).debug(json.dumps(runtime_config_store, indent=2))
     runtime_config_store.write()
+
+
+def config_locked(f):
+    """A decorator that makes access to the config thread-safe"""
+
+    def decorate(*args, **kwargs):
+
+        config_lock.acquire()
+
+        try:
+            return f(*args, **kwargs)
+        except:
+            raise
+        finally:
+            config_lock.release()
+
+    return decorate
 
 
 def runtimeconf_deepget(key, default=None):

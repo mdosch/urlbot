@@ -11,25 +11,16 @@ from lxml import etree
 
 import requests
 
-from common import (
-    rate_limit_classes,
-    RATE_GLOBAL,
-    RATE_CHAT,
-    RATE_EVENT,
-    rate_limit,
-    get_nick_from_object)
+from plugin_system import plugin_storage, ptypes, plugin_enabled_get
+from rate_limit import rate_limit_classes, RATE_GLOBAL, RATE_CHAT, RATE_EVENT, rate_limit
+
+import events
+
+from common import get_nick_from_object, else_command
+
 from config import runtimeconf_set
 from idlebot import IdleBot, start
-from plugins import (
-    plugins as plugin_storage,
-    ptypes_COMMAND,
-    plugin_enabled_get,
-    ptypes_PARSE,
-    ptypes_MUC_ONLINE,
-    register_event,
-    register_active_event,
-    else_command,
-)
+
 import config
 
 
@@ -223,7 +214,7 @@ class UrlBot(IdleBot):
 
         reply_user = get_nick_from_object(msg_obj)
 
-        for plugin in plugin_storage[ptypes_MUC_ONLINE]:
+        for plugin in plugin_storage[ptypes.MUC_ONLINE]:
             if not plugin_enabled_get(plugin):
                 continue
 
@@ -265,15 +256,15 @@ class UrlBot(IdleBot):
         # TODO: check how several commands/plugins
         # in a single message behave (also with rate limiting)
         reacted = False
-        for plugin in filter(lambda p: p.plugin_name == words[1], plugin_storage[ptypes_COMMAND]):
+        for plugin in filter(lambda p: p.plugin_name == words[1], plugin_storage[ptypes.COMMAND]):
 
             if not plugin_enabled_get(plugin):
                 continue
 
             ret = plugin(
                 data=data,
-                cmd_list=[pl.plugin_name for pl in plugin_storage[ptypes_COMMAND]],
-                parser_list=[pl.plugin_name for pl in plugin_storage[ptypes_PARSE]],
+                cmd_list=[pl.plugin_name for pl in plugin_storage[ptypes.COMMAND]],
+                parser_list=[pl.plugin_name for pl in plugin_storage[ptypes.PARSE]],
                 reply_user=reply_user,
                 msg_obj=msg_obj,
                 argv=words[2:] if len(words) > 1 else [],
@@ -296,7 +287,7 @@ class UrlBot(IdleBot):
         reply_user = get_nick_from_object(msg_obj)
         reacted = False
 
-        for plugin in plugin_storage[ptypes_PARSE]:
+        for plugin in plugin_storage[ptypes.PARSE]:
             if not plugin_enabled_get(plugin):
                 continue
 
@@ -332,7 +323,7 @@ class UrlBot(IdleBot):
             posttext = postelement.xpath('{}//div[@class="content"]/text()'.format(post_path))
             print(user, '\n'.join(posttext))
             summary_action = {'msg': '{} posted {} words'.format(user, len('\n'.join(posttext).split()))}
-            self._run_action(summary_action, plugin=plugin_storage[ptypes_COMMAND][0], msg_obj=msg_obj)
+            self._run_action(summary_action, plugin=plugin_storage[ptypes.COMMAND][0], msg_obj=msg_obj)
         return
 
     def _run_action(self, action, plugin, msg_obj):
@@ -345,13 +336,13 @@ class UrlBot(IdleBot):
         if 'event' in action and action["event"] is not None:
             event = action["event"]
             if 'msg' in event:
-                register_event(event["time"], self.send_reply, [event['msg'], msg_obj])
+                events.register_event(event["time"], self.send_reply, [event['msg'], msg_obj])
             elif 'command' in event:
                 command = event["command"]
                 if rate_limit(RATE_EVENT):
                     # register_event(t=event["time"], callback=command[0], args=command[1])
                     # kind of ugly..
-                    register_active_event(
+                    events.register_active_event(
                         t=event['time'],
                         callback=command[0],
                         args=command[1],

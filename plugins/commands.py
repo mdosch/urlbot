@@ -1,8 +1,10 @@
-import json
+# -*- coding: utf-8 -*-
 import logging
+log = logging.getLogger(__name__)
+
+import events
+import json
 import random
-import re
-import shlex
 import time
 import traceback
 import unicodedata
@@ -11,20 +13,131 @@ import requests
 from lxml import etree
 
 import config
-from common import (
-    VERSION, RATE_FUN, RATE_GLOBAL, RATE_INTERACTIVE, RATE_NO_LIMIT,
-    giphy, pluginfunction, config_locked,
-    ptypes_COMMAND,
-    RATE_NO_SILENCE,
-    get_nick_from_object
-)
-from plugins import quiz
-from string_constants import cakes, excuses, moin_strings_hi, moin_strings_bye, languages
+from common import VERSION, giphy, get_nick_from_object
+from rate_limit import RATE_FUN, RATE_GLOBAL, RATE_INTERACTIVE, RATE_NO_SILENCE, RATE_NO_LIMIT
+from plugin_system import pluginfunction, ptypes, plugin_storage
 
-log = logging.getLogger(__name__)
+@pluginfunction('help', 'print help for a command or all known commands', ptypes.COMMAND)
+def command_help(argv, **args):
+    what = argv[0] if argv else None
+
+    if not what:
+        log.info('empty help request, sent all commands')
+        commands = args['cmd_list']
+        commands.sort()
+        parsers = args['parser_list']
+        parsers.sort()
+        return {
+            'msg': [
+                '%s: known commands: %s' % (
+                    args['reply_user'], ', '.join(commands)
+                ),
+                'known parsers: %s' % ', '.join(parsers)
+            ]
+        }
+
+    for p in plugin_storage[ptypes.COMMAND] + plugin_storage[ptypes.PARSE]:
+        if what == p.plugin_name:
+            log.info('sent help for %s' % what)
+            return {
+                'msg': args['reply_user'] + ': help for %s %s %s: %s' % (
+                    'enabled' if plugin_enabled_get(p) else 'disabled',
+                    'parser' if p.plugin_type == ptypes.PARSE else 'command',
+                    what, p.plugin_desc
+                )
+            }
+    log.info('no help found for %s' % what)
+    return {
+        'msg': args['reply_user'] + ': no such command: %s' % what
+    }
 
 
-@pluginfunction('version', 'prints version', ptypes_COMMAND)
+@pluginfunction('plugin', "'disable' or 'enable' plugins", ptypes.COMMAND)
+def command_plugin_activation(argv, **args):
+    if not argv:
+        return
+
+    command = argv[0]
+    plugin = argv[1] if len(argv) > 1 else None
+
+    if command not in ('enable', 'disable'):
+        return
+
+    log.info('plugin activation plugin called')
+
+    if not plugin:
+        return {
+            'msg': args['reply_user'] + ': no plugin given'
+        }
+    elif command_plugin_activation.plugin_name == plugin:
+        return {
+            'msg': args['reply_user'] + ': not allowed'
+        }
+
+    for p in plugin_storage[ptypes.COMMAND] + plugin_storage[ptypes.PARSE]:
+        if p.plugin_name == plugin:
+            plugin_enabled_set(p, 'enable' == command)
+
+            return {
+                'msg': args['reply_user'] + ': %sd %s' % (
+                    command, plugin
+                )
+            }
+
+    return {
+        'msg': args['reply_user'] + ': unknown plugin %s' % plugin
+    }
+
+
+@pluginfunction('list', 'list plugin and parser status', ptypes.COMMAND)
+def command_list(argv, **args):
+
+    log.info('list plugin called')
+
+    if 'enabled' in argv and 'disabled' in argv:
+        return {
+            'msg': args['reply_user'] + ": both 'enabled' and 'disabled' makes no sense"
+        }
+
+    # if not given, assume both
+    if 'command' not in argv and 'parser' not in argv:
+        argv.append('command')
+        argv.append('parser')
+
+    out_command = []
+    out_parser = []
+    if 'command' in argv:
+        out_command = plugin_storage[ptypes.COMMAND]
+    if 'parser' in argv:
+        out_parser = plugin_storage[ptypes.PARSE]
+    if 'enabled' in argv:
+        out_command = [p for p in out_command if plugin_enabled_get(p)]
+        out_parser = [p for p in out_parser if plugin_enabled_get(p)]
+    if 'disabled' in argv:
+        out_command = [p for p in out_command if not plugin_enabled_get(p)]
+        out_parser = [p for p in out_parser if not plugin_enabled_get(p)]
+
+    msg = [args['reply_user'] + ': list of plugins:']
+
+    if out_command:
+        msg.append('commands: %s' % ', '.join([p.plugin_name for p in out_command]))
+    if out_parser:
+        msg.append('parsers: %s' % ', '.join([p.plugin_name for p in out_parser]))
+    return {'msg': msg}
+
+
+@pluginfunction('reset-jobs', "reset joblist", ptypes.COMMAND, ratelimit_class=RATE_NO_LIMIT)
+def reset_jobs(argv, **args):
+    if args['reply_user'] != config.conf_get('bot_owner'):
+        return
+    else:
+        for event in events.event_list.queue:
+            events.event_list.cancel(event)
+
+        return {'msg': 'done.'}
+
+
+@pluginfunction('version', 'prints version', ptypes.COMMAND)
 def command_version(argv, **args):
     log.info('sent version string')
     return {
@@ -32,7 +145,7 @@ def command_version(argv, **args):
     }
 
 
-@pluginfunction('uptime', 'prints uptime', ptypes_COMMAND)
+@pluginfunction('uptime', 'prints uptime', ptypes.COMMAND)
 def command_uptime(argv, **args):
     u = int(config.runtimeconf_get('start_time') + time.time())
     plural_uptime = 's'
@@ -50,7 +163,7 @@ def command_uptime(argv, **args):
     }
 
 
-@pluginfunction('info', 'prints info message', ptypes_COMMAND)
+@pluginfunction('info', 'prints info message', ptypes.COMMAND)
 def command_info(argv, **args):
     log.info('sent long info')
     return {
@@ -63,7 +176,7 @@ def command_info(argv, **args):
     }
 
 
-@pluginfunction('ping', 'sends pong', ptypes_COMMAND, ratelimit_class=RATE_INTERACTIVE)
+@pluginfunction('ping', 'sends pong', ptypes.COMMAND, ratelimit_class=RATE_INTERACTIVE)
 def command_ping(argv, **args):
     rnd = random.randint(0, 3)  # 1:4
     if 0 == rnd:
@@ -81,7 +194,7 @@ def command_ping(argv, **args):
     }
 
 
-@pluginfunction('klammer', 'prints an anoying paper clip aka. Karl Klammer', ptypes_COMMAND,
+@pluginfunction('klammer', 'prints an anoying paper clip aka. Karl Klammer', ptypes.COMMAND,
                 ratelimit_class=RATE_FUN | RATE_GLOBAL)
 def command_klammer(argv, **args):
     log.info('sent karl klammer')
@@ -98,25 +211,14 @@ def command_klammer(argv, **args):
     }
 
 
-@pluginfunction('excuse', 'prints BOFH style excuses', ptypes_COMMAND)
-def command_excuse(argv, **args):
-    log.info('BOFH plugin called')
-
-    excuse = random.sample(excuses, 1)[0]
-
-    return {
-        'msg': args['reply_user'] + ': ' + excuse
-    }
-
-
-@pluginfunction('terminate', 'hidden prototype', ptypes_COMMAND, ratelimit_class=RATE_FUN | RATE_GLOBAL)
+@pluginfunction('terminate', 'hidden prototype', ptypes.COMMAND, ratelimit_class=RATE_FUN | RATE_GLOBAL)
 def command_terminate(argv, **args):
     return {
         'msg': 'insufficient power supply, please connect fission module'
     }
 
 
-@pluginfunction('source', 'prints git URL', ptypes_COMMAND)
+@pluginfunction('source', 'prints git URL', ptypes.COMMAND)
 def command_source(argv, **_):
     log.info('sent source URL')
     return {
@@ -124,7 +226,7 @@ def command_source(argv, **_):
     }
 
 
-@pluginfunction('unikot', 'prints an unicode string', ptypes_COMMAND, ratelimit_class=RATE_FUN | RATE_GLOBAL)
+@pluginfunction('unikot', 'prints an unicode string', ptypes.COMMAND, ratelimit_class=RATE_FUN | RATE_GLOBAL)
 def command_unicode(argv, **args):
     log.info('sent some unicode')
     return {
@@ -137,7 +239,7 @@ def command_unicode(argv, **args):
     }
 
 
-@pluginfunction('dice', 'rolls a dice, optional N times', ptypes_COMMAND, ratelimit_class=RATE_INTERACTIVE)
+@pluginfunction('dice', 'rolls a dice, optional N times', ptypes.COMMAND, ratelimit_class=RATE_INTERACTIVE)
 def command_dice(argv, **args):
     try:
         count = 1 if not argv else int(argv[0])
@@ -176,7 +278,7 @@ def command_dice(argv, **args):
     }
 
 
-@pluginfunction('choose', 'chooses randomly between arguments', ptypes_COMMAND, ratelimit_class=RATE_INTERACTIVE)
+@pluginfunction('choose', 'chooses randomly between arguments', ptypes.COMMAND, ratelimit_class=RATE_INTERACTIVE)
 def command_choose(argv, **args):
     alternatives = argv
     if len(alternatives) < 2:
@@ -192,7 +294,7 @@ def command_choose(argv, **args):
 
 
 @pluginfunction('teatimer', 'sets a tea timer to $1 or currently %d seconds' % config.conf_get('tea_steep_time'),
-                ptypes_COMMAND)
+                ptypes.COMMAND)
 def command_teatimer(argv, **args):
     steep = config.conf_get('tea_steep_time')
 
@@ -226,7 +328,7 @@ def command_teatimer(argv, **args):
     }
 
 
-@pluginfunction('unicode-lookup', 'search unicode characters', ptypes_COMMAND,
+@pluginfunction('unicode-lookup', 'search unicode characters', ptypes.COMMAND,
                 ratelimit_class=RATE_INTERACTIVE)
 def command_unicode_lookup(argv, **args):
     if not argv:
@@ -263,7 +365,7 @@ def command_unicode_lookup(argv, **args):
     }
 
 
-@pluginfunction('decode', 'prints the long description of an unicode character', ptypes_COMMAND,
+@pluginfunction('decode', 'prints the long description of an unicode character', ptypes.COMMAND,
                 ratelimit_class=RATE_INTERACTIVE)
 def command_decode(argv, **args):
     if not argv:
@@ -303,7 +405,7 @@ def command_decode(argv, **args):
         }
 
 
-@pluginfunction('show-blacklist', 'show the current URL blacklist, optionally filtered', ptypes_COMMAND)
+@pluginfunction('show-blacklist', 'show the current URL blacklist, optionally filtered', ptypes.COMMAND)
 def command_show_blacklist(argv, **args):
     log.info('sent URL blacklist')
     if argv:
@@ -339,8 +441,8 @@ def usersetting_get(argv, args):
     }
 
 
-@pluginfunction('set', 'modify a user setting', ptypes_COMMAND, ratelimit_class=RATE_NO_LIMIT)
-@config_locked
+@pluginfunction('set', 'modify a user setting', ptypes.COMMAND, ratelimit_class=RATE_NO_LIMIT)
+@config.config_locked
 def command_usersetting(argv, **args):
     settings = ['spoiler']
     arg_user = args['reply_user']
@@ -372,36 +474,12 @@ def command_usersetting(argv, **args):
     return usersetting_get(argv, args)
 
 
-@pluginfunction('cake', 'displays a cake ASCII art', ptypes_COMMAND, ratelimit_class=RATE_FUN | RATE_GLOBAL)
-def command_cake(argv, **args):
-    if {'please', 'bitte'}.intersection(set(argv)):
-        return {
-            'msg': 'cake for {}: {}'.format(args['reply_user'], giphy('cake', 'dc6zaTOxFJmzC'))
-        }
-
-    return {
-        'msg': args['reply_user'] + ': %s' % (random.sample(cakes, 1)[0])
-    }
-
-
-@pluginfunction('keks', 'keks!', ptypes_COMMAND, ratelimit_class=RATE_FUN | RATE_GLOBAL)
-def command_cookie(argv, **args):
-    if {'please', 'bitte'}.intersection(set(argv)):
-        return {
-            'msg': 'keks für {}: {}'.format(args['reply_user'], giphy('cookie', 'dc6zaTOxFJmzC'))
-        }
-
-    return {
-        'msg': args['reply_user'] + ': %s' % (random.sample(cakes, 1)[0])
-    }
-
-
-@pluginfunction('wp-en', 'crawl the english Wikipedia', ptypes_COMMAND)
+@pluginfunction('wp-en', 'crawl the english Wikipedia', ptypes.COMMAND)
 def command_wp_en(argv, **args):
     return command_wp(argv, lang='en', **args)
 
 
-@pluginfunction('wp', 'crawl the german Wikipedia', ptypes_COMMAND)
+@pluginfunction('wp', 'crawl the german Wikipedia', ptypes.COMMAND)
 def command_wp(argv, lang='de', **args):
     query = ' '.join(argv)
 
@@ -453,80 +531,9 @@ def command_wp(argv, lang='de', **args):
         }
 
 
-@pluginfunction('show-moinlist', 'show the current moin reply list, optionally filtered', ptypes_COMMAND)
-def command_show_moinlist(argv, **args):
-    log.info('sent moin reply list')
-
-    user = None if not argv else argv[0]
-
-    return {
-        'msg':
-            '%s: moin reply list%s: %s' % (
-                args['reply_user'],
-                '' if not user else ' (limited to %s)' % user,
-                ', '.join([
-                              b for b in moin_strings_hi + moin_strings_bye
-                              if not user or user.lower() in b.lower()
-                              ])
-            )
-    }
-
-
-@pluginfunction(
-    'record', 'record a message for a now offline user (usage: record {user} {some message};'
-              ' {some message} == "previous" to use the last channel message)', ptypes_COMMAND)
-@config_locked
-def command_record(argv, **args):
-    if len(argv) < 2:
-        return {
-            'msg': '%s: usage: record {user} {some message}' % args['reply_user']
-        }
-
-    target_user = argv[0].lower().strip(':')
-    message = '{} ({}): '.format(args['reply_user'], time.strftime('%Y-%m-%d %H:%M'))
-    if argv[1] == "previous":
-        prev_message_obj = args['stack'][-1]
-        message += '[{}]: '.format(get_nick_from_object(prev_message_obj))
-        message += prev_message_obj['body']
-    else:
-        message += ' '.join(argv[1:])
-
-    if target_user not in config.runtime_config_store['user_records']:
-        config.runtime_config_store['user_records'][target_user] = []
-
-    config.runtime_config_store['user_records'][target_user].append(message)
-
-    config.runtimeconf_persist()
-
-    return {
-        'msg': '%s: message saved for %s' % (args['reply_user'], target_user)
-    }
-
-
-@pluginfunction('show-records', 'show current offline records', ptypes_COMMAND)
-def command_show_recordlist(argv, **args):
-    log.info('sent offline records list')
-
-    user = None if not argv else argv[0]
-
-    return {
-        'msg':
-            '%s: offline records%s: %s' % (
-                args['reply_user'],
-                '' if not user else ' (limited to %s)' % user,
-                ', '.join(
-                    [
-                        '%s (%d)' % (key, len(val)) for key, val in config.runtime_config_store['user_records'].items()
-                        if not user or user.lower() in key.lower()
-                        ]
-                )
-            )
-    }
-
-
 @pluginfunction(
     'dsa-watcher',
-    'automatically crawls for newly published Debian Security Announces', ptypes_COMMAND,
+    'automatically crawls for newly published Debian Security Announces', ptypes.COMMAND,
     ratelimit_class=RATE_NO_SILENCE, enabled=True)
 def command_dsa_watcher(argv=None, **_):
     """
@@ -589,14 +596,14 @@ def command_dsa_watcher(argv=None, **_):
     }
 
 
-@pluginfunction("provoke-bots", "search for other bots", ptypes_COMMAND)
+@pluginfunction("provoke-bots", "search for other bots", ptypes.COMMAND)
 def provoke_bots(argv, **args):
     return {
         'msg': 'Searching for other less intelligent lifeforms... skynet? You here?'
     }
 
 
-@pluginfunction("remove-from-botlist", "remove a user from the botlist", ptypes_COMMAND)
+@pluginfunction("remove-from-botlist", "remove a user from the botlist", ptypes.COMMAND)
 def remove_from_botlist(argv, **args):
     if not argv:
         return {'msg': "wrong number of arguments!"}
@@ -613,7 +620,7 @@ def remove_from_botlist(argv, **args):
         return False
 
 
-@pluginfunction("add-to-botlist", "add a user to the botlist", ptypes_COMMAND)
+@pluginfunction("add-to-botlist", "add a user to the botlist", ptypes.COMMAND)
 def add_to_botlist(argv, **args):
     if not argv:
         return {'msg': "wrong number of arguments!"}
@@ -630,7 +637,7 @@ def add_to_botlist(argv, **args):
         return {'msg': '%s is already in the botlist.' % suspect}
 
 
-@pluginfunction("set-status", "set bot status", ptypes_COMMAND)
+@pluginfunction("set-status", "set bot status", ptypes.COMMAND)
 def set_status(argv, **args):
     if not argv:
         return
@@ -654,7 +661,7 @@ def set_status(argv, **args):
         }
 
 
-@pluginfunction('save-config', "save config", ptypes_COMMAND, ratelimit_class=RATE_NO_LIMIT)
+@pluginfunction('save-config', "save config", ptypes.COMMAND, ratelimit_class=RATE_NO_LIMIT)
 def save_config(argv, **args):
     if args['reply_user'] != config.conf_get('bot_owner'):
         return
@@ -663,7 +670,7 @@ def save_config(argv, **args):
         return {'msg': 'done.'}
 
 
-@pluginfunction('flausch', "make people flauschig", ptypes_COMMAND, ratelimit_class=RATE_FUN)
+@pluginfunction('flausch', "make people flauschig", ptypes.COMMAND, ratelimit_class=RATE_FUN)
 def flausch(argv, **args):
     if not argv:
         return
@@ -672,7 +679,7 @@ def flausch(argv, **args):
     }
 
 
-@pluginfunction('slap', "slap people", ptypes_COMMAND, ratelimit_class=RATE_FUN)
+@pluginfunction('slap', "slap people", ptypes.COMMAND, ratelimit_class=RATE_FUN)
 def slap(argv, **args):
     if not argv:
         return
@@ -681,7 +688,7 @@ def slap(argv, **args):
     }
 
 
-@pluginfunction('show-runtimeconfig', "show the current runtimeconfig", ptypes_COMMAND, ratelimit_class=RATE_NO_LIMIT)
+@pluginfunction('show-runtimeconfig', "show the current runtimeconfig", ptypes.COMMAND, ratelimit_class=RATE_NO_LIMIT)
 def show_runtimeconfig(argv, **args):
     if args['reply_user'] != config.conf_get('bot_owner'):
         return
@@ -690,7 +697,7 @@ def show_runtimeconfig(argv, **args):
         return {'priv_msg': msg}
 
 
-@pluginfunction('reload-runtimeconfig', "reload the runtimeconfig", ptypes_COMMAND, ratelimit_class=RATE_NO_LIMIT)
+@pluginfunction('reload-runtimeconfig', "reload the runtimeconfig", ptypes.COMMAND, ratelimit_class=RATE_NO_LIMIT)
 def reload_runtimeconfig(argv, **args):
     if args['reply_user'] != config.conf_get('bot_owner'):
         return
@@ -699,7 +706,7 @@ def reload_runtimeconfig(argv, **args):
         return {'msg': 'done'}
 
 
-@pluginfunction('snitch', "tell on a spammy user", ptypes_COMMAND)
+@pluginfunction('snitch', "tell on a spammy user", ptypes.COMMAND)
 def ignore_user(argv, **args):
     if not argv:
         return {'msg': 'syntax: "{}: snitch username"'.format(config.conf_get("bot_nickname"))}
@@ -728,7 +735,7 @@ def ignore_user(argv, **args):
     }
 
 
-@pluginfunction('search', 'search the web (using duckduckgo)', ptypes_COMMAND)
+@pluginfunction('search', 'search the web (using duckduckgo)', ptypes.COMMAND)
 def search_the_web(argv, **args):
     url = 'http://api.duckduckgo.com/'
     params = dict(
@@ -760,78 +767,19 @@ def search_the_web(argv, **args):
         return {'msg': 'Sorry, no results.'}
 
 
-@pluginfunction('raise', 'only for debugging', ptypes_COMMAND)
+@pluginfunction('raise', 'only for debugging', ptypes.COMMAND)
 def raise_an_error(argv, **args):
     if args['reply_user'] == config.conf_get("bot_owner"):
         raise RuntimeError("Exception for debugging")
 
 
-@pluginfunction('repeat', 'repeat the last message', ptypes_COMMAND)
+@pluginfunction('repeat', 'repeat the last message', ptypes.COMMAND)
 def repeat_message(argv, **args):
     return {
         'msg': args['stack'][-1]['body']
     }
 
-
-@pluginfunction('translate', 'translate text fragments, use "translate show" to get a list of languages'
-                             'or "translate that" to get the last message translated (to german)', ptypes_COMMAND)
-def translate(argv, **args):
-    available_languages = [code[0] for code in languages]
-
-    if argv and argv[0] == 'show':
-        return {
-            'priv_msg': 'All language codes: {}'.format(', '.join(available_languages))
-        }
-    elif argv and argv[0] == 'that':
-        api_key = config.conf_get('detectlanguage_api_key')
-        if not api_key:
-            return
-        message_stack = args['stack']
-        last_message = message_stack[-1]['body']
-        data = {
-            'q': last_message,
-            'key': api_key
-        }
-        result = requests.post('http://ws.detectlanguage.com/0.2/detect', data=data).json()
-        educated_guess = result['data']['detections'][0]
-        if not educated_guess['isReliable']:
-            return {'msg': 'not sure about the language.'}
-        else:
-            return translate(['{}|de'.format(educated_guess['language'])] + shlex.split(last_message))
-
-    pattern = '^(?P<from_lang>[a-z-]{2})(-(?P<from_ct>[a-z-]{2}))?\|(?P<to_lang>[a-z-]{2})(-(?P<to_ct>[a-z-]{2}))?$'
-    pair = re.match(pattern, argv[0])
-    if len(argv) < 2 or not pair:
-        return {
-            'msg': 'Usage: translate en|de my favorite bot'
-        }
-    else:
-        pair = pair.groupdict()
-        from_lang = pair.get('from_lang')
-        to_lang = pair.get('to_lang')
-
-        # TODO: check country code as well
-        if not all([lang in available_languages for lang in [from_lang, to_lang]]):
-            return {
-                'msg': '{}: not a valid language code. Please use ISO 639-1 or RFC3066 codes. '
-                       'Use "translate show" to get a full list of all known language '
-                       'codes (not necessarily supported) as privmsg.'.format(args['reply_user'])
-            }
-
-    words = ' '.join(argv[1:])
-    url = 'http://api.mymemory.translated.net/get'
-    params = {
-        'q': words,
-        'langpair': argv[0],
-        'de': config.conf_get('bot_owner_email')
-    }
-    response = requests.get(url, params=params).json()
-    return {
-        'msg': 'translation: {}'.format(response['responseData']['translatedText'])
-    }
-
-
-@pluginfunction('isdown', 'check if a website is reachable', ptypes_COMMAND)
+@pluginfunction('isdown', 'check if a website is reachable', ptypes.COMMAND)
 def isdown(argv, **args):
     if not argv:
         return
@@ -847,7 +795,7 @@ def isdown(argv, **args):
         return {'msg': '{}: {} does not exist, you\'re trying to fool me?'.format(args['reply_user'], url)}
 
 
-@pluginfunction('poll', 'create a poll', ptypes_COMMAND)
+@pluginfunction('poll', 'create a poll', ptypes.COMMAND)
 def poll(argv, **args):
     with config.plugin_config('poll') as pollcfg:
         current_poll = pollcfg.get('subject')
@@ -899,45 +847,7 @@ def poll(argv, **args):
                 return {'msg': 'created the poll.'}
 
 
-@pluginfunction('vote', 'alias for poll', ptypes_COMMAND)
+@pluginfunction('vote', 'alias for poll', ptypes.COMMAND)
 def vote(argv, **args):
     return poll(argv, **args)
 
-
-@pluginfunction('quiz', 'play quiz', ptypes_COMMAND)
-def quiz_control(argv, **args):
-    usage = """quiz mode usage: "quiz start [secs interval:default 30]", "quiz stop", "quiz rules;
-Not yet implemented: "quiz answer", "quiz skip".
-If the quiz mode is active, all messages are parsed and compared against the answer.
-    """
-    if not argv:
-        return {'msg': usage}
-
-    rules = """
-The answers will be matched by characters/words. Answers will be
- granted points according to the match percentage with a minimum
- percentage depending on word count. After a configurable timeout per
- quiz game, a single winner will be declared, if any. The timeout can
- be cancelled with "quiz answer" or "quiz skip", which results in
- a lost round.
-    """
-
-    with config.plugin_config('quiz') as quizcfg:
-        if quizcfg is None:
-            quizcfg = dict()
-
-        if argv[0] == 'start':
-            quizcfg['stop_bit'] = False
-            interval = int(argv[1]) if len(argv) > 1 else 30
-            quizcfg['interval'] = interval
-            return quiz.start_random_question()
-        elif argv[0] == 'stop':
-            return quiz.end(quizcfg)
-        elif argv[0] == 'answer':
-            return quiz.answer(quizcfg)
-        elif argv[0] == 'skip':
-            return quiz.skip(quizcfg)
-        elif argv[0] == 'rules':
-            return {
-                'msg': rules
-            }

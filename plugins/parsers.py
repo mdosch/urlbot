@@ -1,18 +1,18 @@
+# -*- coding: utf-8 -*-
 import logging
+log = logging.getLogger(__name__)
+
 import random
 import re
 import time
 
 import config
-from common import RATE_NO_SILENCE, RATE_GLOBAL, extract_title, RATE_FUN, RATE_URL, pluginfunction, ptypes_PARSE
+from common import extract_title 
+from rate_limit import RATE_NO_SILENCE, RATE_GLOBAL, RATE_FUN, RATE_URL
 from config import runtimeconf_get
-from plugins import ptypes_PARSE, quiz
-from string_constants import moin_strings_hi, moin_strings_bye
+from plugin_system import pluginfunction, ptypes
 
-log = logging.getLogger(__name__)
-
-
-@pluginfunction('mental_ill', 'parse mental illness', ptypes_PARSE, ratelimit_class=RATE_NO_SILENCE | RATE_GLOBAL)
+@pluginfunction('mental_ill', 'parse mental illness', ptypes.PARSE, ratelimit_class=RATE_NO_SILENCE | RATE_GLOBAL)
 def parse_mental_ill(**args):
     min_ill = 3
     c = 0
@@ -38,7 +38,7 @@ def parse_mental_ill(**args):
         }
 
 
-@pluginfunction('debbug', 'parse Debian bug numbers', ptypes_PARSE, ratelimit_class=RATE_NO_SILENCE | RATE_GLOBAL)
+@pluginfunction('debbug', 'parse Debian bug numbers', ptypes.PARSE, ratelimit_class=RATE_NO_SILENCE | RATE_GLOBAL)
 def parse_debbug(**args):
     bugs = re.findall(r'#(\d{4,})', args['data'])
     if not bugs:
@@ -63,7 +63,7 @@ def parse_debbug(**args):
     }
 
 
-@pluginfunction('cve', 'parse a CVE handle', ptypes_PARSE, ratelimit_class=RATE_NO_SILENCE | RATE_GLOBAL)
+@pluginfunction('cve', 'parse a CVE handle', ptypes.PARSE, ratelimit_class=RATE_NO_SILENCE | RATE_GLOBAL)
 def parse_cve(**args):
     cves = re.findall(r'(CVE-\d\d\d\d-\d+)', args['data'].upper())
     if not cves:
@@ -75,7 +75,7 @@ def parse_cve(**args):
     }
 
 
-@pluginfunction('dsa', 'parse a DSA handle', ptypes_PARSE, ratelimit_class=RATE_NO_SILENCE | RATE_GLOBAL)
+@pluginfunction('dsa', 'parse a DSA handle', ptypes.PARSE, ratelimit_class=RATE_NO_SILENCE | RATE_GLOBAL)
 def parse_dsa(**args):
     dsas = re.findall(r'(DSA-\d\d\d\d-\d+)', args['data'].upper())
     if not dsas:
@@ -87,7 +87,7 @@ def parse_dsa(**args):
     }
 
 
-@pluginfunction('skynet', 'parse skynet', ptypes_PARSE, ratelimit_class=RATE_FUN | RATE_GLOBAL)
+@pluginfunction('skynet', 'parse skynet', ptypes.PARSE, ratelimit_class=RATE_FUN | RATE_GLOBAL)
 def parse_skynet(**args):
     if 'skynet' in args['data'].lower():
         return {
@@ -95,44 +95,7 @@ def parse_skynet(**args):
         }
 
 
-@pluginfunction('moin', 'parse hi/bye', ptypes_PARSE, enabled=False)
-def parse_moin(**args):
-    for direction in [moin_strings_hi, moin_strings_bye]:
-        for d in direction:
-            words = re.split(r'\W+', args['data'])
-
-            # assumption: longer sentences are not greetings
-            if 3 < len(args['data'].split()):
-                continue
-
-            for w in words:
-                if d.lower() == w.lower():
-                    if args['reply_user'] in config.conf_get('moin-disabled-user'):
-                        log.info('moin blacklist match')
-                        return
-
-                    if args['reply_user'] in config.conf_get('moin-modified-user'):
-                        log.info('being "quiet" for %s' % w)
-                        return {
-                            'msg': '/me %s' % random.choice([
-                                "doesn't say anything at all",
-                                'whistles uninterested',
-                                'just ignores this incident'
-                            ])
-                        }
-
-                    log.info('sent %s reply for %s' % (
-                        'hi' if direction is moin_strings_hi else 'bye', w
-                    ))
-                    return {
-                        'msg': '''%s, %s''' % (
-                            random.choice(direction),
-                            args['reply_user']
-                        )
-                    }
-
-
-@pluginfunction('latex', r'reacts on \LaTeX', ptypes_PARSE, ratelimit_class=RATE_FUN | RATE_GLOBAL)
+@pluginfunction('latex', r'reacts on \LaTeX', ptypes.PARSE, ratelimit_class=RATE_FUN | RATE_GLOBAL)
 def parse_latex(**args):
     if r'\LaTeX' in args['data']:
         return {
@@ -140,7 +103,7 @@ def parse_latex(**args):
         }
 
 
-@pluginfunction('me-action', 'reacts to /me.*%{bot_nickname}', ptypes_PARSE, ratelimit_class=RATE_FUN | RATE_GLOBAL)
+@pluginfunction('me-action', 'reacts to /me.*%{bot_nickname}', ptypes.PARSE, ratelimit_class=RATE_FUN | RATE_GLOBAL)
 def parse_slash_me(**args):
     if args['data'].lower().startswith('/me') and (config.conf_get('bot_nickname') in args['data'].lower()):
         log.info('sent /me reply')
@@ -158,7 +121,7 @@ def parse_slash_me(**args):
         }
 
 
-@pluginfunction("recognize_bots", "got ya", ptypes_PARSE)
+@pluginfunction("recognize_bots", "got ya", ptypes.PARSE)
 def recognize_bots(**args):
     unique_standard_phrases = (
         'independent bot and have nothing to do with other artificial intelligence systems',
@@ -184,7 +147,7 @@ def recognize_bots(**args):
         return _add_to_list(args['reply_user'], 'Hey there, buddy!')
 
 
-@pluginfunction('resolve-url-title', 'extract titles from urls', ptypes_PARSE, ratelimit_class=RATE_URL)
+@pluginfunction('resolve-url-title', 'extract titles from urls', ptypes.PARSE, ratelimit_class=RATE_URL)
 def resolve_url_title(**args):
     user = args['reply_user']
     user_pref_nospoiler = runtimeconf_get('user_pref', {}).get(user, {}).get('spoiler', False)
@@ -220,12 +183,3 @@ def resolve_url_title(**args):
         'msg': out
     }
 
-
-@pluginfunction('quizparser', 'react on chat during quiz games', ptypes_PARSE)
-def quizparser(**args):
-    with config.plugin_config('quiz') as quizcfg:
-        current_quiz_question = quiz.get_current_question(quizcfg)
-        if current_quiz_question is None:
-            return
-        else:
-            return quiz.rate(quizcfg, args['data'], args['reply_user'])
