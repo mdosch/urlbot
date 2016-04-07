@@ -5,6 +5,7 @@ import logging
 import re
 import requests
 from urllib.error import URLError
+import sleekxmpp
 
 BUFSIZ = 8192
 USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64; rv:31.0) ' \
@@ -96,11 +97,24 @@ def giphy(subject, api_key):
 
 
 def get_nick_from_object(message_obj):
-    """
-    not quite correct yet, also the private property access isn't nice.
-    """
-    nick = message_obj['mucnick'] or message_obj['from']._jid[2]
-    return nick
+
+    if isinstance(message_obj, sleekxmpp.Message):
+        msg_type = message_obj.getType()
+
+        if msg_type == "groupchat":
+            return message_obj.getMucnick()
+        elif msg_type == "chat":
+            jid = message_obj.getFrom()
+            return jid.resource
+        else:
+            raise Exception("Message, but not groupchat/chat")
+
+    elif isinstance(message_obj, sleekxmpp.Presence):
+        jid = message_obj.getFrom()
+        return jid.resource
+
+    else:
+        raise Exception("Message type is: " + str(type(message_obj)))
 
 
 def else_command(args):
