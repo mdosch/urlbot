@@ -15,6 +15,7 @@ import config
 from common import VERSION
 from rate_limit import RATE_FUN, RATE_GLOBAL, RATE_INTERACTIVE, RATE_NO_SILENCE, RATE_NO_LIMIT
 from plugin_system import pluginfunction, ptypes, plugin_storage, plugin_enabled_get, plugin_enabled_set
+
 log = logging.getLogger(__name__)
 
 
@@ -92,7 +93,6 @@ def command_plugin_activation(argv, **args):
 
 @pluginfunction('list', 'list plugin and parser status', ptypes.COMMAND)
 def command_list(argv, **args):
-
     log.info('list plugin called')
 
     if 'enabled' in argv and 'disabled' in argv:
@@ -282,15 +282,38 @@ def command_dice(argv, **args):
 @pluginfunction('choose', 'chooses randomly between arguments', ptypes.COMMAND, ratelimit_class=RATE_INTERACTIVE)
 def command_choose(argv, **args):
     alternatives = argv
-    if len(alternatives) < 2:
+    binary = ['Yes', 'No', 'Maybe']
+
+    # single choose request
+    if 'choose' not in alternatives:
+        log.info('sent random choice')
         return {
-            'msg': '{}: {}.'.format(args['reply_user'], random.choice(['Yes', 'No']))
+            'msg': '%s: I prefer %s!' % (args['reply_user'], random.choice(alternatives))
         }
 
-    choice = random.choice(alternatives)
-    log.info('sent random choice')
+    # multiple choices
+    def choose_between(options):
+        responses = []
+        current_choices = []
+
+        for item in options:
+            if item == 'choose':
+                if len(current_choices) < 2:
+                    responses.append(random.choice(binary))
+                else:
+                    responses.append(random.choice(current_choices))
+                current_choices = []
+            else:
+                current_choices.append(item)
+        if len(current_choices) < 2:
+            responses.append(random.choice(binary))
+        else:
+            responses.append(random.choice(current_choices))
+        return responses
+
+    log.info('sent multiple random choices')
     return {
-        'msg': '%s: I prefer %s!' % (args['reply_user'], choice)
+        'msg': '%s: My choices are: %s!' % (args['reply_user'], ', '.join(choose_between(alternatives)))
     }
 
 
@@ -564,8 +587,8 @@ def command_dsa_watcher(argv=None, **_):
         for dsa_about in reversed(dsa_about_list):
             dsa_id = get_id_from_about_string(dsa_about)
             title = xmldoc.xpath(
-                    '//purl:item[@rdf:about="{}"]/purl:title/text()'.format(dsa_about),
-                    namespaces=nsmap
+                '//purl:item[@rdf:about="{}"]/purl:title/text()'.format(dsa_about),
+                namespaces=nsmap
             )[0]
             if after and dsa_id <= after:
                 continue
