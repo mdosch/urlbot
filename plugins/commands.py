@@ -775,8 +775,9 @@ def raise_an_error(argv, **args):
         raise RuntimeError("Exception for debugging")
 
 
-@pluginfunction('repeat', 'repeat the last message', ptypes.COMMAND)
+@pluginfunction('repeat', 'repeat the last message', ptypes.COMMAND, enabled=False)
 def repeat_message(argv, **args):
+    return {'msg': 'disabled until channel separation'}
     return {
         'msg': args['stack'][-1]['body']
     }
