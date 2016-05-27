@@ -122,8 +122,10 @@ def parse_slash_me(**args):
         }
 
 
-@pluginfunction("recognize_bots", "got ya", ptypes.PARSE)
+@pluginfunction("recognize_bots", "got ya", ptypes.PARSE, enabled=False)
 def recognize_bots(**args):
+    # disabled until channel separation
+    return
     unique_standard_phrases = (
         'independent bot and have nothing to do with other artificial intelligence systems',
         'new Debian Security Announce',
