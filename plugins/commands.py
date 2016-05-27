@@ -284,14 +284,17 @@ def command_choose(argv, **args):
     alternatives = argv
     binary = ['Yes', 'No', 'Maybe']
 
-    # single choose request
-    if 'choose' not in alternatives:
-        log.info('sent random choice')
+    # single or no choice
+    if len(alternatives) < 2:
         return {
-            'msg': '%s: I prefer %s!' % (args['reply_user'], random.choice(alternatives))
+            'msg': '{}: {}.'.format(args['reply_user'], random.choice(binary))
+        }
+    elif 'choose' not in alternatives:
+        choice = random.choice(alternatives)
+        return {
+            'msg': '%s: I prefer %s!' % (args['reply_user'], choice)
         }
 
-    # multiple choices
     def choose_between(options):
         responses = []
         current_choices = []
