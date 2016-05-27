@@ -186,3 +186,10 @@ def resolve_url_title(**args):
         'msg': out
     }
 
+
+@pluginfunction('doctor', 'parse doctor', ptypes.PARSE, ratelimit_class=RATE_FUN | RATE_GLOBAL)
+def parse_doctor(**args):
+    if 'doctor' in args['data'].lower() or 'doktor' in args['data'].lower():
+        return {
+            'msg': 'ELIMINIEREN! ELIMINIEREN!'
+        }
