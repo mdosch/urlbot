@@ -621,8 +621,9 @@ def remove_from_botlist(argv, **args):
         return False
 
 
-@pluginfunction("add-to-botlist", "add a user to the botlist", ptypes.COMMAND)
+@pluginfunction("add-to-botlist", "add a user to the botlist", ptypes.COMMAND, enabled=False)
 def add_to_botlist(argv, **args):
+    return {'msg': 'feature disabled until channel separation'}
     if not argv:
         return {'msg': "wrong number of arguments!"}
     suspect = argv[0]
