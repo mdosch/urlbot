@@ -17,7 +17,7 @@ comment_joins_strings = [
 def comment_joins(**args):
     # max elapsed time between the latest and the N latest join
     timespan = 120
-    max_joins = config.runtime_config_store
+    max_joins = 6
 
     current_timestamp = int(time.time())
 
