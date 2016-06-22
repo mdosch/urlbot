@@ -801,12 +801,12 @@ def raise_an_error(argv, **args):
         raise RuntimeError("Exception for debugging")
 
 
-@pluginfunction('repeat', 'repeat the last message', ptypes.COMMAND, enabled=False)
+@pluginfunction('repeat', 'repeat the last message', ptypes.COMMAND)
 def repeat_message(argv, **args):
-    return {'msg': 'disabled until channel separation'}
-    return {
-        'msg': args['stack'][-1]['body']
-    }
+    if args['stack']:
+        return {
+            'msg': args['stack'][-1]['body']
+        }
 
 
 @pluginfunction('isdown', 'check if a website is reachable', ptypes.COMMAND)

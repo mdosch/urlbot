@@ -22,6 +22,8 @@ def translate(argv, **args):
         if not api_key:
             return
         message_stack = args['stack']
+        if not message_stack[-1]:
+            return
         last_message = message_stack[-1]['body']
         data = {
             'q': last_message,

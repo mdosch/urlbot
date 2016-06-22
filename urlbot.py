@@ -7,6 +7,8 @@ import re
 import shlex
 import sys
 import time
+from collections import deque
+
 from lxml import etree
 
 import requests
@@ -34,7 +36,7 @@ class UrlBot(IdleBot):
 
         self.hist_ts = {p: [] for p in rate_limit_classes}
         self.hist_flag = {p: True for p in rate_limit_classes}
-        self.message_stack = []
+        self.message_stack = {str(room): deque(maxlen=5) for room in self.rooms}
 
         self.add_event_handler('message', self.message)
         self.priority = 100
@@ -196,9 +198,8 @@ class UrlBot(IdleBot):
         except Exception as e:
             self.logger.exception(e)
         finally:
-            if len(self.message_stack) > 4:
-                self.message_stack.pop(0)
-            self.message_stack.append(msg_obj)
+            if msg_obj['from'].bare in self.rooms:
+                self.message_stack[msg_obj['from'].bare].append(msg_obj)
 
     def handle_muc_online(self, msg_obj):
         """
@@ -268,7 +269,7 @@ class UrlBot(IdleBot):
                 reply_user=reply_user,
                 msg_obj=msg_obj,
                 argv=words[2:] if len(words) > 1 else [],
-                stack=self.message_stack
+                stack=self.message_stack.get(msg_obj['from'].bare, [])
             )
 
             if ret:
