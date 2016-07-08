@@ -283,15 +283,15 @@ def command_dice(argv, **args):
 def command_choose(argv, **args):
     alternatives = argv
     binary = (
-        ('Yes', 'Yeah!', 'Ok!', 'Ay!', 'Great!'),
-        ('No', 'Naah', 'Meh', 'Nay', 'You stupid?'),
-        ('Maybe', 'Dunno', 'I don\'t care')
+        ('Yes.', 'Yeah!', 'Ok!', 'Ay!', 'Great!'),
+        ('No.', 'Naah..', 'Meh.', 'Nay.', 'You stupid?'),
+        ('Maybe.', 'Dunno.', 'I don\'t care.')
     )
 
     # single or no choice
     if len(alternatives) < 2:
         return {
-            'msg': '{}: {}.'.format(args['reply_user'], random.choice(random.choice(binary)))
+            'msg': '{}: {}'.format(args['reply_user'], random.choice(random.choice(binary)))
         }
     elif 'choose' not in alternatives:
         choice = random.choice(alternatives)
