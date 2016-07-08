@@ -282,12 +282,16 @@ def command_dice(argv, **args):
 @pluginfunction('choose', 'chooses randomly between arguments', ptypes.COMMAND, ratelimit_class=RATE_INTERACTIVE)
 def command_choose(argv, **args):
     alternatives = argv
-    binary = ['Yes', 'No', 'Maybe']
+    binary = (
+        ('Yes', 'Yeah!', 'Ok!', 'Ay!', 'Great!'),
+        ('No', 'Naah', 'Meh', 'Nay', 'You stupid?'),
+        ('Maybe', 'Dunno', 'I don\'t care')
+    )
 
     # single or no choice
     if len(alternatives) < 2:
         return {
-            'msg': '{}: {}.'.format(args['reply_user'], random.choice(binary))
+            'msg': '{}: {}.'.format(args['reply_user'], random.choice(random.choice(binary)))
         }
     elif 'choose' not in alternatives:
         choice = random.choice(alternatives)
@@ -302,14 +306,14 @@ def command_choose(argv, **args):
         for item in options:
             if item == 'choose':
                 if len(current_choices) < 2:
-                    responses.append(random.choice(binary))
+                    responses.append(random.choice(random.choice(binary)))
                 else:
                     responses.append(random.choice(current_choices))
                 current_choices = []
             else:
                 current_choices.append(item)
         if len(current_choices) < 2:
-            responses.append(random.choice(binary))
+            responses.append(random.choice(random.choice(binary)))
         else:
             responses.append(random.choice(current_choices))
         return responses
