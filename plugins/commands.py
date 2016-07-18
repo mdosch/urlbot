@@ -283,7 +283,7 @@ def command_dice(argv, **args):
 def command_choose(argv, **args):
     alternatives = argv
     binary = (
-        ('Yes.', 'Yeah!', 'Ok!', 'Ay!', 'Great!'),
+        ('Yes.', 'Yeah!', 'Ok!', 'Aye!', 'Great!'),
         ('No.', 'Naah..', 'Meh.', 'Nay.', 'You stupid?'),
         ('Maybe.', 'Dunno.', 'I don\'t care.')
     )
