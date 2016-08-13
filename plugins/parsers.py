@@ -39,6 +39,14 @@ def parse_mental_ill(**args):
         }
 
 
+@pluginfunction('woof', '*puts sunglasses on*', ptypes.PARSE, ratelimit_class=RATE_NO_SILENCE | RATE_GLOBAL)
+def command_woof(**args):
+    if 'who let the bots out' in args['data']:
+        return {
+            'msg': 'beeep! beep! beep! beep! beep!'
+        }
+
+
 @pluginfunction('debbug', 'parse Debian bug numbers', ptypes.PARSE, ratelimit_class=RATE_NO_SILENCE | RATE_GLOBAL)
 def parse_debbug(**args):
     bugs = re.findall(r'#(\d{4,})', args['data'])
