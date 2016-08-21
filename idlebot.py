@@ -30,7 +30,7 @@ class IdleBot(ClientXMPP):
             self.add_event_handler('muc::%s::got_offline' % room, self.muc_offline)
 
     def disconnected(self, _):
-        exit(0)
+        self.disconnect(wait=True)
 
     def session_start(self, _):
         self.get_roster()
@@ -82,8 +82,7 @@ class IdleBot(ClientXMPP):
         """
         disconnect and exit
         """
-        self.disconnect()
-        sys.exit(1)
+        self.disconnect(wait=True)
 
 
 def start(botclass, active=False):
