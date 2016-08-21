@@ -20,6 +20,7 @@ class IdleBot(ClientXMPP):
         self.add_event_handler('session_start', self.session_start)
         self.add_event_handler('groupchat_message', self.muc_message)
         self.add_event_handler('disconnected', self.disconnected)
+        self.add_event_handler('presence_error', self.disconnected)
         self.priority = 0
         self.status = None
         self.show = None
