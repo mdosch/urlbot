@@ -12,7 +12,9 @@ from collections import deque
 from lxml import etree
 
 import requests
+from sleekxmpp.plugins import PluginNotFound
 
+import plugins  # force initialization
 from plugin_system import plugin_storage, ptypes, plugin_enabled_get
 from rate_limit import rate_limit_classes, RATE_GLOBAL, RATE_CHAT, RATE_EVENT, rate_limit
 
@@ -43,6 +45,9 @@ class UrlBot(IdleBot):
 
         for room in self.rooms:
             self.add_event_handler('muc::%s::got_online' % room, self.muc_online)
+
+        dsa_plugin = list(filter(lambda x: x.plugin_name == 'dsa-watcher', plugin_storage[ptypes.COMMAND]))[0]
+        self._run_action(dsa_plugin(), dsa_plugin, None)
 
     def muc_message(self, msg_obj):
         """
@@ -109,7 +114,10 @@ class UrlBot(IdleBot):
             other_bots = config.runtimeconf_get("other_bots")
             if not other_bots:
                 return False
-            users = self.plugin['xep_0045'].getRoster(room)
+            try:
+                users = self.plugin['xep_0045'].getRoster(room)
+            except PluginNotFound:
+                users = []
             return set(users).intersection(set(other_bots))
 
         def _prevent_panic(message, room):
@@ -349,7 +357,8 @@ class UrlBot(IdleBot):
                         args=command[1],
                         action_runner=self._run_action,
                         plugin=plugin,
-                        msg_obj=msg_obj
+                        msg_obj=msg_obj,
+                        mutex=event.get('mutex')
                     )
 
         if 'msg' in action and rate_limit(RATE_CHAT | plugin.ratelimit_class):

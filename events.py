@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import time
 import sched
 import threading
@@ -8,7 +9,7 @@ EVENTLOOP_DELAY = 0.100  # seconds
 event_list = sched.scheduler(time.time, time.sleep)
 
 
-def register_active_event(t, callback, args, action_runner, plugin, msg_obj):
+def register_active_event(t, callback, args, action_runner, plugin, msg_obj, mutex=None):
     """
     Execute a callback at a given time and react on the output
 
@@ -24,10 +25,14 @@ def register_active_event(t, callback, args, action_runner, plugin, msg_obj):
         action = callback(*func_args)
         if action:
             action_runner(action=action, plugin=plugin, msg_obj=msg_obj)
-    event_list.enterabs(t, 0, func, args)
+    register_event(t, func, args, mutex=mutex)
 
 
-def register_event(t, callback, args):
+def register_event(t, callback, args, **kwargs):
+    for pending_event in event_list.queue:
+        if kwargs.get('mutex') and pending_event.kwargs.get('mutex', None) == kwargs.get('mutex'):
+            logging.debug("Dropped event: %s", kwargs.get('mutex'))
+            return
     event_list.enterabs(t, 0, callback, args)
 
 
