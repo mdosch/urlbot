@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 
+import re
 import events
 import json
 import random
@@ -279,6 +280,95 @@ def command_dice(argv, **args):
     }
 
 
+@pluginfunction('xchoose', 'chooses randomly between arguments', ptypes.COMMAND, ratelimit_class=RATE_INTERACTIVE)
+def command_xchoose(argv, **args):
+
+    # because of error handling we're nesting this function here
+    def xchoose(line):
+        pos = 0
+        item = ''
+        quote = None
+        choose_tree = []
+        choose_stack = [ choose_tree ]
+        bracket_stack = []
+
+        for c in line:
+            pos += 1
+
+            if quote:
+                if c == quote:
+                    quote = None
+                else:
+                    item += c
+
+            elif c == ' ':
+                if item:
+                    choose_stack[-1].append( (item, []) )
+                    item = ''
+
+            elif c == '(' or c == '[' or c == '{' or c == '<':
+                if item:
+                    choose_stack[-1].append( (item, []) )
+                    item = ''
+
+                if not choose_stack[-1]:
+                    raise Exception("Missing option before bracket (at pos {:d})".format(pos))
+
+                choose_stack.append( choose_stack[-1][-1][1] )
+                bracket_stack.append(c)
+
+            elif c == ')' or c == ']' or c == '}' or c == '>':
+                if not bracket_stack:
+                    raise Exception("Missing leading bracket for '{}'".format(c))
+
+                opening_bracket = bracket_stack.pop(-1)
+                wanted_closing_bracket = { '(':')', '[':']', '{':'}', '<':'>' }[opening_bracket]
+                if c != wanted_closing_bracket:
+                    raise Exception("Bracket mismatch. Wanted bracket '{}' but got '{}'".format(
+                        wanted_closing_bracket, c))
+
+                if item:
+                    choose_stack[-1].append( (item, []) )
+                    item = ''
+
+                choose_stack.pop(-1)
+
+            elif c == '"' or c == "'":
+                quote = c
+
+            else:
+                item += c
+
+        if bracket_stack:
+            raise Exception("Missing closing bracket for '{}'".format(bracket_stack[-1]))
+
+        if item:
+            choose_stack[-1].append( (item, []) )
+
+        def tree_choice(tree):
+            sel = random.choice(tree)
+            yield sel[0]
+
+            if sel[1]:
+                for sub in tree_choice(sel[1]):
+                    yield sub
+
+        return ' '.join(tree_choice(choose_tree))
+
+
+    # start of command_xchoose
+    line = re.sub('.*xchoose ', '', args['data'])
+
+    try:
+        return {
+            'msg': '%s: %s' % (args['reply_user'], xchoose(line))
+        }
+    except Exception as e:
+        return {
+            'msg': '%s: %s' % (args['reply_user'], str(e))
+        }
+
+
 @pluginfunction('choose', 'chooses randomly between arguments', ptypes.COMMAND, ratelimit_class=RATE_INTERACTIVE)
 def command_choose(argv, **args):
     alternatives = argv
@@ -363,8 +453,7 @@ def command_teatimer(argv, **args):
         ),
         'event': {
             'time': ready,
-            'msg': (args['reply_user'] + ': Your tea is ready!'),
-            'mutex': 'teatimer_{}'.format(args['reply_user'])
+            'msg': (args['reply_user'] + ': Your tea is ready!')
         }
     }
 
@@ -630,11 +719,9 @@ def command_dsa_watcher(argv=None, **_):
     msg = 'next crawl set to %s' % time.strftime('%Y-%m-%d %H:%M', time.localtime(crawl_at))
     out.append(msg)
     return {
-        # 'msg': out,
         'event': {
             'time': crawl_at,
-            'command': (command_dsa_watcher, ([],)),
-            'mutex': 'dsa'
+            'command': (command_dsa_watcher, ([],))
         }
     }
 
