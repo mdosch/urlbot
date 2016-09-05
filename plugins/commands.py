@@ -315,14 +315,14 @@ def command_choose(argv, **args):
         for item in options:
             if item == 'choose':
                 if len(current_choices) < 2:
-                    responses.append(random.choice(random.choice(binary)))
+                    responses.append(random.choice(weighted_choice(binary)))
                 else:
                     responses.append(random.choice(current_choices))
                 current_choices = []
             else:
                 current_choices.append(item)
         if len(current_choices) < 2:
-            responses.append(random.choice(random.choice(binary)))
+            responses.append(random.choice(weighted_choice(binary)))
         else:
             responses.append(random.choice(current_choices))
         return responses
