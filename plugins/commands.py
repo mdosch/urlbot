@@ -280,85 +280,126 @@ def command_dice(argv, **args):
     }
 
 
-@pluginfunction('xchoose', 'chooses randomly between arguments', ptypes.COMMAND, ratelimit_class=RATE_INTERACTIVE)
+@pluginfunction('xchoose', 'chooses randomly between nested option groups', ptypes.COMMAND, ratelimit_class=RATE_INTERACTIVE)
 def command_xchoose(argv, **args):
 
+    class ChooseTree():
+        def __init__(self, item=None):
+            self.item = item
+            self.tree = None
+            self.closed = False
+
+            # opening our root node
+            if self.item is None:
+                self.open()
+
+        def open(self):
+            if self.tree is None:
+                self.tree = []
+            elif self.closed:
+                raise Exception("cannot re-open group for item '%s'" % (self.item))
+
+        def close(self):
+            if self.tree is None:
+                raise Exception("close on unopened bracket")
+            elif len(self.tree) == 0:
+                raise Exception("item '%s' has a group without sub options" % (self.item))
+            else:
+                self.closed = True
+
+        def last(self):
+            return self.tree[-1]
+
+        def choose(self):
+            if self.item:
+                yield self.item
+            
+            if self.tree:
+                sel = random.choice(self.tree)
+                for sub in sel.choose():
+                    yield sub
+
+        def add(self, item):
+            self.tree.append( ChooseTree(item) )
+        
     # because of error handling we're nesting this function here
     def xchoose(line):
-        pos = 0
         item = ''
         quote = None
-        choose_tree = []
+        choose_tree = ChooseTree()
         choose_stack = [ choose_tree ]
         bracket_stack = []
 
-        for c in line:
-            pos += 1
+        for pos, c in enumerate(line, 1):
+            try:
+                if quote:
+                    if c == quote:
+                        quote = None
+                    else:
+                        item += c
 
-            if quote:
-                if c == quote:
-                    quote = None
+                elif c == ' ':
+                    if item:
+                        choose_stack[-1].add(item)
+                        item = ''
+
+                elif c in ('(', '[', '{', '<'):
+                    if item:
+                        choose_stack[-1].add(item)
+                        item = ''
+
+                    try:
+                        last = choose_stack[-1].last()
+                        last.open()
+                        choose_stack.append(last)
+                        bracket_stack.append(c)
+                    except IndexError:
+                        raise Exception("cannot open group without preceding option")
+
+                elif c in (')', ']', '}', '>'):
+                    if not bracket_stack:
+                        raise Exception("missing leading bracket for '%s'" % (c))
+
+                    opening_bracket = bracket_stack.pop(-1)
+                    wanted_closing_bracket = { '(':')', '[':']', '{':'}', '<':'>' }[opening_bracket]
+                    if c != wanted_closing_bracket:
+                        raise Exception("bracket mismatch, wanted bracket '%s' but got '%s'" % (
+                            wanted_closing_bracket, c))
+
+                    if item:
+                        choose_stack[-1].add(item)
+                        item = ''
+
+                    choose_stack[-1].close()
+                    choose_stack.pop(-1)
+
+                elif c in ('"', "'"):
+                    quote = c
+
                 else:
                     item += c
 
-            elif c == ' ':
-                if item:
-                    choose_stack[-1].append( (item, []) )
-                    item = ''
-
-            elif c == '(' or c == '[' or c == '{' or c == '<':
-                if item:
-                    choose_stack[-1].append( (item, []) )
-                    item = ''
-
-                if not choose_stack[-1]:
-                    raise Exception("Missing option before bracket (at pos {:d})".format(pos))
-
-                choose_stack.append( choose_stack[-1][-1][1] )
-                bracket_stack.append(c)
-
-            elif c == ')' or c == ']' or c == '}' or c == '>':
-                if not bracket_stack:
-                    raise Exception("Missing leading bracket for '{}'".format(c))
-
-                opening_bracket = bracket_stack.pop(-1)
-                wanted_closing_bracket = { '(':')', '[':']', '{':'}', '<':'>' }[opening_bracket]
-                if c != wanted_closing_bracket:
-                    raise Exception("Bracket mismatch. Wanted bracket '{}' but got '{}'".format(
-                        wanted_closing_bracket, c))
-
-                if item:
-                    choose_stack[-1].append( (item, []) )
-                    item = ''
-
-                choose_stack.pop(-1)
-
-            elif c == '"' or c == "'":
-                quote = c
-
-            else:
-                item += c
+            except Exception as e:
+                raise Exception("%s (at pos %d)" % (e, pos))
 
         if bracket_stack:
-            raise Exception("Missing closing bracket for '{}'".format(bracket_stack[-1]))
+            raise Exception("missing closing bracket for '%s'" % (bracket_stack[-1]))
+
+        if quote:
+            raise Exception("missing closing quote (%s)" % (quote))
 
         if item:
-            choose_stack[-1].append( (item, []) )
+            choose_stack[-1].add(item)
 
-        def tree_choice(tree):
-            sel = random.choice(tree)
-            yield sel[0]
-
-            if sel[1]:
-                for sub in tree_choice(sel[1]):
-                    yield sub
-
-        return ' '.join(tree_choice(choose_tree))
+        return ' '.join(choose_tree.choose())
 
 
     # start of command_xchoose
-    line = re.sub('.*xchoose ', '', args['data'])
-
+    line = re.sub('.*xchoose *', '', args['data'])
+    if not line:
+        return {
+            'msg': '%s: %s' % (args['reply_user'], 'missing options')
+        }
     try:
         return {
             'msg': '%s: %s' % (args['reply_user'], xchoose(line))
