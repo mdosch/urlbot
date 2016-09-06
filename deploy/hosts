@@ -1,2 +1,2 @@
 [bots]
-aero2k.de ansible_host=2a01:4f8:d16:130c::2
+aero2k.de ansible_host=2a01:4f8:d16:130c::2 ansible_become_method=su
