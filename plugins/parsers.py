@@ -58,14 +58,11 @@ def parse_debbug(**args):
         log.info('detected Debian bug #%s' % b)
 
         url = 'https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=%s' % b
-        status, title = extract_title(url)
 
-        if 0 == status:
+        title = extract_title(url)
+
+        if title:
             out.append('Debian Bug: %s: %s' % (title, url))
-        elif 3 == status:
-            out.append('error for #%s: %s' % (b, title))
-        else:
-            log.info('unknown status %d' % status)
 
     return {
         'msg': out
@@ -130,34 +127,6 @@ def parse_slash_me(**args):
         }
 
 
-@pluginfunction("recognize_bots", "got ya", ptypes.PARSE, enabled=False)
-def recognize_bots(**args):
-    # disabled until channel separation
-    return
-    unique_standard_phrases = (
-        'independent bot and have nothing to do with other artificial intelligence systems',
-        'new Debian Security Announce',
-        'I\'m a bot (highlight me',
-    )
-
-    def _add_to_list(username, message):
-        if username not in config.runtime_config_store['other_bots']:
-            config.runtime_config_store['other_bots'].append(username)
-            config.runtimeconf_persist()
-            log.info("Adding {} to the list of bots (now {})".format(username, config.runtime_config_store['other_bots']))
-            return {
-                'event': {
-                    'time': time.time() + 3,
-                    'msg': message
-                }
-            }
-
-    if any([phrase in args['data'] for phrase in unique_standard_phrases]):
-        return _add_to_list(args['reply_user'], 'Making notes...')
-    elif 'I\'ll be back' in args['data']:
-        return _add_to_list(args['reply_user'], 'Hey there, buddy!')
-
-
 @pluginfunction('resolve-url-title', 'extract titles from urls', ptypes.PARSE, ratelimit_class=RATE_URL)
 def resolve_url_title(**args):
     user = args['reply_user']
@@ -173,7 +142,7 @@ def resolve_url_title(**args):
     url_blacklist = config.runtime_config_store['url_blacklist'].values()
 
     out = []
-    for url in result:
+    for url in result[:10]:
         if any([re.match(b, url) for b in url_blacklist]):
             log.info('url blacklist match for ' + url)
             break

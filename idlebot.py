@@ -21,6 +21,7 @@ class IdleBot(ClientXMPP):
         self.add_event_handler('groupchat_message', self.muc_message)
         self.add_event_handler('disconnected', self.disconnected)
         self.add_event_handler('presence_error', self.disconnected)
+        self.add_event_handler('session_end', self.disconnected)
         self.priority = 0
         self.status = None
         self.show = None
@@ -30,6 +31,7 @@ class IdleBot(ClientXMPP):
             self.add_event_handler('muc::%s::got_offline' % room, self.muc_offline)
 
     def disconnected(self, _):
+        self.logger.warn("Disconnected! dbg: {}".format(str(_)))
         self.disconnect(wait=True)
 
     def session_start(self, _):
@@ -105,6 +107,8 @@ def start(botclass, active=False):
 
     bot.connect()
     bot.register_plugin('xep_0045')
+    bot.register_plugin('xep_0199', {'keepalive': True})
+    bot.register_plugin('xep_0308')
     bot.process()
 
     config.runtimeconf_set('start_time', -time.time())

@@ -88,7 +88,7 @@ class UrlBot(IdleBot):
         request_counter = int(config.runtimeconf_get('request_counter'))
         config.runtimeconf_set('request_counter', request_counter + 1)
 
-        if str is not type(message):
+        if not isinstance(message, str):
             message = '\n'.join(message)
 
         def cached(function, ttl=60):
@@ -300,7 +300,7 @@ class UrlBot(IdleBot):
             if not plugin_enabled_get(plugin):
                 continue
 
-            ret = plugin(reply_user=reply_user, data=data)
+            ret = plugin(reply_user=reply_user, data=data, sender=msg_obj['from'])
 
             if ret:
                 self._run_action(ret, plugin, msg_obj)

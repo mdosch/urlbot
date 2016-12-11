@@ -881,35 +881,6 @@ def reload_runtimeconfig(argv, **args):
         return {'msg': 'done'}
 
 
-@pluginfunction('snitch', "tell on a spammy user", ptypes.COMMAND)
-def ignore_user(argv, **args):
-    if not argv:
-        return {'msg': 'syntax: "{}: snitch username"'.format(config.conf_get("bot_nickname"))}
-
-    then = time.time() + 15 * 60
-    spammer = argv[0]
-
-    if spammer == config.conf_get("bot_owner"):
-        return {
-            'msg': 'My owner does not spam, he is just very informative.'
-        }
-
-    if spammer not in config.runtime_config_store['spammers']:
-        config.runtime_config_store['spammers'].append(spammer)
-
-    def unblock_user(user):
-        if user not in config.runtime_config_store['spammers']:
-            config.runtime_config_store['spammers'].append(user)
-
-    return {
-        'msg': 'user reported and ignored till {}'.format(time.strftime('%H:%M', time.localtime(then))),
-        'event': {
-            'time': then,
-            'command': (unblock_user, ([spammer],))
-        }
-    }
-
-
 @pluginfunction('search', 'search the web (using duckduckgo)', ptypes.COMMAND)
 def search_the_web(argv, **args):
     url = 'http://api.duckduckgo.com/'
