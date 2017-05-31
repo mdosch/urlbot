@@ -6,28 +6,48 @@ from plugin_system import pluginfunction, ptypes
 from rate_limit import RATE_FUN, RATE_GLOBAL
 
 
+def give_item(user, item_name, search_word=None):
+    if not search_word:
+        search_word = item_name
+    return {'msg': '{} for {}: {}'.format(item_name, user, giphy(search_word, 'dc6zaTOxFJmzC'))}
+
+
+def cake_excuse(user):
+    return {
+        'msg': '{}: {}'.format(user, random.choice(cakes))
+    }
+
+
 @pluginfunction('cake', 'displays a cake ASCII art', ptypes.COMMAND, ratelimit_class=RATE_FUN | RATE_GLOBAL)
 def command_cake(argv, **args):
     if {'please', 'bitte'}.intersection(set(argv)):
-        return {
-            'msg': 'cake for {}: {}'.format(args['reply_user'], giphy('cake', 'dc6zaTOxFJmzC'))
-        }
-
-    return {
-        'msg': args['reply_user'] + ': %s' % random.choice(cakes)
-    }
+        return give_item(args['reply_user'], 'cake')
+    else:
+        return cake_excuse(args['reply_user'])
 
 
 @pluginfunction('keks', 'keks!', ptypes.COMMAND, ratelimit_class=RATE_FUN | RATE_GLOBAL)
 def command_cookie(argv, **args):
     if {'please', 'bitte'}.intersection(set(argv)):
-        return {
-            'msg': 'keks für {}: {}'.format(args['reply_user'], giphy('cookie', 'dc6zaTOxFJmzC'))
-        }
+        return give_item(args['reply_user'], 'keks', 'cookie')
+    else:
+        return cake_excuse(args['reply_user'])
 
-    return {
-        'msg': args['reply_user'] + ': %s' % random.choice(cakes)
-    }
+
+@pluginfunction('schnitzel', 'schnitzel!', ptypes.COMMAND, ratelimit_class=RATE_FUN | RATE_GLOBAL)
+def command_schnitzel(argv, **args):
+    if {'please', 'bitte'}.intersection(set(argv)):
+        return give_item(args['reply_user'], 'schnitzel')
+    else:
+        return cake_excuse(args['reply_user'])
+
+
+@pluginfunction('kaffee', 'kaffee!', ptypes.COMMAND, ratelimit_class=RATE_FUN | RATE_GLOBAL)
+def command_coffee(argv, **args):
+    if {'please', 'bitte'}.intersection(set(argv)):
+        return give_item(args['reply_user'], 'kaffee', 'coffee')
+    else:
+        return cake_excuse(args['reply_user'])
 
 
 cakes = [
@@ -46,4 +66,3 @@ cakes = [
     "I'm going to kill you, and all the cake is gone.",
     "Who's gonna make the cake when I'm gone? You?"
 ]
-

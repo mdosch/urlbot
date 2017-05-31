@@ -20,6 +20,7 @@
   vars:
   - botrepo: http://aero2k.de/t/repos/urlbot-native.git
   - pypi_mirror: http://pypi.fcio.net/simple/
+  - systemd: true
   tasks:
   - include_vars: credentials.yml
     tags: [render_config]
@@ -27,6 +28,7 @@
     shell: virtualenv -p python3 --system-site-packages ~/botenv creates=~/botenv/bin/activate
   - name: virtualenv for supervisord
     shell: virtualenv -p python2 ~/svenv creates=~/svenv/bin/activate
+    when: not systemd
   - name: clone repository
     git: repo="{{botrepo}}" dest=~/urlbot force=yes update=yes
     register: source_code
@@ -34,6 +36,7 @@
     pip: requirements="~/urlbot/requirements.txt" virtualenv=~/botenv extra_args="-i {{pypi_mirror}}"
   - name: install supervisor
     pip: name=supervisor virtualenv=~/svenv extra_args="-i {{pypi_mirror}}"
+    when: not systemd
 
   - name: set configuration
     lineinfile: dest=~/urlbot/local_config.ini create=yes line="{{item.key}} = {{item.value}}" regexp="^{{item.key}}.="
@@ -60,29 +63,94 @@
   - name: create supervisor config
     copy: src=supervisord.conf dest=~/supervisord.conf
     register: supervisord
+    when: not systemd
+
+  - name: create directory for systemd unit file
+    shell: mkdir -p ~/.config/systemd/user/ creates=~/.config/systemd/user/
+    when: systemd
+
+  - name: create unitfile
+    copy: src=urlbug@.service dest=~/.config/systemd/user/urlbug@.service
+    when: systemd
+    register: unitfile
+
+  # crapshit does not work
+  - name: reload unitfiles
+    become: true
+    shell: systemctl daemon-reload
+    when: unitfile.changed
+    ignore_errors: true
+
+  - name: enable services
+    shell: "systemctl --user enable urlbug@{{item}}.service"
+    with_items:
+      - idlebot
+      - urlbot
+    when: systemd
 
   - name: verify supervisor running
     shell: nc -z 127.0.0.1 9004; echo $? executable=/bin/bash
     register: supervisor_running
     changed_when: false
+    when: not systemd
 
   - name: start supervisord
     shell: source ~/svenv/bin/activate && supervisord executable=/bin/bash
     register: start_supervisor
-    when: supervisord.changed or supervisor_running.stdout == "1"
+    when:
+      - not systemd
+      - supervisord.changed or supervisor_running.stdout == "1"
     #changed_when: "'already listening' not in start_supervisor.stdout"
 
   - name: activate supervisord changes
-    when: supervisord.changed
     shell: source ~/svenv/bin/activate && supervisorctl reload executable=/bin/bash
+    when:
+      - not systemd
+      - supervisord.changed
 
   - name: idlebot started
     supervisorctl: name=idlebot state=restarted supervisorctl_path=~/svenv/bin/supervisorctl
-    when: (source_code.changed or urlbot_config.changed) and not supervisord.changed
+    when:
+      - not systemd
+      - (source_code.changed or urlbot_config.changed) and not supervisord.changed
 
-  - pause: seconds=30
-    when: (source_code.changed or urlbot_config.changed) and not supervisord.changed
+  # following tasks are workaround for missing ansible systemd-user support
+  - name: get systemd unit status
+    shell: systemctl --user status urlbug.slice
+    register: systemd_unit_status
+
+  - debug: var=systemd_unit_status
+  - debug: msg="{{'{{item}}.service' not in systemd_unit_status.stdout}}"
+    with_items:
+      - idlebot
+      - urlbot
+
+  - name: bots started
+    shell: "systemctl --user start urlbug@{{item}}.service && sleep 20"
+    with_items:
+      - idlebot
+      - urlbot
+    when: systemd and '{{item}}.service' not in systemd_unit_status.stdout
+    register: started_bots
+
+  - debug: var=started_bots
+
+  - name: bots restarted
+    shell: "systemctl --user restart urlbug@{{item}}.service && sleep 10"
+    with_items:
+      - idlebot
+      - urlbot
+    when:
+      - systemd
+      - source_code.changed or urlbot_config.changed
+
+  - pause: seconds=20
+    when:
+      - not systemd
+      - (source_code.changed or urlbot_config.changed) and not supervisord.changed
 
   - name: urlbot started
     supervisorctl: name=bot state=restarted supervisorctl_path=~/svenv/bin/supervisorctl
-    when: (source_code.changed or urlbot_config.changed) and not supervisord.changed
+    when:
+      - not systemd
+      - (source_code.changed or urlbot_config.changed) and not supervisord.changed

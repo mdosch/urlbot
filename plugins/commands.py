@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 
+import re
 import events
 import json
 import random
@@ -15,6 +16,7 @@ import config
 from common import VERSION
 from rate_limit import RATE_FUN, RATE_GLOBAL, RATE_INTERACTIVE, RATE_NO_SILENCE, RATE_NO_LIMIT
 from plugin_system import pluginfunction, ptypes, plugin_storage, plugin_enabled_get, plugin_enabled_set
+
 log = logging.getLogger(__name__)
 
 
@@ -92,7 +94,6 @@ def command_plugin_activation(argv, **args):
 
 @pluginfunction('list', 'list plugin and parser status', ptypes.COMMAND)
 def command_list(argv, **args):
-
     log.info('list plugin called')
 
     if 'enabled' in argv and 'disabled' in argv:
@@ -279,18 +280,187 @@ def command_dice(argv, **args):
     }
 
 
+@pluginfunction('xchoose', 'chooses randomly between nested option groups', ptypes.COMMAND, ratelimit_class=RATE_INTERACTIVE)
+def command_xchoose(argv, **args):
+
+    class ChooseTree():
+        def __init__(self, item=None):
+            self.item = item
+            self.tree = None
+            self.closed = False
+
+            # opening our root node
+            if self.item is None:
+                self.open()
+
+        def open(self):
+            if self.tree is None:
+                self.tree = []
+            elif self.closed:
+                raise Exception("cannot re-open group for item '%s'" % (self.item))
+
+        def close(self):
+            if self.tree is None:
+                raise Exception("close on unopened bracket")
+            elif len(self.tree) == 0:
+                raise Exception("item '%s' has a group without sub options" % (self.item))
+            else:
+                self.closed = True
+
+        def last(self):
+            return self.tree[-1]
+
+        def choose(self):
+            if self.item:
+                yield self.item
+            
+            if self.tree:
+                sel = random.choice(self.tree)
+                for sub in sel.choose():
+                    yield sub
+
+        def add(self, item):
+            self.tree.append( ChooseTree(item) )
+        
+    # because of error handling we're nesting this function here
+    def xchoose(line):
+        item = ''
+        quote = None
+        choose_tree = ChooseTree()
+        choose_stack = [ choose_tree ]
+        bracket_stack = []
+
+        for pos, c in enumerate(line, 1):
+            try:
+                if quote:
+                    if c == quote:
+                        quote = None
+                    else:
+                        item += c
+
+                elif c == ' ':
+                    if item:
+                        choose_stack[-1].add(item)
+                        item = ''
+
+                elif c in ('(', '[', '{', '<'):
+                    if item:
+                        choose_stack[-1].add(item)
+                        item = ''
+
+                    try:
+                        last = choose_stack[-1].last()
+                        last.open()
+                        choose_stack.append(last)
+                        bracket_stack.append(c)
+                    except IndexError:
+                        raise Exception("cannot open group without preceding option")
+
+                elif c in (')', ']', '}', '>'):
+                    if not bracket_stack:
+                        raise Exception("missing leading bracket for '%s'" % (c))
+
+                    opening_bracket = bracket_stack.pop(-1)
+                    wanted_closing_bracket = { '(':')', '[':']', '{':'}', '<':'>' }[opening_bracket]
+                    if c != wanted_closing_bracket:
+                        raise Exception("bracket mismatch, wanted bracket '%s' but got '%s'" % (
+                            wanted_closing_bracket, c))
+
+                    if item:
+                        choose_stack[-1].add(item)
+                        item = ''
+
+                    choose_stack[-1].close()
+                    choose_stack.pop(-1)
+
+                elif c in ('"', "'"):
+                    quote = c
+
+                else:
+                    item += c
+
+            except Exception as e:
+                raise Exception("%s (at pos %d)" % (e, pos))
+
+        if bracket_stack:
+            raise Exception("missing closing bracket for '%s'" % (bracket_stack[-1]))
+
+        if quote:
+            raise Exception("missing closing quote (%s)" % (quote))
+
+        if item:
+            choose_stack[-1].add(item)
+
+        return ' '.join(choose_tree.choose())
+
+
+    # start of command_xchoose
+    line = re.sub('.*xchoose *', '', args['data'])
+    if not line:
+        return {
+            'msg': '%s: %s' % (args['reply_user'], 'missing options')
+        }
+    try:
+        return {
+            'msg': '%s: %s' % (args['reply_user'], xchoose(line))
+        }
+    except Exception as e:
+        return {
+            'msg': '%s: %s' % (args['reply_user'], str(e))
+        }
+
+
 @pluginfunction('choose', 'chooses randomly between arguments', ptypes.COMMAND, ratelimit_class=RATE_INTERACTIVE)
 def command_choose(argv, **args):
     alternatives = argv
+    binary = (
+        (('Yes.', 'Yeah!', 'Ok!', 'Aye!', 'Great!'), 4),
+        (('No.', 'Naah..', 'Meh.', 'Nay.', 'You stupid?'), 4),
+        (('Maybe.', 'Dunno.', 'I don\'t care.'), 2)
+    )
+
+    def weighted_choice(choices):
+        total = sum(w for c, w in choices)
+        r = random.uniform(0, total)
+        upto = 0
+        for c, w in choices:
+            if upto + w >= r:
+                return c
+            upto += w
+
+    # single or no choice
     if len(alternatives) < 2:
         return {
-            'msg': '{}: {}.'.format(args['reply_user'], random.choice(['Yes', 'No']))
+            'msg': '{}: {}'.format(args['reply_user'], random.choice(weighted_choice(binary)))
+        }
+    elif 'choose' not in alternatives:
+        choice = random.choice(alternatives)
+        return {
+            'msg': '%s: I prefer %s!' % (args['reply_user'], choice)
         }
 
-    choice = random.choice(alternatives)
-    log.info('sent random choice')
+    def choose_between(options):
+        responses = []
+        current_choices = []
+
+        for item in options:
+            if item == 'choose':
+                if len(current_choices) < 2:
+                    responses.append(random.choice(weighted_choice(binary)))
+                else:
+                    responses.append(random.choice(current_choices))
+                current_choices = []
+            else:
+                current_choices.append(item)
+        if len(current_choices) < 2:
+            responses.append(random.choice(weighted_choice(binary)))
+        else:
+            responses.append(random.choice(current_choices))
+        return responses
+
+    log.info('sent multiple random choices')
     return {
-        'msg': '%s: I prefer %s!' % (args['reply_user'], choice)
+        'msg': '%s: My choices are: %s!' % (args['reply_user'], ', '.join(choose_between(alternatives)))
     }
 
 
@@ -324,7 +494,8 @@ def command_teatimer(argv, **args):
         ),
         'event': {
             'time': ready,
-            'msg': (args['reply_user'] + ': Your tea is ready!')
+            'msg': (args['reply_user'] + ': Your tea is ready!'),
+            'mutex': 'teatimer_{}'.format(args['reply_user'])
         }
     }
 
@@ -564,8 +735,8 @@ def command_dsa_watcher(argv=None, **_):
         for dsa_about in reversed(dsa_about_list):
             dsa_id = get_id_from_about_string(dsa_about)
             title = xmldoc.xpath(
-                    '//purl:item[@rdf:about="{}"]/purl:title/text()'.format(dsa_about),
-                    namespaces=nsmap
+                '//purl:item[@rdf:about="{}"]/purl:title/text()'.format(dsa_about),
+                namespaces=nsmap
             )[0]
             if after and dsa_id <= after:
                 continue
@@ -590,9 +761,11 @@ def command_dsa_watcher(argv=None, **_):
     msg = 'next crawl set to %s' % time.strftime('%Y-%m-%d %H:%M', time.localtime(crawl_at))
     out.append(msg)
     return {
+        # 'msg': out,
         'event': {
             'time': crawl_at,
-            'command': (command_dsa_watcher, ([],))
+            'command': (command_dsa_watcher, ([],)),
+            'mutex': 'dsa'
         }
     }
 
@@ -621,8 +794,9 @@ def remove_from_botlist(argv, **args):
         return False
 
 
-@pluginfunction("add-to-botlist", "add a user to the botlist", ptypes.COMMAND)
+@pluginfunction("add-to-botlist", "add a user to the botlist", ptypes.COMMAND, enabled=False)
 def add_to_botlist(argv, **args):
+    return {'msg': 'feature disabled until channel separation'}
     if not argv:
         return {'msg': "wrong number of arguments!"}
     suspect = argv[0]
@@ -707,35 +881,6 @@ def reload_runtimeconfig(argv, **args):
         return {'msg': 'done'}
 
 
-@pluginfunction('snitch', "tell on a spammy user", ptypes.COMMAND)
-def ignore_user(argv, **args):
-    if not argv:
-        return {'msg': 'syntax: "{}: snitch username"'.format(config.conf_get("bot_nickname"))}
-
-    then = time.time() + 15 * 60
-    spammer = argv[0]
-
-    if spammer == config.conf_get("bot_owner"):
-        return {
-            'msg': 'My owner does not spam, he is just very informative.'
-        }
-
-    if spammer not in config.runtime_config_store['spammers']:
-        config.runtime_config_store['spammers'].append(spammer)
-
-    def unblock_user(user):
-        if user not in config.runtime_config_store['spammers']:
-            config.runtime_config_store['spammers'].append(user)
-
-    return {
-        'msg': 'user reported and ignored till {}'.format(time.strftime('%H:%M', time.localtime(then))),
-        'event': {
-            'time': then,
-            'command': (unblock_user, ([spammer],))
-        }
-    }
-
-
 @pluginfunction('search', 'search the web (using duckduckgo)', ptypes.COMMAND)
 def search_the_web(argv, **args):
     url = 'http://api.duckduckgo.com/'
@@ -776,9 +921,10 @@ def raise_an_error(argv, **args):
 
 @pluginfunction('repeat', 'repeat the last message', ptypes.COMMAND)
 def repeat_message(argv, **args):
-    return {
-        'msg': args['stack'][-1]['body']
-    }
+    if args['stack']:
+        return {
+            'msg': args['stack'][-1]['body']
+        }
 
 
 @pluginfunction('isdown', 'check if a website is reachable', ptypes.COMMAND)

@@ -7,10 +7,14 @@ import re
 import shlex
 import sys
 import time
+from collections import deque
+
 from lxml import etree
 
 import requests
+from sleekxmpp.plugins import PluginNotFound
 
+import plugins  # force initialization
 from plugin_system import plugin_storage, ptypes, plugin_enabled_get
 from rate_limit import rate_limit_classes, RATE_GLOBAL, RATE_CHAT, RATE_EVENT, rate_limit
 
@@ -34,13 +38,16 @@ class UrlBot(IdleBot):
 
         self.hist_ts = {p: [] for p in rate_limit_classes}
         self.hist_flag = {p: True for p in rate_limit_classes}
-        self.message_stack = []
+        self.message_stack = {str(room): deque(maxlen=5) for room in self.rooms}
 
         self.add_event_handler('message', self.message)
         self.priority = 100
 
         for room in self.rooms:
             self.add_event_handler('muc::%s::got_online' % room, self.muc_online)
+
+        dsa_plugin = list(filter(lambda x: x.plugin_name == 'dsa-watcher', plugin_storage[ptypes.COMMAND]))[0]
+        self._run_action(dsa_plugin(), dsa_plugin, None)
 
     def muc_message(self, msg_obj):
         """
@@ -81,7 +88,7 @@ class UrlBot(IdleBot):
         request_counter = int(config.runtimeconf_get('request_counter'))
         config.runtimeconf_set('request_counter', request_counter + 1)
 
-        if str is not type(message):
+        if not isinstance(message, str):
             message = '\n'.join(message)
 
         def cached(function, ttl=60):
@@ -107,7 +114,10 @@ class UrlBot(IdleBot):
             other_bots = config.runtimeconf_get("other_bots")
             if not other_bots:
                 return False
-            users = self.plugin['xep_0045'].getRoster(room)
+            try:
+                users = self.plugin['xep_0045'].getRoster(room)
+            except PluginNotFound:
+                users = []
             return set(users).intersection(set(other_bots))
 
         def _prevent_panic(message, room):
@@ -196,9 +206,8 @@ class UrlBot(IdleBot):
         except Exception as e:
             self.logger.exception(e)
         finally:
-            if len(self.message_stack) > 4:
-                self.message_stack.pop(0)
-            self.message_stack.append(msg_obj)
+            if msg_obj['from'].bare in self.rooms:
+                self.message_stack[msg_obj['from'].bare].append(msg_obj)
 
     def handle_muc_online(self, msg_obj):
         """
@@ -268,7 +277,7 @@ class UrlBot(IdleBot):
                 reply_user=reply_user,
                 msg_obj=msg_obj,
                 argv=words[2:] if len(words) > 1 else [],
-                stack=self.message_stack
+                stack=self.message_stack.get(msg_obj['from'].bare, [])
             )
 
             if ret:
@@ -291,7 +300,7 @@ class UrlBot(IdleBot):
             if not plugin_enabled_get(plugin):
                 continue
 
-            ret = plugin(reply_user=reply_user, data=data)
+            ret = plugin(reply_user=reply_user, data=data, sender=msg_obj['from'])
 
             if ret:
                 self._run_action(ret, plugin, msg_obj)
@@ -348,7 +357,8 @@ class UrlBot(IdleBot):
                         args=command[1],
                         action_runner=self._run_action,
                         plugin=plugin,
-                        msg_obj=msg_obj
+                        msg_obj=msg_obj,
+                        mutex=event.get('mutex')
                     )
 
         if 'msg' in action and rate_limit(RATE_CHAT | plugin.ratelimit_class):

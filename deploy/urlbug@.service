@@ -1,0 +1,12 @@
+[Unit]
+Description=jabber bot entertaining and supporting activity on jabber MUCs
+
+[Service]
+ExecStart=/home/jabberbot/botenv/bin/python3 /home/jabberbot/urlbot/%i.py
+WorkingDirectory=/home/jabberbot/urlbot/
+StandardOutput=journal+console
+StandardError=journal+console
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
