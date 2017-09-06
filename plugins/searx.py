@@ -96,4 +96,4 @@ def searx(text):
 
     if not response['results']:
         return
-    return [(r['content'], r['url']) for r in response['results']][0]
+    return [(r.get('content', ''), r['url']) for r in response['results']][0]
