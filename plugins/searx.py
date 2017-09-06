@@ -1,14 +1,15 @@
 import logging
 import time
 from functools import wraps
-from json import JSONDecodeError
-
+import json
 import requests
 from lxml import etree, html
 from requests import HTTPError
 
 search_list = []
 
+if not hasattr(json, 'JSONDecodeError'):
+    json.JSONDecodeError = ValueError
 
 class RateLimitingError(HTTPError):
     pass
@@ -69,7 +70,7 @@ def fetch_all_searx_engines():
     return searxes
 
 
-@retry(ExceptionToCheck=(RateLimitingError, JSONDecodeError))
+@retry(ExceptionToCheck=(RateLimitingError, json.JSONDecodeError))
 def searx(text):
     global search_list
     if not search_list:
@@ -88,7 +89,7 @@ def searx(text):
         raise RateLimitingError(response=response, request=response.request)
     try:
         response = response.json()
-    except JSONDecodeError as e:
+    except json.JSONDecodeError:
         # "maintenance" they say...
         search_list.pop()
         raise
