@@ -77,7 +77,7 @@ def searx(text):
         search_list = fetch_all_searx_engines()
     logger = logging.getLogger(__name__)
 
-    url = search_list[-1]
+    url = search_list[0]
     logger.info('Currently feeding from {} (of {} in stock)'.format(url, len(search_list)))
     response = requests.get(url, params={
         'q': text,
@@ -85,13 +85,13 @@ def searx(text):
         'lang': 'de'
     })
     if response.status_code == 429:
-        search_list.pop()
+        search_list.pop(0)
         raise RateLimitingError(response=response, request=response.request)
     try:
         response = response.json()
     except json.JSONDecodeError:
         # "maintenance" they say...
-        search_list.pop()
+        search_list.pop(0)
         raise
 
     if not response['results']:
