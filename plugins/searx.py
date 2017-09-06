@@ -82,8 +82,7 @@ def searx(text):
     response = requests.get(url, params={
         'q': text,
         'format': 'json',
-        'lang': 'de',
-        'engines': 'bing,google,yahoo'
+        'lang': 'de'
     })
     if response.status_code == 429:
         search_list.pop(0)
