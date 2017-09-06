@@ -14,6 +14,7 @@ from lxml import etree
 
 import config
 from common import VERSION
+from plugins.searx import searx
 from rate_limit import RATE_FUN, RATE_GLOBAL, RATE_INTERACTIVE, RATE_NO_SILENCE, RATE_NO_LIMIT
 from plugin_system import pluginfunction, ptypes, plugin_storage, plugin_enabled_get, plugin_enabled_set
 
@@ -881,8 +882,8 @@ def reload_runtimeconfig(argv, **args):
         return {'msg': 'done'}
 
 
-@pluginfunction('search', 'search the web (using duckduckgo)', ptypes.COMMAND)
-def search_the_web(argv, **args):
+@pluginfunction('ducksearch', 'search the web (using duckduckgo)', ptypes.COMMAND)
+def search_the_duck(argv, **args):
     url = 'http://api.duckduckgo.com/'
     params = dict(
         q=' '.join(argv),
@@ -911,6 +912,24 @@ def search_the_web(argv, **args):
         }
     else:
         return {'msg': 'Sorry, no results.'}
+
+
+@pluginfunction('search', 'search the web (using searx)', ptypes.COMMAND)
+def search_the_web(argv, **args):
+    result = searx(' '.join(argv))
+    if not result:
+        return {'msg': 'Sorry, no results.'}
+    else:
+        abstract, url = result
+
+    if len(abstract) > 150:
+        suffix = '…'
+    else:
+        suffix = ''
+    return {
+        'msg': '{}{} ({})'.format(abstract[:150], suffix, url)
+    }
+    pass
 
 
 @pluginfunction('raise', 'only for debugging', ptypes.COMMAND)

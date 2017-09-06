@@ -1,18 +1,22 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 import logging
-import time
 import sys
+import time
+import _ssl
+
+from sleekxmpp import ClientXMPP
+
 import config
 import events
 from common import VERSION
-
-from sleekxmpp import ClientXMPP
 
 
 class IdleBot(ClientXMPP):
     def __init__(self, jid, password, rooms, nick):
         ClientXMPP.__init__(self, jid, password)
+
+        self.ssl_version = _ssl.PROTOCOL_TLSv1_2
 
         self.rooms = rooms
         self.nick = nick
@@ -114,7 +118,7 @@ def start(botclass, active=False):
     config.runtimeconf_set('start_time', -time.time())
 
     if active:
-        import plugins
+        pass
 
     events.event_loop.start()
 
