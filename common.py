@@ -39,7 +39,7 @@ VERSION = get_version_git()
 def fetch_page(url):
     log = logging.getLogger(__name__)
     log.info('fetching page ' + url)
-    response = requests.get(url, headers={'User-Agent': USER_AGENT}, stream=True)
+    response = requests.get(url, headers={'User-Agent': USER_AGENT}, stream=True, timeout=15)
     content = response.raw.read(BUFSIZ, decode_content=True)
     return content.decode(response.encoding or 'utf-8'), response.headers
 
