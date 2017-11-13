@@ -18,7 +18,7 @@
 - hosts: bots
   remote_user: jabberbot
   vars:
-  - botrepo: http://aero2k.de/t/repos/urlbot-native.git
+  - botrepo: https://github.com/mdosch/urlbot/
   - pypi_mirror: http://pypi.fcio.net/simple/
   - systemd: true
   tasks:
