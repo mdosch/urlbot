@@ -1,6 +1,5 @@
 .*swp
 *.pyc
-local_config.ini
 persistent_config.ini
 local_config.ini
 
