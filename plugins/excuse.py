@@ -17,6 +17,7 @@ def command_excuse(argv, **args):
 
 # retrieved from http://pages.cs.wisc.edu/~ballard/bofh/excuses
 excuses = '''
+a part of these answers would unsettle the population
 clock speed
 solar flares
 electromagnetic radiation from satellite debris
