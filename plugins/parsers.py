@@ -164,7 +164,7 @@ def parse_latex(**args):
 
 @pluginfunction('me-action', 'reacts to /me.*%{bot_nickname}', ptypes.PARSE, ratelimit_class=RATE_FUN | RATE_GLOBAL)
 def parse_slash_me(**args):
-    if args['data'].lower().startswith('/me') and (config.conf_get('bot_nickname') in args['data']):
+    if args['data'].lower().startswith('/me') and (config.conf_get('bot_nickname') in args['data'].lower()):
         log.info('sent /me reply')
 
         me_replys = [
