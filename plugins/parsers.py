@@ -221,5 +221,5 @@ def resolve_url_title(**args):
 def parse_doctor(**args):
     if 'doctor' in args['data'].lower() or 'doktor' in args['data'].lower():
         return {
-            'msg': 'ELIMINIEREN! ELIMINIEREN!'
+            'msg': 'EXTERMINATE! EXTERMINATE!'
         }
