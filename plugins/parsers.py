@@ -154,6 +154,15 @@ def parse_whatsapp(**args):
 	    'msg': 'WhatsApp? I thought this MUC is about secure messengers...'
         }
 
+@pluginfunction('winter', 'parse winter', ptypes.PARSE, ratelimit_class=RATE_FUN | RATE_GLOBAL)
+
+def parse_winter(**args):
+    if 'winter' in args['data'].lower():
+        return {
+            'msg': 'Winter is coming!'
+        }
+
+
 @pluginfunction('latex', r'reacts on \LaTeX', ptypes.PARSE, ratelimit_class=RATE_FUN | RATE_GLOBAL)
 def parse_latex(**args):
     if r'\LaTeX' in args['data']:
