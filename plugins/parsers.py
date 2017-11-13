@@ -27,14 +27,14 @@ def parse_mental_ill(**args):
             c = 0
         if min_ill <= c:
             flag = True
-            break
+#            break
 
     if flag:
         log.info('sent mental illness reply')
         return {
             'msg': (
-                'Multiple exclamation/question marks are a sure sign of mental disease, with %s as a living example.' %
-                args['reply_user']
+                '%s: And all those exclamation/question marks, you notice? %d? A sure sign of someone who wears his underpants on his head.' %
+                (args['reply_user'],c)
             )
         }
 
@@ -47,22 +47,44 @@ def command_woof(**args):
         }
 
 
-@pluginfunction('debbug', 'parse Debian bug numbers', ptypes.PARSE, ratelimit_class=RATE_NO_SILENCE | RATE_GLOBAL)
-def parse_debbug(**args):
-    bugs = re.findall(r'#(\d{4,})', args['data'])
+@pluginfunction('convbug', 'parse Conversations bug numbers', ptypes.PARSE, ratelimit_class=RATE_NO_SILENCE | RATE_GLOBAL)
+def parse_convbug(**args):
+    bugs = re.findall(r'#(\d{1,})', args['data'])
     if not bugs:
         return None
 
     out = []
     for b in bugs:
-        log.info('detected Debian bug #%s' % b)
+        log.info('detected Conversations bug #%s' % b)
 
-        url = 'https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=%s' % b
+        url = 'https://github.com/siacs/Conversations/issues/%s' % b
+	
+        title = extract_title(url)
+
+        if title:
+            out.append('%s: %s' % (title, url))
+
+    return {
+        'msg': out
+    }
+
+
+@pluginfunction('xep', 'parse XEP numbers', ptypes.PARSE, ratelimit_class=RATE_NO_SILENCE | RATE_GLOBAL)
+def parse_xep(**args):
+    xepnumber = re.findall(r'XEP-(\d{4,})', args['data'].upper())
+    if not xepnumber:
+        return None
+
+    out = []
+    for i in xepnumber:
+        log.info('detected XEP number #%s' % i)
+
+        url = 'https://xmpp.org/extensions/xep-%s.html' % i
 
         title = extract_title(url)
 
         if title:
-            out.append('Debian Bug: %s: %s' % (title, url))
+            out.append('%s: %s' % (title, url))
 
     return {
         'msg': out
@@ -100,6 +122,37 @@ def parse_skynet(**args):
             'msg': 'I\'ll be back.'
         }
 
+@pluginfunction('teppich', 'parse teppich', ptypes.PARSE, ratelimit_class=RATE_FUN | RATE_GLOBAL)
+
+def parse_teppich(**args):
+    if 'teppich' in args['data'].lower():
+        return {
+            'msg': 'Well, sir, it\'s this rug I had. It really tied the room together.'
+        }
+
+@pluginfunction('klo', 'parse klo', ptypes.PARSE, ratelimit_class=RATE_FUN | RATE_GLOBAL)
+
+def parse_klo(**args):
+    if 'klo' in args['data'].lower():
+        return {
+            'msg': 'Where\'s the money Lebowski?'
+        }
+
+@pluginfunction('toilette', 'parse toilette', ptypes.PARSE, ratelimit_class=RATE_FUN | RATE_GLOBAL)
+
+def parse_toilette(**args):
+    if 'toilette' in args['data'].lower():
+        return {
+            'msg': 'Where\'s the money Lebowski?'
+        }
+
+@pluginfunction('whatsapp', 'parse whatsapp', ptypes.PARSE, ratelimit_class=RATE_FUN | RATE_GLOBAL)
+
+def parse_whatsapp(**args):
+    if 'whatsapp' in args['data'].lower():
+        return {
+	    'msg': 'WhatsApp? I thought this MUC is about secure messengers...'
+        }
 
 @pluginfunction('latex', r'reacts on \LaTeX', ptypes.PARSE, ratelimit_class=RATE_FUN | RATE_GLOBAL)
 def parse_latex(**args):
@@ -111,7 +164,7 @@ def parse_latex(**args):
 
 @pluginfunction('me-action', 'reacts to /me.*%{bot_nickname}', ptypes.PARSE, ratelimit_class=RATE_FUN | RATE_GLOBAL)
 def parse_slash_me(**args):
-    if args['data'].lower().startswith('/me') and (config.conf_get('bot_nickname') in args['data'].lower()):
+    if args['data'].lower().startswith('/me') and (config.conf_get('bot_nickname') in args['data']):
         log.info('sent /me reply')
 
         me_replys = [

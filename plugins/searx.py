@@ -67,7 +67,7 @@ def fetch_all_searx_engines():
     )
     searxes = [str(x) for x in tree.xpath('//span[text()[contains(.,"200 - OK")]]/../..//a/text()')]
 
-    return searxes
+    return ["https://search.mdosch.de"]
 
 
 @retry(ExceptionToCheck=(RateLimitingError, json.JSONDecodeError))
@@ -96,4 +96,5 @@ def searx(text):
 
     if not response['results']:
         return
-    return [(r['content'], r['url']) for r in response['results']][0]
+    return [(r.get('content', ''), r['url']) for r in response['results']][0]
+
