@@ -1,5 +1,6 @@
 import logging
 import time
+from _ssl import SSLError
 from functools import wraps
 import json
 import requests
@@ -70,7 +71,7 @@ def fetch_all_searx_engines():
     return searxes
 
 
-@retry(ExceptionToCheck=(RateLimitingError, json.JSONDecodeError))
+@retry(ExceptionToCheck=(RateLimitingError, json.JSONDecodeError, SSLError))
 def searx(text):
     global search_list
     if not search_list:
@@ -79,11 +80,16 @@ def searx(text):
 
     url = search_list[0]
     logger.info('Currently feeding from {} (of {} in stock)'.format(url, len(search_list)))
-    response = requests.get(url, params={
-        'q': text,
-        'format': 'json',
-        'lang': 'de'
-    })
+    try:
+        response = requests.get(url, params={
+            'q': text,
+            'format': 'json',
+            'lang': 'de'
+        })
+    except SSLError:
+        search_list.pop(0)
+        raise
+
     if response.status_code == 429:
         search_list.pop(0)
         raise RateLimitingError(response=response, request=response.request)
