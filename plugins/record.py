@@ -46,7 +46,7 @@ def command_record(argv, **args):
             'msg': '%s: usage: record {user} {some message}' % args['reply_user']
         }
 
-    target_user = argv[0].lower().strip(':')
+    target_user = argv[0].lower().strip(':').strip('\u200e')
     message = '{} ({}): '.format(args['reply_user'], time.strftime('%Y-%m-%d %H:%M'))
     if argv[1] == "previous":
         prev_message_obj = args['stack'][-1]
