@@ -1,6 +1,6 @@
 import logging
 import time
-from _ssl import SSLError
+from requests.exceptions import SSLError
 from functools import wraps
 import json
 import requests
