@@ -342,9 +342,11 @@ class UrlBot(IdleBot):
         :param plugin: plugin obj
         :param msg_obj: xmpp message obj
         """
+        delay = 0.5  # s
         if 'event' in action and action["event"] is not None:
             event = action["event"]
             if 'msg' in event:
+                time.sleep(delay)
                 events.register_event(event["time"], self.send_reply, [event['msg'], msg_obj])
             elif 'command' in event:
                 command = event["command"]
@@ -362,6 +364,7 @@ class UrlBot(IdleBot):
                     )
 
         if 'msg' in action and rate_limit(RATE_CHAT | plugin.ratelimit_class):
+            time.sleep(delay)
             self.send_reply(action['msg'], msg_obj)
 
         if 'priv_msg' in action and rate_limit(RATE_CHAT | plugin.ratelimit_class):
