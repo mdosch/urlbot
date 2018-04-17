@@ -5,12 +5,16 @@ from functools import wraps
 import json
 import requests
 from lxml import etree, html
-from requests import HTTPError
+from requests import HTTPError, ConnectionError
 
 search_list = []
 
 if not hasattr(json, 'JSONDecodeError'):
     json.JSONDecodeError = ValueError
+
+class BrokenSearxError(RuntimeError):
+    def __init__(self, url, response):
+        pass
 
 class RateLimitingError(HTTPError):
     pass
@@ -61,17 +65,22 @@ def retry(ExceptionToCheck, tries=4, delay=3, backoff=2, logger=None):
 
 
 def fetch_all_searx_engines():
-    # error handling is for pussies
+    # response = requests.get("http://stats.searx.oe5tpo.com")
+    response = requests.get("https://stats.searx.xyz")
+    response.raise_for_status()
     tree = etree.XML(
-        requests.get("http://stats.searx.oe5tpo.com").content,
+        response.content,
         parser=html.HTMLParser()
     )
-    searxes = [str(x) for x in tree.xpath('//span[text()[contains(.,"200 - OK")]]/../..//a/text()')]
-
+    searxes = [str(x) for x in tree.xpath('//span[text()[contains(.,"200 - OK")]]/../..//a/text()') if str(x).startswith("http")]
+    logger = logging.getLogger(__name__)
+    logger.info("Registered {} searxes".format(len(searxes)))
+    if not searxes:
+        raise RuntimeError("not a single searx discovered... " + str(response.content))
     return searxes
 
 
-@retry(ExceptionToCheck=(RateLimitingError, json.JSONDecodeError, SSLError))
+@retry(ExceptionToCheck=(ConnectionError, BrokenSearxError, RateLimitingError, json.JSONDecodeError, SSLError), tries=10, delay=1, backoff=1.1)
 def searx(text):
     global search_list
     if not search_list:
@@ -84,7 +93,7 @@ def searx(text):
         response = requests.get(url, params={
             'q': text,
             'format': 'json',
-            'lang': 'de'
+            'lang': 'en'
         })
     except SSLError:
         search_list.pop(0)
@@ -93,6 +102,9 @@ def searx(text):
     if response.status_code == 429:
         search_list.pop(0)
         raise RateLimitingError(response=response, request=response.request)
+    elif response.status_code >= 400:
+        search_list.pop(0)
+        raise BrokenSearxError(url, response)
     try:
         response = response.json()
     except json.JSONDecodeError:
@@ -100,6 +112,6 @@ def searx(text):
         search_list.pop(0)
         raise
 
-    if not response['results']:
+    if 'results' not in response or not response['results']:
         return
-    return [(r.get('content', ''), r['url']) for r in response['results']][0]
+    return [(r.get('content', ''), r['url'], url) for r in response['results']][0]
