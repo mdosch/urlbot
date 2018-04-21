@@ -1,0 +1,195 @@
+diff --git a/README.md b/README.md
+new file mode 100644
+index 0000000..0abba49
+--- /dev/null
++++ b/README.md
+@@ -0,0 +1,6 @@
++# Urlbot
++
++## A XMPP Bot
++
++This repository is to track my (slight) changes on this bot.
++The original bot is developed by TRex in [his own repo](http://aero2k.de/t/repos/urlbot-native.git).
+diff --git a/deploy/deploy.yml b/deploy/deploy.yml
+index 4aa719b..e732096 100644
+--- a/deploy/deploy.yml
++++ b/deploy/deploy.yml
+@@ -18,7 +18,7 @@
+ - hosts: bots
+   remote_user: jabberbot
+   vars:
+-  - botrepo: http://aero2k.de/t/repos/urlbot-native.git
++  - botrepo: https://github.com/mdosch/urlbot/
+   - pypi_mirror: http://pypi.fcio.net/simple/
+   - systemd: true
+   tasks:
+diff --git a/plugins/comment_joins.py b/plugins/comment_joins.py
+index 8e47e6d..8695da3 100644
+--- a/plugins/comment_joins.py
++++ b/plugins/comment_joins.py
+@@ -17,7 +17,7 @@ comment_joins_strings = [
+ def comment_joins(**args):
+     # max elapsed time between the latest and the N latest join
+     timespan = 120
+-    max_joins = 6
++    max_joins = 100
+ 
+     current_timestamp = int(time.time())
+ 
+diff --git a/plugins/excuse.py b/plugins/excuse.py
+index 3ec2cd2..a978bb9 100644
+--- a/plugins/excuse.py
++++ b/plugins/excuse.py
+@@ -17,6 +17,7 @@ def command_excuse(argv, **args):
+ 
+ # retrieved from http://pages.cs.wisc.edu/~ballard/bofh/excuses
+ excuses = '''
++a part of these answers would unsettle the population
+ clock speed
+ solar flares
+ electromagnetic radiation from satellite debris
+diff --git a/plugins/parsers.py b/plugins/parsers.py
+index 54e56b5..a5a3aaa 100644
+--- a/plugins/parsers.py
++++ b/plugins/parsers.py
+@@ -27,14 +27,14 @@ def parse_mental_ill(**args):
+             c = 0
+         if min_ill <= c:
+             flag = True
+-            break
++#            break
+ 
+     if flag:
+         log.info('sent mental illness reply')
+         return {
+             'msg': (
+-                'Multiple exclamation/question marks are a sure sign of mental disease, with %s as a living example.' %
+-                args['reply_user']
++                '%s: And all those exclamation/question marks, you notice? %d? A sure sign of someone who wears his underpants on his head.' %
++                (args['reply_user'],c)
+             )
+         }
+ 
+@@ -47,22 +47,44 @@ def command_woof(**args):
+         }
+ 
+ 
+-@pluginfunction('debbug', 'parse Debian bug numbers', ptypes.PARSE, ratelimit_class=RATE_NO_SILENCE | RATE_GLOBAL)
+-def parse_debbug(**args):
+-    bugs = re.findall(r'#(\d{4,})', args['data'])
++@pluginfunction('convbug', 'parse Conversations bug numbers', ptypes.PARSE, ratelimit_class=RATE_NO_SILENCE | RATE_GLOBAL)
++def parse_convbug(**args):
++    bugs = re.findall(r'#(\d{1,})', args['data'])
+     if not bugs:
+         return None
+ 
+     out = []
+     for b in bugs:
+-        log.info('detected Debian bug #%s' % b)
++        log.info('detected Conversations bug #%s' % b)
++
++        url = 'https://github.com/siacs/Conversations/issues/%s' % b
++	
++        title = extract_title(url)
++
++        if title:
++            out.append('%s: %s' % (title, url))
++
++    return {
++        'msg': out
++    }
+ 
+-        url = 'https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=%s' % b
++
++@pluginfunction('xep', 'parse XEP numbers', ptypes.PARSE, ratelimit_class=RATE_NO_SILENCE | RATE_GLOBAL)
++def parse_xep(**args):
++    xepnumber = re.findall(r'XEP-(\d{4,})', args['data'].upper())
++    if not xepnumber:
++        return None
++
++    out = []
++    for i in xepnumber:
++        log.info('detected XEP number #%s' % i)
++
++        url = 'https://xmpp.org/extensions/xep-%s.html' % i
+ 
+         title = extract_title(url)
+ 
+         if title:
+-            out.append('Debian Bug: %s: %s' % (title, url))
++            out.append('%s: %s' % (title, url))
+ 
+     return {
+         'msg': out
+@@ -100,6 +122,46 @@ def parse_skynet(**args):
+             'msg': 'I\'ll be back.'
+         }
+ 
++@pluginfunction('teppich', 'parse teppich', ptypes.PARSE, ratelimit_class=RATE_FUN | RATE_GLOBAL)
++
++def parse_teppich(**args):
++    if 'teppich' in args['data'].lower():
++        return {
++            'msg': 'Well, sir, it\'s this rug I had. It really tied the room together.'
++        }
++
++@pluginfunction('klo', 'parse klo', ptypes.PARSE, ratelimit_class=RATE_FUN | RATE_GLOBAL)
++
++def parse_klo(**args):
++    if 'klo' in args['data'].lower():
++        return {
++            'msg': 'Where\'s the money Lebowski?'
++        }
++
++@pluginfunction('toilette', 'parse toilette', ptypes.PARSE, ratelimit_class=RATE_FUN | RATE_GLOBAL)
++
++def parse_toilette(**args):
++    if 'toilette' in args['data'].lower():
++        return {
++            'msg': 'Where\'s the money Lebowski?'
++        }
++
++@pluginfunction('whatsapp', 'parse whatsapp', ptypes.PARSE, ratelimit_class=RATE_FUN | RATE_GLOBAL)
++
++def parse_whatsapp(**args):
++    if 'whatsapp' in args['data'].lower():
++        return {
++	    'msg': 'WhatsApp? I thought this MUC is about secure messengers...'
++        }
++
++@pluginfunction('winter', 'parse winter', ptypes.PARSE, ratelimit_class=RATE_FUN | RATE_GLOBAL)
++
++def parse_winter(**args):
++    if 'winter' in args['data'].lower():
++        return {
++            'msg': 'Winter is coming!'
++        }
++
+ 
+ @pluginfunction('latex', r'reacts on \LaTeX', ptypes.PARSE, ratelimit_class=RATE_FUN | RATE_GLOBAL)
+ def parse_latex(**args):
+@@ -168,5 +230,5 @@ def resolve_url_title(**args):
+ def parse_doctor(**args):
+     if 'doctor' in args['data'].lower() or 'doktor' in args['data'].lower():
+         return {
+-            'msg': 'ELIMINIEREN! ELIMINIEREN!'
++            'msg': 'EXTERMINATE! EXTERMINATE!'
+         }
+diff --git a/plugins/searx.py b/plugins/searx.py
+index 426c30b..3d02a93 100644
+--- a/plugins/searx.py
++++ b/plugins/searx.py
+@@ -67,7 +67,7 @@ def fetch_all_searx_engines():
+     )
+     searxes = [str(x) for x in tree.xpath('//span[text()[contains(.,"200 - OK")]]/../..//a/text()')]
+ 
+-    return searxes
++    return ["https://search.mdosch.de"]
+ 
+ 
+ @retry(ExceptionToCheck=(RateLimitingError, json.JSONDecodeError))
+@@ -97,3 +97,4 @@ def searx(text):
+     if not response['results']:
+         return
+     return [(r.get('content', ''), r['url']) for r in response['results']][0]
++

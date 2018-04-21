@@ -17,7 +17,11 @@ def command_excuse(argv, **args):
 
 # retrieved from http://pages.cs.wisc.edu/~ballard/bofh/excuses
 excuses = '''
+<<<<<<< HEAD
 a part of these answers would unsettle the population
+=======
+rapid unscheduled disassembly of engine core
+>>>>>>> c2c31d2... add excuse
 clock speed
 solar flares
 electromagnetic radiation from satellite debris
