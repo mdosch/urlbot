@@ -411,9 +411,24 @@ def command_xchoose(argv, **args):
         }
 
 
+@pluginfunction('sudo', 'do what I say', ptypes.COMMAND, ratelimit_class=RATE_INTERACTIVE)
+def command_sudo(argv, **args):
+    message = "{} is not in the sudoers file.  This incident will be reported."
+    sudoers = config.runtime_config_store.get('sudoers', [])
+    if args['reply_user'] not in sudoers:
+        return {
+            'msg': message.format(args['reply_user'])
+        }
+
+    argv.remove("choose")
+    return command_choose(argv, sudo=True, **args)
+
+
 @pluginfunction('choose', 'chooses randomly between arguments', ptypes.COMMAND, ratelimit_class=RATE_INTERACTIVE)
 def command_choose(argv, **args):
     alternatives = argv
+    sudo = args.get('sudo', False)
+    log.debug("Alternatives: %s", str(alternatives))
     binary = (
         (('Yes.', 'Yeah!', 'Ok!', 'Aye!', 'Great!'), 4),
         (('No.', 'Naah..', 'Meh.', 'Nay.', 'You stupid?'), 4),
@@ -429,10 +444,16 @@ def command_choose(argv, **args):
                 return c
             upto += w
 
+    def binary_choice(sudo=False):
+        if sudo:
+            return 'Yes, Master.'
+        else:
+            return random.choice(weighted_choice(binary))
+
     # single or no choice
     if len(alternatives) < 2:
         return {
-            'msg': '{}: {}'.format(args['reply_user'], random.choice(weighted_choice(binary)))
+            'msg': '{}: {}'.format(args['reply_user'], binary_choice(sudo=sudo))
         }
     elif 'choose' not in alternatives:
         choice = random.choice(alternatives)
@@ -447,14 +468,14 @@ def command_choose(argv, **args):
         for item in options:
             if item == 'choose':
                 if len(current_choices) < 2:
-                    responses.append(random.choice(weighted_choice(binary)))
+                    responses.append(binary_choice(sudo=sudo))
                 else:
                     responses.append(random.choice(current_choices))
                 current_choices = []
             else:
                 current_choices.append(item)
         if len(current_choices) < 2:
-            responses.append(random.choice(weighted_choice(binary)))
+            responses.append(binary_choice(sudo=sudo))
         else:
             responses.append(random.choice(current_choices))
         return responses
