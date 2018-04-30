@@ -197,7 +197,7 @@ class UrlBot(IdleBot):
             # self.data_parse_forum_thread(msg_obj)
             # self.data_parse_forum_post(msg_obj)
 
-            if (msg_obj['body'].startswith(config.conf_get('bot_nickname')) and not any(
+            if (self.talked_to_me(msg_obj['body']) and not any(
                     [reacted_on_command, reacted_on_parse]) and rate_limit(RATE_GLOBAL)):
                 ret = else_command({'reply_user': get_nick_from_object(msg_obj)})
                 if ret:
@@ -252,7 +252,7 @@ class UrlBot(IdleBot):
             return None
 
         # only reply if beginning of the text matches bot_nickname or it's a private session.
-        if msg_obj['type'] == 'groupchat' and not data.startswith(config.conf_get('bot_nickname')):
+        if msg_obj['type'] == 'groupchat' and not self.talked_to_me(data):
             return None
 
         if 'hangup' in data:

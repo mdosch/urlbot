@@ -34,6 +34,9 @@ class IdleBot(ClientXMPP):
         for room in self.rooms:
             self.add_event_handler('muc::%s::got_offline' % room, self.muc_offline)
 
+    def talked_to_me(self, text):
+        return text[:len(self.nick)].lower() == self.nick.lower()
+
     def disconnected(self, _):
         self.logger.warn("Disconnected! dbg: {}".format(str(_)))
         self.disconnect(wait=True)
@@ -60,7 +63,7 @@ class IdleBot(ClientXMPP):
         # don't talk to yourself
         if msg_obj['mucnick'] == self.nick or 'groupchat' != msg_obj['type']:
             return False
-        elif msg_obj['body'].startswith(config.conf_get('bot_nickname')) and 'hangup' in msg_obj['body']:
+        elif self.talked_to_me(msg_obj['body']) and 'hangup' in msg_obj['body']:
             self.logger.warn("got 'hangup' from '%s': '%s'" % (
                 msg_obj['mucnick'], msg_obj['body']
             ))
