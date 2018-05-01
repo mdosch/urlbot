@@ -941,14 +941,14 @@ def search_the_web(argv, **args):
     if not result:
         return {'msg': 'Sorry, no results.'}
     else:
-        abstract, url = result
+        abstract, url, provider = result
 
     if len(abstract) > 150:
         suffix = '…'
     else:
         suffix = ''
     return {
-        'msg': '{}{} ({})'.format(abstract[:150], suffix, url)
+        'msg': '{}{} ({}) - powered by {}'.format(abstract[:150], suffix, url, provider)
     }
     pass
 
